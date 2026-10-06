@@ -20,10 +20,10 @@ export default function FractionsPage() {
 
   return (
     <div className="stack">
-      <div>
+      <div className="intro">
         <p className="eyebrow">Concrete → Pictorial → Abstract</p>
         <h2>Fractions & decimals</h2>
-        <p className="muted" style={{ marginTop: 6, maxWidth: "65ch" }}>
+        <p className="muted">
           Every fraction is a bar cut into equal parts. Cut the parts again and you get equivalent fractions; cut two bars the same way and you can add them. Decimals are tenths and hundredths of the same bar. Each topic shows a worked example, then you practise 10 questions.
         </p>
       </div>

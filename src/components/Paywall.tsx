@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { CrownIcon } from "./Icons";
 import type { PlanInfo } from "./usePlan";
 
 export function Paywall({ plan, onClose, onUnlocked }: { plan: PlanInfo | null; onClose: () => void; onUnlocked: () => void }) {
@@ -32,7 +33,7 @@ export function Paywall({ plan, onClose, onUnlocked }: { plan: PlanInfo | null; 
   return (
     <div className="modal" role="dialog" aria-modal="true" aria-label="Family plan" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="panel">
-        <p className="eyebrow">Family plan</p>
+        <span className="tag paid"><span className="lock"><CrownIcon />Family plan</span></span>
         <p className="price">
           $7.99<small> / month</small>
         </p>

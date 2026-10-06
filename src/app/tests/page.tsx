@@ -32,11 +32,11 @@ export default function TestsPage() {
 
   return (
     <div className="stack">
-      <div>
+      <div className="intro">
         <p className="eyebrow">Two free · six with Family plan</p>
         <h2>Practice tests</h2>
         {placement && (
-          <p className="muted" style={{ marginTop: 6 }}>
+          <p className="muted">
             Last placement: <b>Grade {placement}</b>.
           </p>
         )}
