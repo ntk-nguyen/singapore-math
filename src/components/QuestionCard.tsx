@@ -47,11 +47,11 @@ export function QuestionCard({
         Grade {q.grade} · CCSS {q.std}
       </span>
       <p className="qtext">{q.text}</p>
-      {(q.model || q.method) && (showModel ? (
-        q.method ? <MethodView method={q.method} /> : <BarModel spec={q.model!} />
+      {(q.model || q.method || q.steps) && (showModel ? (
+        <Solution q={q} />
       ) : (
         <button className="btn ghost self-start" onClick={() => setShowModel(true)}>
-          {q.method ? "Show me how" : "Show me the bar model"}
+          {q.method || q.steps ? "Show me how" : "Show me the bar model"}
         </button>
       ))}
       <div className="choices">
@@ -66,5 +66,20 @@ export function QuestionCard({
       </p>
       {chosen && children}
     </div>
+  );
+}
+
+/** The worked solution: a step-through method, or a bar model with written steps. */
+export function Solution({ q }: { q: Question }) {
+  if (q.method) return <MethodView method={q.method} />;
+  return (
+    <>
+      {q.model && <BarModel spec={q.model} />}
+      {q.steps && (
+        <ol className="steps">
+          {q.steps.map((s, i) => <li key={i}>{s}</li>)}
+        </ol>
+      )}
+    </>
   );
 }

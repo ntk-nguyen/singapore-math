@@ -13,9 +13,11 @@ interface Progress {
   best: Record<string, number>;
   placement: Grade | null;
   lessons: string[];
+  /** Times-table fact mastery (0–3), keyed like "7x8". */
+  facts: Record<string, number>;
 }
 
-const DEFAULTS: Progress = { grade: 3, stars: 0, best: {}, placement: null, lessons: [] };
+const DEFAULTS: Progress = { grade: 3, stars: 0, best: {}, placement: null, lessons: [], facts: {} };
 const KEY = "bma-progress";
 
 interface Ctx extends Progress {
@@ -26,6 +28,7 @@ interface Ctx extends Progress {
   recordBest: (testId: string, pct: number) => void;
   setPlacement: (g: Grade) => void;
   completeLesson: (id: string) => boolean;
+  setFact: (key: string, mastery: number) => void;
 }
 
 const ProgressContext = createContext<Ctx | null>(null);
@@ -41,6 +44,7 @@ function load(): Progress {
       best: p.best && typeof p.best === "object" ? p.best : {},
       placement: isGrade(p.placement) ? p.placement : null,
       lessons: Array.isArray(p.lessons) ? p.lessons : [],
+      facts: p.facts && typeof p.facts === "object" ? p.facts : {},
     };
   } catch {
     return DEFAULTS;
@@ -83,9 +87,14 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     [state.lessons],
   );
 
+  const setFact = useCallback(
+    (key: string, mastery: number) => setState((s) => ({ ...s, facts: { ...s.facts, [key]: mastery } })),
+    [],
+  );
+
   const value = useMemo(
-    () => ({ ...state, ready: loaded, setGrade, addStars, recordBest, setPlacement, completeLesson }),
-    [state, loaded, setGrade, addStars, recordBest, setPlacement, completeLesson],
+    () => ({ ...state, ready: loaded, setGrade, addStars, recordBest, setPlacement, completeLesson, setFact }),
+    [state, loaded, setGrade, addStars, recordBest, setPlacement, completeLesson, setFact],
   );
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>;
 }

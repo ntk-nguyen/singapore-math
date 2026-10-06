@@ -26,6 +26,8 @@ export interface Question {
   model?: BarModelSpec;
   /** Worked method (place-value discs, area model, long division) shown on "Show me how". */
   method?: Method;
+  /** Worked solution, shown with the bar model on "Show me how". */
+  steps?: string[];
 }
 
 export const NAMES = ["Mei", "Arjun", "Sofia", "Wei Ling", "Diego", "Aisha", "Ben", "Priya", "Kenji", "Zara", "Omar", "Lucy"];
@@ -74,6 +76,11 @@ function distractors(a: RawAnswer, kind: AnswerKind, r: Rng): string[] {
     }
   }
   return shuffle([...out]);
+}
+
+/** Four shuffled answer choices for a whole-number or money answer, including the answer itself. */
+export function numberChoices(answer: number, r: Rng, kind: "int" | "money" = "int"): string[] {
+  return distractors(answer, kind, r);
 }
 
 type Gen = (h: ReturnType<typeof helpers>) => RawQuestion;

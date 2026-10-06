@@ -177,3 +177,18 @@ footer.foot { max-width: 980px; margin: 0 auto; padding: 0 16px 32px; font-size:
 .acell { min-height: 56px; display: grid; place-items: center; border-radius: 8px; font: 700 1rem var(--display); border: 2px dashed var(--unknown); color: var(--muted); }
 .acell.on { background: var(--bar-b); border: 2px solid var(--surface); color: #fff; }
 .acell.focus { background: var(--bar-c); color: #2a2000; }
+.steps { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 4px; font-weight: 600; }
+
+/* times tables */
+.ttgrid { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 2px; max-width: 640px; }
+.tth { font: 700 0.8rem var(--display); color: var(--muted); display: grid; place-items: center; }
+.ttc { font: 700 0.78rem var(--body); aspect-ratio: 1; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); color: var(--ink); cursor: pointer; padding: 0; min-width: 0; }
+.ttc.m1, .ttkey.m1 { background: color-mix(in srgb, var(--bar-c) 45%, var(--surface)); }
+.ttc.m3, .ttkey.m3 { background: var(--bar-b); color: #fff; }
+.ttc.line { outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.ttc.sel { background: var(--accent); color: var(--accent-ink); }
+.ttkey { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--line); background: var(--surface); }
+.sprint { display: flex; flex-direction: column; gap: 12px; }
+.sprintq { display: flex; align-items: center; gap: 12px; font: 800 2.4rem var(--display); }
+.sprintq input { width: 3.2em; font: 800 2.4rem var(--display); text-align: center; }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 320px; }
