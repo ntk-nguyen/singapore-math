@@ -95,7 +95,7 @@ export function gradeCatalog(grade: Grade): Domain[] {
       blurb: "Graphs, chance, logic and checking answers.",
       seeAll: { href: "/thinking", label: "All data & thinking" },
       items: THINKING_TOPICS.filter((t) => t.grade === grade).map((t) => ({
-        // Locked topics go to the page that offers the Family plan.
+        // Locked topics go to the page that offers the Pro plan.
         href: isFreeTopic(t) ? `/thinking/${t.id}` : "/thinking", title: t.title, blurb: t.blurb, bestKey: `dt-${t.id}`, free: isFreeTopic(t),
       })),
     },
