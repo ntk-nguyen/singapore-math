@@ -5,6 +5,7 @@ import { confetti } from "@/components/Confetti";
 import { useProgress } from "@/components/Progress";
 import { QuestionCard } from "@/components/QuestionCard";
 import { makeQuestion, type Grade, type Question } from "@/lib/questions";
+import { vary } from "@/lib/formats";
 import { noRepeats } from "@/lib/templates";
 
 const ROUND = 10;
@@ -17,7 +18,7 @@ export default function PlayPage() {
 function Round({ grade }: { grade: Grade }) {
   const { addStars } = useProgress();
   // Never the same question twice while this grade is open.
-  const [fresh] = useState(() => noRepeats(() => makeQuestion(grade, Math.random)));
+  const [fresh] = useState(() => noRepeats(() => vary(makeQuestion(grade, Math.random), Math.random)));
   const [q, setQ] = useState<Question | null>(null);
   const [done, setDone] = useState(0);
   const [right, setRight] = useState(0);

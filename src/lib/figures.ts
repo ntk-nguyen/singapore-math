@@ -11,5 +11,7 @@ export type Figure =
   /** Line plot: `counts[i]` dots above the value `start + i`. */
   | { t: "dots"; title: string; start: number; counts: number[]; unit: string }
   | { t: "table"; head: string[]; rows: (string | number)[][] }
+  /** Number line: evenly spaced ticks (blank labels allowed) with an arrow at tick `arrow`. */
+  | { t: "line"; ticks: string[]; arrow: number }
   /** A short program in plain words, one line each. Indent with two spaces. */
   | { t: "code"; lines: string[] };

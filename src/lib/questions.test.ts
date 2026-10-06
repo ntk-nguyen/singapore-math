@@ -1,17 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { GRADES, generatorCount, makeQuestion } from "./questions";
 import { seeded } from "./rng";
+import { checkQuestion } from "./templates";
 
 describe("question bank", () => {
-  it.each(GRADES)("grade %i: every generator gives four distinct choices including the answer", (grade) => {
+  it.each(GRADES)("grade %i: every template makes valid questions", (grade) => {
     const r = seeded(grade * 7919);
     for (let i = 0; i < 400; i++) {
       const q = makeQuestion(grade, r, i);
-      expect(q.choices).toHaveLength(4);
-      expect(new Set(q.choices).size).toBe(4);
-      expect(q.choices).toContain(q.answer);
+      expect(checkQuestion(q, { negatives: grade >= 6 })).toEqual([]);
       expect(q.grade).toBe(grade);
-      expect(q.text).not.toMatch(/undefined|NaN/);
     }
   });
 

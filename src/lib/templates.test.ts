@@ -36,8 +36,10 @@ describe("template library", () => {
       const keys = new Set<string>();
       let twoReal = 0;
       for (let i = 0; i < DRAWS; i++) {
-        const { question: q, real, negatives } = render(t, r, tier);
-        expect(checkQuestion(q, { negatives }), `${q.text} :: ${q.choices.join(", ")}`).toEqual([]);
+        const { question: q, negatives, real: fromMistakes } = render(t, r, tier);
+        // "Put in order" has no wrong answers to choose from.
+        const real = q.format === "order" ? 3 : fromMistakes;
+        expect(checkQuestion(q, { negatives }), `${q.text} :: ${q.choices.join(", ")}${q.items?.join(", ") ?? ""}`).toEqual([]);
         expect(real, q.text).toBeGreaterThanOrEqual(1);
         if (real >= 2) twoReal++;
         keys.add(questionKey(q));

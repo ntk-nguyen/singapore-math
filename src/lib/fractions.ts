@@ -531,7 +531,11 @@ export function fractionQuestion(topic: FracTopic, r: Rng): Question {
   const m = topic.make(h);
   let choices: string[];
   if (m.choices) {
-    choices = [m.answer, ...m.choices.filter((c) => c !== m.answer)].filter((c, i, a) => a.indexOf(c) === i && !/\/0$/.test(c)).slice(0, 4);
+    // No two choices with the same value, so there is exactly one right answer.
+    const seen = new Set<number>();
+    choices = [m.answer, ...m.choices.filter((c) => c !== m.answer)]
+      .filter((c) => !/\/0$/.test(c) && !seen.has(valueOf(c)) && !!seen.add(valueOf(c)))
+      .slice(0, 4);
   } else {
     const v = valueOf(m.answer);
     const seen = new Set([v]);

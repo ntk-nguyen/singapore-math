@@ -10,6 +10,14 @@ export { NAMES } from "./templates";
 export type Grade = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 export const GRADES: Grade[] = [1, 2, 3, 4, 5, 6, 7, 8];
 
+/**
+ * How a question is asked. Plain multiple choice when omitted. The answer is typed for
+ * "typein" and "blank", tapped in sequence for "order", and chosen for everything else.
+ */
+export type Format =
+  | "choice" | "typein" | "blank" | "truefalse" | "mistake" | "estimate" | "model"
+  | "graph" | "numberline" | "oddone" | "order" | "balance";
+
 export interface Question {
   grade: Grade;
   text: string;
@@ -23,6 +31,15 @@ export interface Question {
   steps?: string[];
   /** A graph, table or program the question is about, always shown. */
   figure?: Figure;
+  format?: Format;
+  /** A second line under the question, like "Mia says the answer is 42. True or false?" */
+  ask?: string;
+  /** For "order": the items to put in order. The answer lists them in order, joined by ", ". */
+  items?: string[];
+  /** Wrong answers and the mistake each comes from (for "find the mistake"). */
+  mistakes?: { answer: string; why: string }[];
+  /** Shown after answering, e.g. the real answer behind a true/false. */
+  explain?: string;
 }
 
 /** Common Core code of each quick-fire template at a grade, in template order. */

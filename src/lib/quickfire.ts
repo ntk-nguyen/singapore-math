@@ -72,6 +72,22 @@ const G1: Template[] = [
     return { text: `It is ${h} o'clock. What hour will it be ${k} hours from now?`, answer: h + k,
       mistakes: [m(Math.abs(h - k) || h + k + 2, "counted back"), m(k, "gave the number of hours"), m(h + k + 1, "counted the start hour too")] };
   }),
+  T("q1-numline", 1, "1.NBT.A.1", ({ ri, pick }) => {
+    const start = 10 * ri(0, 8), k = pick([1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19]), n = start + k;
+    return { text: "What number is the arrow pointing to?", answer: n, format: "numberline",
+      figure: { t: "line", ticks: Array.from({ length: 21 }, (_, i) => (i % 5 === 0 ? String(start + i) : "")), arrow: k },
+      mistakes: [m(n + 1, "counted one tick too many"), m(n - 1, "counted one tick too few"), m(start + 5 * Math.round(k / 5), "read the nearest label")] };
+  }),
+  T("q1-balance", 1, "1.OA.D.7", ({ ri }) => {
+    const a = ri(4, 10), b = ri(3, 9), cc = ri(2, a + b - 2);
+    return { text: `${a} + ${b} = ${cc} + ?`, ask: "What number makes both sides equal?", answer: a + b - cc, format: "balance",
+      mistakes: [m(a + b, "wrote the total of the left side"), m(a + b + cc, "added all three numbers"), m(a + b - cc + 1, "counted on one too many")] };
+  }),
+  T("q1-blank", 1, "1.NBT.B.2", ({ ri }) => {
+    const tens = ri(1, 9), ones = ri(0, 9), n = 10 * tens + ones;
+    return { text: `Fill in the blank: ___ tens and ${ones} ones make ${n}.`, answer: tens, format: "blank",
+      mistakes: [m(n, "wrote the whole number"), m(10 * tens, "wrote the value of the tens"), m(ones || tens + 1, "wrote the ones")] };
+  }),
 ];
 
 const G2: Template[] = [
@@ -125,6 +141,30 @@ const G2: Template[] = [
     const [p, q] = [c.name(), c.name()], a = c.ri(15, 40), b = c.ri(15, 40), d = c.ri(10, a + b - 5);
     return { text: `${p} read ${a} pages on Monday and ${b} pages on Tuesday. ${q} read ${d} pages. How many more pages did ${p} read than ${q}?`, answer: a + b - d,
       mistakes: [m(a + b + d, "added all three"), m(a + b, `gave ${p}'s total`), m(Math.abs(a - d), "forgot Tuesday")] };
+  }),
+  T("q2-order", 2, "2.NBT.A.4", ({ ri, shuffle }) => {
+    const h = ri(1, 9), ds = shuffle([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 3);
+    const nums = new Set<number>();
+    while (nums.size < 4) {
+      const [x, y] = shuffle(ds);
+      nums.add(ri(0, 1) ? 100 * h + 10 * x + y : 100 * Math.max(1, x) + 10 * h + y);
+    }
+    const items = [...nums].sort((a, b) => a - b).map(String);
+    return { text: "Put these numbers in order from least to greatest.", answer: items.join(", "), items, format: "order", mistakes: [] };
+  }),
+  T("q2-oddone", 2, "2.NBT.B.5", ({ ri, shuffle }) => {
+    const pairs = new Set<number>();
+    while (pairs.size < 3) pairs.add(ri(11, 89));
+    const odd = ri(11, 79), off = shuffle([10, -10, 1])[0];
+    const show = (a: number, total: number) => `${a} + ${total - a}`;
+    return { text: "Which pair does not make 100?", answer: show(odd, 100 + off), format: "oddone",
+      mistakes: [...pairs].map((a) => m(show(a, 100), "makes 100")) };
+  }),
+  T("q2-numline", 2, "2.MD.B.6", ({ ri, pick }) => {
+    const start = 100 * ri(0, 8), kk = pick([1, 2, 3, 4, 6, 7, 8, 9]), n = start + 10 * kk;
+    return { text: "What number is the arrow pointing to?", answer: n, format: "numberline",
+      figure: { t: "line", ticks: Array.from({ length: 11 }, (_, i) => (i % 5 === 0 ? String(start + 10 * i) : "")), arrow: kk },
+      mistakes: [m(start + kk, "counted each jump as 1, not 10"), m(n + 10, "counted one tick too many"), m(n - 10, "counted one tick too few")] };
   }),
 ];
 
@@ -188,6 +228,28 @@ const G3: Template[] = [
     const n = c.name(), th = c.thing("collect"), p = c.ri(3, 8), k = c.ri(4, 9), g = c.ri(3, p * k - 3);
     return { text: `${n} buys ${p} packs of ${k} ${th.many}, then gives away ${g}. How many ${th.many} does ${n} have now?`, answer: p * k - g,
       mistakes: [m(p * k + g, "added the ones given away"), m(p * k, "forgot the ones given away"), m(p + k - g, "added the packs instead of multiplying")] };
+  }),
+  T("q3-numline", 3, "3.NF.A.2", ({ ri, pick }) => {
+    const d = pick([2, 3, 4, 6, 8]), n = ri(1, d - 1), w = ri(0, 2);
+    const at = (k: number) => (w ? `${w} ${frac(k, d)}` : frac(k, d)), raw = (k: number, dd = d) => (w ? `${w} ${k}/${dd}` : `${k}/${dd}`);
+    return { text: `The line from ${w} to ${w + 1} is cut into equal parts. What number is the arrow pointing to?`, answer: raw(n), format: "numberline",
+      figure: { t: "line", ticks: Array.from({ length: d + 1 }, (_, i) => (i === 0 ? String(w) : i === d ? String(w + 1) : "")), arrow: n },
+      mistakes: [m(raw(n, d + 1), "counted the tick marks, not the spaces"), m(raw(n + 1), "counted the first tick too"), m(raw(d - n), `counted back from ${w + 1}`), m(at(n).replace(/^\d+ /, ""), "forgot the whole number")] };
+  }),
+  T("q3-oddone", 3, "3.OA.C.7", ({ ri, shuffle }) => {
+    const k = ri(3, 9), ms = shuffle([2, 3, 4, 5, 6, 7, 8, 9, 10]).slice(0, 3), odd = k * ri(2, 9) + (ri(0, 1) ? 1 : -1);
+    return { text: `Which number is not in the ${k} times table?`, answer: odd, format: "oddone",
+      mistakes: ms.map((x) => m(k * x, `${k} × ${x}`)) };
+  }),
+  T("q3-balance", 3, "3.OA.B.5", ({ ri, pick }) => {
+    let cc = 0, x = 0, pairs: number[][] = [];
+    while (!pairs.length) {
+      cc = ri(2, 9); x = ri(2, 9);
+      pairs = Array.from({ length: 11 }, (_, i) => i + 2).filter((a) => (cc * x) % a === 0 && a !== cc && a !== x && (cc * x) / a >= 2 && (cc * x) / a <= 12).map((a) => [a, (cc * x) / a]);
+    }
+    const [l, rr] = pick(pairs);
+    return { text: `${l} × ${rr} = ${cc} × ?`, ask: "What number makes both sides equal?", answer: x, format: "balance",
+      mistakes: [m(l * rr, "wrote the product of the left side"), m(l * rr - cc, "subtracted instead of dividing"), m(rr, "copied a number from the left")] };
   }),
 ];
 
@@ -254,6 +316,29 @@ const G4: Template[] = [
       ? { text: `Two angles together make a right angle. One is ${a}°. How many degrees is the other?`, answer: 90 - a, mistakes: [m(180 - a, "used 180°"), m(360 - a, "used 360°"), m(a, "repeated the angle")] }
       : { text: `Two angles together make a straight line. One is ${a}°. How many degrees is the other?`, answer: 180 - a, mistakes: [m(Math.abs(90 - a), "used 90°"), m(360 - a, "used 360°"), m(a, "repeated the angle")] };
   }),
+  T("q4-numline", 4, "4.NF.C.6", ({ ri, pick }) => {
+    const w = ri(0, 9), tt = pick([1, 2, 3, 4, 6, 7, 8, 9]);
+    return { text: `The line from ${w} to ${w + 1} is cut into tenths. What decimal is the arrow pointing to?`, answer: `${w}.${tt}`, format: "numberline",
+      figure: { t: "line", ticks: Array.from({ length: 11 }, (_, i) => (i === 0 ? String(w) : i === 10 ? String(w + 1) : i === 5 ? `${w}.5` : "")), arrow: tt },
+      mistakes: [m(`${w}.0${tt}`, "read tenths as hundredths"), m(`${w}.${tt + 1}`, "counted one tick too many"), m(`${w + 1}.${tt}`, "started from the wrong whole number"), m(`${w}.${tt - 1 || 2}`, "counted one tick too few")] };
+  }),
+  T("q4-order", 4, "4.NF.C.7", ({ ri }) => {
+    const vals = new Set<number>([10 * ri(1, 9)]);
+    while (vals.size < 4) vals.add(ri(0, 1) ? 10 * ri(1, 9) : ri(11, 99));
+    const items = [...vals].sort((a, b) => a - b).map((v) => String(v / 100));
+    return { text: "Put these decimals in order from least to greatest.", answer: items.join(", "), items, format: "order", mistakes: [] };
+  }),
+  T("q4-oddone", 4, "4.NF.A.1", ({ ri, pick, shuffle }) => {
+    const d = pick([2, 3, 4, 5]), n = ri(1, d - 1), ks = shuffle([1, 2, 3, 4, 5]).slice(0, 3), j = pick([2, 3, 4].filter((x) => !ks.includes(x)).concat([6]));
+    const odd = ri(0, 1) ? `${n * j + 1}/${d * j}` : `${n * j}/${d * j + 1}`;
+    return { text: "Which fraction is not equal to the others?", answer: odd, format: "oddone",
+      mistakes: ks.map((k) => m(`${n * k}/${d * k}`, `equal to ${n}/${d}`)) };
+  }),
+  T("q4-blank", 4, "4.NBT.A.1", ({ shuffle, ri }) => {
+    const ds = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 4), n = Number(ds.join("")), i = ri(0, 3), place = 10 ** (3 - i);
+    return { text: `Fill in the blank: in ${n.toLocaleString("en-US")}, the digit ${ds[i]} is worth ___.`, answer: ds[i] * place, format: "blank",
+      mistakes: [m(ds[i], "wrote the digit, not its value"), m(ds[i] * place * 10, "one place too far left"), m(place, "wrote the place, not the value")] };
+  }),
 ];
 
 const G5: Template[] = [
@@ -316,6 +401,26 @@ const G5: Template[] = [
     const l = ri(3, 10), w = ri(2, 8), h = ri(2, 9), V = l * w * h;
     return { text: `A box has a volume of ${V} cm³. It is ${l} cm long and ${w} cm wide. How high is it in cm?`, answer: h,
       mistakes: [m(V - l - w, "subtracted"), m(l * w, "found the base area"), m(V / l, "divided by one side only")] };
+  }),
+  T("q5-order-dec", 5, "5.NBT.A.3b", ({ shuffle, pick }) => {
+    const ds = shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9]).slice(0, 2), [a, b] = ds;
+    const pool = pick([[`0.${a}${b}`, `0.${b}${a}`, `0.${a}0${b}`, `0.0${a}${b}`], [`0.${a}`, `0.${b}${a}`, `0.${a}${b}${a}`, `0.0${b}`], [`${a}.${b}`, `${a}.0${b}`, `${b}.${a}`, `${a}.${b}${b}`]]);
+    const items = [...new Set(pool)].sort((x, y) => Number(x) - Number(y));
+    return { text: "Put these decimals in order from least to greatest.", answer: items.join(", "), items, format: "order", mistakes: [] };
+  }),
+  T("q5-blank", 5, "5.NBT.A.3a", ({ ri }) => {
+    const t = ri(1, 9), h = ri(1, 9), w = ri(0, 9);
+    return { text: `Fill in the blank: ${w}.${t}${h} = ${w} + ${t}/10 + ___/100.`, answer: h, format: "blank",
+      mistakes: [m(10 * t + h, "wrote all the hundredths"), m(t, "wrote the tenths digit"), m(h * 10, "wrote the digit as tens")] };
+  }),
+  T("q5-oddone", 5, "5.NBT.A.3a", ({ ri, pick, shuffle }) => {
+    const d = pick([2, 4, 5, 8, 10, 20, 25]);
+    let n = ri(1, d - 1);
+    while (gcd(n, d) !== 1) n = ri(1, d - 1);
+    const dec = String(n / d), ks = shuffle([2, 3, 4, 5, 10]).slice(0, 2);
+    const same = shuffle([`${n}/${d}`, dec, ...ks.map((k) => `${n * k}/${d * k}`)]).slice(0, 3);
+    const odd = pick([String(+(n / d / 10).toFixed(4)), `${n}/${d + 1}`, `${n + 1}/${d}`, String(+(n / d + 0.1).toFixed(3))]);
+    return { text: "Which is not equal to the others?", answer: odd, format: "oddone", mistakes: same.map((x) => m(x, `equal to ${n}/${d}`)) };
   }),
 ];
 
@@ -383,6 +488,26 @@ const G6: Template[] = [
     return { text: `There are ${n} students in a grade and ${p}% of them ${what}. How many students is that?`, answer: (p * n) / 100, form: "dec",
       mistakes: [m(n - (p * n) / 100, "found the students who don't"), m(p, "gave the percent"), m((p * n) / 10, "divided by 10, not 100")] };
   }),
+  T("q6-numline", 6, "6.NS.C.6c", ({ ri, pick }) => {
+    const step = pick([1, 2, 5]), start = -step * ri(5, 10), k = pick([1, 2, 3, 4, 6, 7, 8, 9]), v = start + k * step;
+    const lbl = (x: number) => (x < 0 ? `−${-x}` : String(x));
+    return { text: "What number is the arrow pointing to?", answer: v, negatives: true, format: "numberline",
+      figure: { t: "line", ticks: Array.from({ length: 11 }, (_, i) => (i % 5 === 0 ? lbl(start + i * step) : "")), arrow: k },
+      mistakes: [m(-v || step, "dropped the minus sign"), m(start + k, "counted each jump as 1"), m(v + step, "counted one tick too many"), m(v - step, "counted one tick too few")] };
+  }),
+  T("q6-oddone", 6, "6.RP.A.3a", ({ ri, pick, shuffle }) => {
+    let a = ri(1, 5), b = ri(2, 7);
+    while (gcd(a, b) !== 1 || a === b) { a = ri(1, 5); b = ri(2, 7); }
+    const ks = shuffle([1, 2, 3, 4, 5, 6]).slice(0, 3), j = pick([2, 3, 4]);
+    const odd = ri(0, 1) ? `${b * j} : ${a * j}` : `${a * j + 1} : ${b * j}`;
+    return { text: "Which ratio is not equivalent to the others?", answer: odd, format: "oddone",
+      mistakes: ks.map((k) => m(`${a * k} : ${b * k}`, "equivalent")) };
+  }),
+  T("q6-balance", 6, "6.NS.B.4", ({ ri }) => {
+    const k = ri(2, 9), a = ri(2, 9), b = ri(2, 9);
+    return { text: `${k} × ${a} + ${k} × ${b} = ${k} × ?`, ask: "What number makes both sides equal?", answer: a + b, format: "balance",
+      mistakes: [m(a * b, "multiplied the numbers in the brackets"), m(k * (a + b), "worked out the whole left side"), m(a + b + k, "added everything")] };
+  }),
 ];
 
 const G7: Template[] = [
@@ -445,6 +570,35 @@ const G7: Template[] = [
     return { text: `${n} has $${start}, buys ${k} ${th.many} at $${p} each, then earns $${g}. How much money does ${n} have now?`, answer: start - k * p + g, form: "money",
       mistakes: [m(start - k * p - g, "took the earnings away"), m(start - p + g, "paid for one only"), m(start + k * p + g, "added the cost")] };
   }),
+  T("q7-order", 7, "7.NS.A.1", ({ ri }) => {
+    const vals = new Set<number>();
+    while (vals.size < 4) vals.add(ri(0, 2) ? ri(-15, 15) : ri(-15, 15) + 0.5);
+    const items = [...vals].sort((a, b) => a - b).map(String);
+    return { text: "Put these numbers in order from least to greatest.", answer: items.join(", "), items, format: "order", negatives: true, mistakes: [] };
+  }),
+  T("q7-oddone", 7, "7.EE.A.1", ({ ri, shuffle }) => {
+    const a = ri(2, 9), b = ri(2, 9), forms = shuffle([`${a}x + ${a * b}`, `${a * b} + ${a}x`, `${a}(x + ${b})`, `${a}(${b} + x)`]).slice(0, 3);
+    const odd = shuffle([`${a}x + ${b}`, `x + ${a * b}`, `${a + b}x`])[0];
+    return { text: "Which expression is not equal to the others?", answer: odd, format: "oddone", mistakes: forms.map((f) => m(f, "equal")) };
+  }),
+  T("q7-numline", 7, "7.NS.A.1", ({ ri, pick }) => {
+    const [d, name] = pick([[2, "halves"], [4, "quarters"], [5, "fifths"], [10, "tenths"]] as const), lo = -ri(1, 3);
+    const k = pick(Array.from({ length: 2 * d - 1 }, (_, i) => i + 1).filter((i) => i % d !== 0));
+    const at = (num: number) => String(+(num / d).toFixed(2)), v = lo * d + k;
+    return { text: `The number line is marked in ${name}. What number is the arrow pointing to?`, answer: at(v), negatives: true, format: "numberline",
+      figure: { t: "line", ticks: Array.from({ length: 2 * d + 1 }, (_, i) => (i % d === 0 ? String(lo + i / d).replace("-", "−") : "")), arrow: k },
+      mistakes: [m(at(-v), "dropped the minus sign"), m(at(v + 1), "counted one tick too many"), m(at(v - 1), "counted one tick too few"), m(at(v + d), "counted from the wrong whole number")] };
+  }),
+  T("q7-balance", 7, "7.EE.A.1", ({ ri }) => {
+    const a = ri(2, 9), b = ri(2, 12);
+    return { text: `${a}(x + ${b}) = ${a}x + ?`, ask: "What number makes both sides equal for every x?", answer: a * b, format: "balance",
+      mistakes: [m(b, "only multiplied the x"), m(a + b, "added instead of multiplying"), m(a * b + a, "multiplied the x term in too")] };
+  }),
+  T("q7-blank", 7, "7.RP.A.2", (c) => {
+    const k = c.ri(2, 9), unit = c.pick([2, 3, 4, 5, 6]), n = c.ri(7, 20), th = c.thing("school");
+    return { text: `Fill in the blank: if ${k} ${th.many} cost $${k * unit}, then ${n} ${th.many} cost $___.`, answer: n * unit, format: "blank",
+      mistakes: [m(k * unit + (n - k), "added the extra items as dollars"), m(n * k * unit, "multiplied by the total cost"), m(unit, "wrote the price of one")] };
+  }),
 ];
 
 const G8: Template[] = [
@@ -500,6 +654,47 @@ const G8: Template[] = [
     const pt = (x: number, y: number) => `(${x}, ${y})`.replace(/-/g, "−");
     return { text: `How far apart are the points ${pt(x1, y1)} and ${pt(x1 + p, y1 + q)}?`, answer: h, negatives: true,
       mistakes: [m(p + q, "added the across and up distances"), m(p * p + q * q, "forgot the square root"), m(Math.abs(p - q), "subtracted the distances")] };
+  }),
+  T("q8-order", 8, "8.NS.A.2", ({ ri }) => {
+    const vals = new Map<string, number>();
+    while (vals.size < 4) {
+      const kind = ri(0, 2);
+      if (kind === 0) { const n = ri(2, 99); if (Math.sqrt(n) % 1) vals.set(`√${n}`, Math.sqrt(n)); }
+      else if (kind === 1) { const n = ri(1, 9); vals.set(String(n), n); }
+      else { const n = ri(11, 99) / 10; if (n % 1) vals.set(String(n), n); }
+    }
+    const sorted = [...vals].sort((a, b) => a[1] - b[1]);
+    if (sorted.some((x, i) => i && Math.abs(x[1] - sorted[i - 1][1]) < 0.05)) return { text: "Put these numbers in order from least to greatest.", answer: "√2, 2, √5, 2.5", items: ["√2", "2", "√5", "2.5"], format: "order", mistakes: [] };
+    const items = sorted.map(([s]) => s);
+    return { text: "Put these numbers in order from least to greatest.", answer: items.join(", "), items, format: "order", mistakes: [] };
+  }),
+  T("q8-oddone", 8, "8.EE.A.1", ({ pick, shuffle }) => {
+    const [a, e] = pick([[2, 6], [2, 4], [3, 4], [2, 8], [3, 6], [5, 4], [10, 6]] as const);
+    const forms = shuffle([`${a}^${e - 2} × ${a}^2`, `(${a}^2)^${e / 2}`, `${a}^${e + 1} ÷ ${a}`, `${(a ** e).toLocaleString("en-US")}`]).slice(0, 3);
+    const odd = shuffle([`${a}^${e - 2} × ${a}^3`, `${a * e}`, `${a}^${e / 2} × ${a}^${e / 2 + 1}`, `(${a}^2)^${e}`])[0];
+    return { text: `Which is not equal to ${a}^${e}?`, answer: odd, format: "oddone", mistakes: forms.map((f) => m(f, "equal")) };
+  }),
+  T("q8-balance", 8, "8.EE.A.1", ({ ri, pick }) => {
+    const base = pick([2, 3, 5, 10]), a = ri(2, 6), b = ri(2, 6);
+    return { text: `${base}^${a} × ${base}^? = ${base}^${a + b}`, ask: "What exponent makes both sides equal?", answer: b, format: "balance",
+      mistakes: [m(a + b, "copied the exponent on the right"), m(Math.abs(a * b - a) || a + 1, "multiplied the exponents"), m((a + b) / a, "divided the exponents")] };
+  }),
+  T("q8-blank", 8, "8.EE.A.4", ({ ri }) => {
+    const d = ri(11, 99), e = ri(3, 8), n = d * 10 ** (e - 1);
+    return { text: `Fill in the blank: ${n.toLocaleString("en-US")} = ${(d / 10).toFixed(1)} × 10^___`, answer: e, format: "blank",
+      mistakes: [m(e + 1, "counted every digit"), m(e - 1, "counted the zeros only"), m(String(n).length, "counted the digits")] };
+  }),
+  T("q8-numline", 8, "8.NS.A.2", ({ ri }) => {
+    const w = ri(1, 8), roots = Array.from({ length: (w + 1) ** 2 - w * w - 1 }, (_, i) => w * w + 1 + i);
+    const target = roots[ri(0, roots.length - 1)], at = Math.round((Math.sqrt(target) - w) * 10);
+    const others = roots.filter((x) => Math.abs(Math.sqrt(x) - Math.sqrt(target)) >= 0.15);
+    if (at <= 0 || at >= 10 || others.length < 3) return { text: "Which number is the arrow pointing to?", answer: `${w}.5`, format: "numberline",
+      figure: { t: "line", ticks: Array.from({ length: 11 }, (_, i) => (i === 0 ? String(w) : i === 10 ? String(w + 1) : "")), arrow: 5 },
+      mistakes: [m(`${w}.4`, "counted one tick too few"), m(`${w}.6`, "counted one tick too many"), m(`${w + 1}.5`, "started from the wrong whole number")] };
+    const pickOthers = [others[0], others[Math.floor(others.length / 2)], others[others.length - 1]];
+    return { text: "The arrow is at a square root. Which one is closest?", answer: `√${target}`, format: "numberline",
+      figure: { t: "line", ticks: Array.from({ length: 11 }, (_, i) => (i === 0 ? String(w) : i === 10 ? String(w + 1) : "")), arrow: at },
+      mistakes: [...new Set(pickOthers)].map((x) => m(`√${x}`, "estimated the square root too far off")) };
   }),
 ];
 

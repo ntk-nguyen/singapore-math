@@ -9,6 +9,7 @@ import { QuestionCard } from "@/components/QuestionCard";
 import { Results, type Answered } from "@/components/Results";
 import { placementResult, recordAnswer, startPlacement, type PlacementState } from "@/lib/placement";
 import { makeQuestion, type Grade, type Question } from "@/lib/questions";
+import { vary } from "@/lib/formats";
 import { pickFresh } from "@/lib/templates";
 import { getTest, type TestInfo } from "@/lib/tests";
 
@@ -68,7 +69,7 @@ function Placement({ test, grade }: { test: TestInfo; grade: Grade }) {
   // Never the same question twice in one placement check.
   const [fresh] = useState(() => {
     const seen = new Set<string>();
-    return (g: Grade, i: number) => pickFresh(seen, () => makeQuestion(g, Math.random, i));
+    return (g: Grade, i: number) => vary(pickFresh(seen, () => makeQuestion(g, Math.random, i)), Math.random);
   });
   // Only rendered in the browser (after progress loads), so random questions can't cause a hydration mismatch.
   const [q, setQ] = useState<Question>(() => fresh(state.grade, 0));
