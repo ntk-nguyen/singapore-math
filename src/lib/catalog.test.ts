@@ -4,6 +4,7 @@ import { gradeCatalog } from "./catalog";
 import { FRACTION_TOPICS } from "./fractions";
 import { LESSONS } from "./lessons";
 import { GRADES } from "./questions";
+import { THINKING_TOPICS } from "./thinking";
 
 describe("grade catalog", () => {
   it("gives every grade its bar model lesson and at least one other thing to do", () => {
@@ -19,6 +20,8 @@ describe("grade catalog", () => {
     const hrefs = GRADES.flatMap((g) => gradeCatalog(g).flatMap((d) => d.items.map((i) => i.href)));
     for (const t of TOPICS) expect(hrefs.filter((h) => h === `/number-skills/${t.id}`)).toHaveLength(1);
     for (const t of FRACTION_TOPICS) expect(hrefs.filter((h) => h === `/fractions/${t.id}`)).toHaveLength(1);
+    const keys = GRADES.flatMap((g) => gradeCatalog(g).flatMap((d) => d.items.map((i) => i.bestKey)));
+    for (const t of THINKING_TOPICS) expect(keys.filter((k) => k === `dt-${t.id}`)).toHaveLength(1);
   });
 
   it("never shows a raw Common Core code as a title", () => {
@@ -30,11 +33,11 @@ describe("grade catalog", () => {
   it("sends locked practice sets to the page that offers the Family plan", () => {
     const paid = GRADES.flatMap((g) => gradeCatalog(g).flatMap((d) => d.items)).filter((i) => !i.free);
     expect(paid.length).toBeGreaterThan(0);
-    for (const i of paid) expect(i.href).toBe("/problem-solving");
+    for (const i of paid) expect(["/problem-solving", "/thinking"]).toContain(i.href);
   });
 
   it("skips empty areas", () => {
-    expect(gradeCatalog(1).map((d) => d.id)).toEqual(["bar-models", "numbers"]);
-    expect(gradeCatalog(8).map((d) => d.id)).toEqual(["bar-models", "algebra"]);
+    expect(gradeCatalog(1).map((d) => d.id)).toEqual(["bar-models", "numbers", "thinking"]);
+    expect(gradeCatalog(8).map((d) => d.id)).toEqual(["bar-models", "algebra", "thinking"]);
   });
 });

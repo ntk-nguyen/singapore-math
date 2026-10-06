@@ -1,6 +1,6 @@
 /**
  * What a child can do in each grade, grouped the way parents think about math
- * (bar models, numbers, fractions, algebra) for the Learn home page. Nothing new
+ * (bar models, numbers, fractions, algebra, data & thinking) for the Learn home page. Nothing new
  * is taught here: every item links to a lesson or practice set that already exists.
  */
 import { TOPICS } from "./arithmetic";
@@ -8,6 +8,7 @@ import { FRACTION_TOPICS } from "./fractions";
 import { LESSONS } from "./lessons";
 import { KINDS, LEVELS, type Kind, type Level } from "./problems";
 import type { Grade } from "./questions";
+import { isFreeTopic, THINKING_TOPICS } from "./thinking";
 
 export interface CatalogItem {
   href: string;
@@ -21,7 +22,7 @@ export interface CatalogItem {
   free: boolean;
 }
 
-export type DomainId = "bar-models" | "numbers" | "fractions" | "algebra";
+export type DomainId = "bar-models" | "numbers" | "fractions" | "algebra" | "thinking";
 
 export interface Domain {
   id: DomainId;
@@ -87,6 +88,16 @@ export function gradeCatalog(grade: Grade): Domain[] {
       blurb: "The same bars, now with x.",
       seeAll: { href: "/problem-solving", label: "All equations" },
       items: eq ? [practiceSet("equations", eq)] : [],
+    },
+    {
+      id: "thinking",
+      title: "Data & thinking",
+      blurb: "Graphs, chance, logic and checking answers.",
+      seeAll: { href: "/thinking", label: "All data & thinking" },
+      items: THINKING_TOPICS.filter((t) => t.grade === grade).map((t) => ({
+        // Locked topics go to the page that offers the Family plan.
+        href: isFreeTopic(t) ? `/thinking/${t.id}` : "/thinking", title: t.title, blurb: t.blurb, bestKey: `dt-${t.id}`, free: isFreeTopic(t),
+      })),
     },
   ];
   return domains.filter((d) => d.items.length > 0);
