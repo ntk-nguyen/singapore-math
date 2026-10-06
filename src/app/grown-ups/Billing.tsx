@@ -19,11 +19,11 @@ export function Billing() {
   return (
     <section className="panel">
       <p className="eyebrow">Your plan</p>
-      <h2>{plan.family ? "Family plan" : "Free plan"}</h2>
+      <h2>{plan.pro ? "Pro plan" : "Free plan"}</h2>
       <p className="muted">
-        {plan.family
+        {plan.pro
           ? "All eight practice tests are unlocked on this device."
-          : "Learn, Play and two practice tests are free. The Family plan unlocks six more tests."}
+          : "Learn, Play and two practice tests are free. The Pro plan unlocks six more tests."}
       </p>
       {plan.billing && (
         <button className="btn self-start" onClick={portal}>

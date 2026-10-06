@@ -26,7 +26,7 @@ export default function PracticePage() {
     <div className="stack">
       <div className="row">
         <div className="spacer">
-          <p className="eyebrow">{info.free ? "Free" : "Family plan"} · {info.label}</p>
+          <p className="eyebrow">{info.free ? "Free" : "Pro plan"} · {info.label}</p>
           <h2>{KINDS[kind].title}</h2>
         </div>
         <Link className="btn ghost" href="/problem-solving">All sets</Link>
@@ -65,7 +65,7 @@ function Runner({ kind, level }: { kind: string; level: string }) {
     return (
       <div className="panel">
         <p className="notice bad">{error.message}</p>
-        <Link className="btn self-start" href="/problem-solving">{error.status === 402 ? "See the Family plan" : "Back"}</Link>
+        <Link className={`btn self-start${error.status === 402 ? " gold" : ""}`} href={error.status === 402 ? "/pro" : "/problem-solving"}>{error.status === 402 ? "Upgrade to Pro plan" : "Back"}</Link>
       </div>
     );
   }

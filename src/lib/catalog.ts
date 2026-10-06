@@ -17,7 +17,7 @@ export interface CatalogItem {
   bestKey?: string;
   /** Lesson id, for a "Done" badge once it has been stepped through. */
   lessonId?: string;
-  /** False when the Family plan is needed. */
+  /** False when the Pro plan is needed. */
   free: boolean;
 }
 

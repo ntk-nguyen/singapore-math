@@ -4,7 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { GRADES, type Grade } from "@/lib/questions";
+import { CrownIcon } from "./Icons";
+import { Logo } from "./Logo";
 import { useProgress } from "./Progress";
+import { usePlan } from "./usePlan";
 
 /** Learn is the home page; the topic pages it links to count as part of it. */
 const LEARN = ["/lessons", "/number-skills", "/fractions", "/problem-solving"];
@@ -14,22 +17,20 @@ const TABS = [
   { href: "/times-tables", label: "Times tables" },
   { href: "/tests", label: "Practice tests" },
   { href: "/grown-ups", label: "For grown-ups" },
+  { href: "/pro", label: "Upgrade to Pro", pro: true },
 ];
 
 export function Header() {
   const { grade, setGrade, stars } = useProgress();
+  const [plan] = usePlan();
+  const pro = !!plan?.pro;
   return (
     <header className="top">
       <div className="topin">
-        <Link href="/" className="logo">
-          <span className="mini" aria-hidden="true">
-            <i style={{ height: 12, background: "var(--bar-a)" }} />
-            <i style={{ height: 18, background: "var(--accent)" }} />
-            <i style={{ height: 14, background: "var(--bar-c)" }} />
-          </span>
-          Bar Model Academy
+        <Link href="/" className="logo" aria-label="MathBridge home">
+          <Logo />
         </Link>
-        <Tabs />
+        <Tabs pro={pro} />
         <div className="meta">
           <label className="grade" htmlFor="gradeSel">
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -48,13 +49,24 @@ export function Header() {
             </svg>
             <span data-testid="star-count">{stars}</span>
           </div>
+          {pro ? (
+            <Link className="gopro on" href="/grown-ups" title="Pro plan is active">
+              <CrownIcon />
+              <span className="gopro-label">Pro</span>
+            </Link>
+          ) : (
+            <Link className="gopro" href="/pro" aria-label="Go Pro">
+              <CrownIcon />
+              <span className="gopro-label">Go Pro</span>
+            </Link>
+          )}
         </div>
       </div>
     </header>
   );
 }
 
-function Tabs() {
+function Tabs({ pro }: { pro: boolean }) {
   const path = usePathname();
   const nav = useRef<HTMLElement>(null);
   // On phones the tabs scroll sideways, so bring the current one into view.
@@ -66,8 +78,8 @@ function Tabs() {
   const active = (href: string) => (href === "/" ? path === "/" || LEARN.some((p) => path.startsWith(p)) : path.startsWith(href));
   return (
     <nav ref={nav} className="tabs" aria-label="Sections">
-      {TABS.map((t) => (
-        <Link key={t.href} href={t.href} aria-current={active(t.href) ? "page" : undefined}>
+      {TABS.filter((t) => !(t.pro && pro)).map((t) => (
+        <Link key={t.href} href={t.href} aria-current={active(t.href) ? "page" : undefined} className={t.pro ? "upsell" : undefined}>
           {t.label}
         </Link>
       ))}

@@ -28,7 +28,7 @@ export default function TestPage() {
     <div className="stack">
       <div className="row">
         <div className="spacer">
-          <p className="eyebrow">{test.free ? "Free test" : "Family plan"}</p>
+          <p className="eyebrow">{test.free ? "Free test" : "Pro plan"}</p>
           <h2>{test.name}</h2>
         </div>
         <Link className="btn ghost" href="/tests">Quit</Link>
@@ -97,7 +97,7 @@ function Placement({ test, grade }: { test: TestInfo; grade: Grade }) {
   );
 }
 
-/** A fixed paper, fetched from the server (which checks the Family plan for paid tests). */
+/** A fixed paper, fetched from the server (which checks the Pro plan for paid tests). */
 function FixedTest({ test, grade }: { test: TestInfo; grade: Grade }) {
   const finish = useFinish(test);
   const [questions, setQuestions] = useState<Question[] | null>(null);
@@ -124,7 +124,7 @@ function FixedTest({ test, grade }: { test: TestInfo; grade: Grade }) {
     return (
       <div className="panel">
         <p className="notice bad">{error.message}</p>
-        <Link className="btn self-start" href="/tests">{error.status === 402 ? "See the Family plan" : "Back to tests"}</Link>
+        <Link className={`btn self-start${error.status === 402 ? " gold" : ""}`} href={error.status === 402 ? "/pro" : "/tests"}>{error.status === 402 ? "Upgrade to Pro plan" : "Back to tests"}</Link>
       </div>
     );
   }

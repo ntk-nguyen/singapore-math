@@ -27,7 +27,7 @@ describe("grade catalog", () => {
     }
   });
 
-  it("sends locked practice sets to the page that offers the Family plan", () => {
+  it("sends locked practice sets to the page that offers the Pro plan", () => {
     const paid = GRADES.flatMap((g) => gradeCatalog(g).flatMap((d) => d.items)).filter((i) => !i.free);
     expect(paid.length).toBeGreaterThan(0);
     for (const i of paid) expect(i.href).toBe("/problem-solving");
