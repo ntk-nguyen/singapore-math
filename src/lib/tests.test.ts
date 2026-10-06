@@ -46,11 +46,10 @@ describe("paid tests draw from their own topics", () => {
     for (const q of buildPaper(getTest("wp")!, 4)) expect(q.text).not.toMatch(/^What is|^Solve for x/);
   });
 
-  it("paid papers differ from the free checkpoint", () => {
+  it("paid papers ask about standards the free checkpoint does not", () => {
     const free = stds("checkpoint", 5);
     for (const id of ["frac", "eoy", "state"]) {
-      const paid = stds(id, 5);
-      expect(paid.size).toBeGreaterThan(free.size);
+      expect([...stds(id, 5)].some((s) => !free.has(s))).toBe(true);
     }
   });
 

@@ -5,6 +5,7 @@ import { confetti } from "@/components/Confetti";
 import { useProgress } from "@/components/Progress";
 import { QuestionCard } from "@/components/QuestionCard";
 import { makeQuestion, type Grade, type Question } from "@/lib/questions";
+import { noRepeats } from "@/lib/templates";
 
 const ROUND = 10;
 
@@ -15,6 +16,8 @@ export default function PlayPage() {
 
 function Round({ grade }: { grade: Grade }) {
   const { addStars } = useProgress();
+  // Never the same question twice while this grade is open.
+  const [fresh] = useState(() => noRepeats(() => makeQuestion(grade, Math.random)));
   const [q, setQ] = useState<Question | null>(null);
   const [done, setDone] = useState(0);
   const [right, setRight] = useState(0);
@@ -25,8 +28,8 @@ function Round({ grade }: { grade: Grade }) {
   useEffect(() => {
     // Questions are random, so create them in the browser only (avoids a hydration mismatch).
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setQ(makeQuestion(grade, Math.random));
-  }, [grade, round]);
+    setQ(fresh());
+  }, [fresh, round]);
 
   const answer = (ok: boolean) => {
     setDone((d) => d + 1);
@@ -48,7 +51,7 @@ function Round({ grade }: { grade: Grade }) {
       return;
     }
     setQn((n) => n + 1);
-    setQ(makeQuestion(grade, Math.random));
+    setQ(fresh());
   };
 
   const restart = () => {

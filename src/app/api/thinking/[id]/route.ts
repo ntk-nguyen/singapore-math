@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { hasProPlan } from "@/lib/entitlement";
+import { drawFresh } from "@/lib/templates";
 import { getThinkTopic, isFreeTopic, thinkingQuestion } from "@/lib/thinking";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   if (!isFreeTopic(topic) && !(await hasProPlan())) {
     return NextResponse.json({ error: "This topic needs the Pro plan." }, { status: 402 });
   }
-  const make = () => thinkingQuestion(topic, Math.random);
-  return NextResponse.json({ examples: Array.from({ length: 5 }, make), questions: Array.from({ length: 30 }, make) });
+  // One draw, so the worked examples and the practice questions never repeat each other.
+  const all = drawFresh(() => thinkingQuestion(topic, Math.random), 35);
+  return NextResponse.json({ examples: all.slice(0, 5), questions: all.slice(5) });
 }

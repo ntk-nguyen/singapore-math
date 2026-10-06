@@ -816,7 +816,7 @@ export const THINKING_TOPICS: ThinkTopic[] = [
           return {
             std: "7.SP.C.6",
             text: `A bag has ${r} red, ${b} blue and ${g} green marbles. You pick one, note its color and put it back, ${n} times. About how many times would you expect red?`,
-            answer: String(r * k), wrong: [String(r), String(n / 3), String(n - r * k), String(r * k + k)],
+            answer: String(r * k), wrong: [String(r), String(Math.round(n / 3)), String(n - r * k), String(r * k + k)],
             steps: [`P(red) = ${r}/${t}.`, `In ${n} picks, expect about ${r}/${t} × ${n} = ${r * k} reds.`, "It won't be exactly that every time: chance varies, but it gets close over many tries."],
           };
         }

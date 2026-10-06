@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Question } from "@/lib/questions";
+import { noRepeats } from "@/lib/templates";
 import { confetti } from "./Confetti";
 import { useProgress } from "./Progress";
 import { QuestionCard } from "./QuestionCard";
@@ -11,7 +12,9 @@ const ROUND = 10;
 /** Ten questions in a row with stars, a streak and a saved best score. */
 export function PracticeRound({ make, bestKey }: { make: () => Question; bestKey: string }) {
   const { addStars, recordBest } = useProgress();
-  const [q, setQ] = useState(make);
+  // Never the same question twice, including after "Practise again".
+  const [fresh] = useState(() => noRepeats(make));
+  const [q, setQ] = useState(fresh);
   const [done, setDone] = useState(0);
   const [right, setRight] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -36,7 +39,7 @@ export function PracticeRound({ make, bestKey }: { make: () => Question; bestKey
       return;
     }
     setQn(qn + 1);
-    setQ(make());
+    setQ(fresh());
   };
 
   const restart = () => {
@@ -45,7 +48,7 @@ export function PracticeRound({ make, bestKey }: { make: () => Question; bestKey
     setStreak(0);
     setFinished(false);
     setQn(qn + 1);
-    setQ(make());
+    setQ(fresh());
   };
 
   return (
