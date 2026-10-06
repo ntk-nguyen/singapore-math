@@ -1,3 +1,4 @@
+import type { Method } from "./arithmetic";
 import type { BarModelSpec } from "./models";
 import { gcd, helpers, type Rng } from "./rng";
 
@@ -23,6 +24,8 @@ export interface Question {
   answer: string;
   choices: string[];
   model?: BarModelSpec;
+  /** Worked method (place-value discs, area model, long division) shown on "Show me how". */
+  method?: Method;
 }
 
 export const NAMES = ["Mei", "Arjun", "Sofia", "Wei Ling", "Diego", "Aisha", "Ben", "Priya", "Kenji", "Zara", "Omar", "Lucy"];

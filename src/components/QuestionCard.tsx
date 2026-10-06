@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Question } from "@/lib/questions";
 import { BarModel } from "./BarModel";
+import { MethodView } from "./Method";
 
 const PRAISE = ["Brilliant!", "You got it!", "Super!", "Spot on!"];
 
@@ -46,9 +47,11 @@ export function QuestionCard({
         Grade {q.grade} · CCSS {q.std}
       </span>
       <p className="qtext">{q.text}</p>
-      {q.model && (showModel ? <BarModel spec={q.model} /> : (
+      {(q.model || q.method) && (showModel ? (
+        q.method ? <MethodView method={q.method} /> : <BarModel spec={q.model!} />
+      ) : (
         <button className="btn ghost self-start" onClick={() => setShowModel(true)}>
-          Show me the bar model
+          {q.method ? "Show me how" : "Show me the bar model"}
         </button>
       ))}
       <div className="choices">

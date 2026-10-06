@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { Grade, Question } from "@/lib/questions";
 import { BarModel } from "./BarModel";
+import { MethodView } from "./Method";
 
 export interface Answered {
   q: Question;
@@ -68,7 +69,8 @@ export function Results({ log, placement }: { log: Answered[]; placement?: Grade
             <p>
               <b>{i + 1}.</b> {q.text} <span className={`pill ${ok ? "g" : "r"}`}>{ok ? "Correct" : `Answer: ${q.answer}`}</span>
             </p>
-            {!ok && q.model && <BarModel spec={q.model} />}
+            {!ok && q.method && <MethodView method={q.method} />}
+            {!ok && !q.method && q.model && <BarModel spec={q.model} />}
           </div>
         ))}
       </details>
