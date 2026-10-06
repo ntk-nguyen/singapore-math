@@ -31,7 +31,7 @@ export default function ThinkingTopicPage() {
     <div className="stack">
       <div className="row">
         <div className="spacer">
-          <p className="eyebrow">Grade {topic.grade} · {AREAS.find((a) => a.id === topic.area)!.title} · {isFreeTopic(topic) ? "Free" : "Family plan"}</p>
+          <p className="eyebrow">Grade {topic.grade} · {AREAS.find((a) => a.id === topic.area)!.title} · {isFreeTopic(topic) ? "Free" : "Pro plan"}</p>
           <h2>{topic.title}</h2>
         </div>
         <Link className="btn ghost" href="/thinking">All topics</Link>
@@ -65,7 +65,7 @@ function Topic({ id, blurb }: { id: string; blurb: string }) {
     return (
       <div className="panel">
         <p className="notice bad">{error.message}</p>
-        <Link className="btn self-start" href="/thinking">{error.status === 402 ? "See the Family plan" : "Back"}</Link>
+        <Link className={`btn self-start${error.status === 402 ? " gold" : ""}`} href={error.status === 402 ? "/pro" : "/thinking"}>{error.status === 402 ? "Upgrade to Pro plan" : "Back"}</Link>
       </div>
     );
   }

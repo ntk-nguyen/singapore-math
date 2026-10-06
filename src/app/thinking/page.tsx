@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { confetti } from "@/components/Confetti";
+import { CrownIcon } from "@/components/Icons";
 import { Paywall } from "@/components/Paywall";
 import { useProgress } from "@/components/Progress";
 import { usePlan } from "@/components/usePlan";
@@ -11,7 +11,7 @@ import { AREAS, isFreeTopic, MP, THINKING_TOPICS } from "@/lib/thinking";
 
 export default function ThinkingPage() {
   const { grade, best } = useProgress();
-  const [plan, refresh] = usePlan();
+  const [plan] = usePlan();
   const [picked, setPicked] = useState<Grade | null>(null);
   const [paywall, setPaywall] = useState(false);
   const shown = picked ?? grade;
@@ -44,10 +44,10 @@ export default function ThinkingPage() {
             </div>
             <div className="tests">
               {list.map((t) => {
-                const free = isFreeTopic(t), open = free || !!plan?.family, key = `dt-${t.id}`;
+                const free = isFreeTopic(t), open = free || !!plan?.pro, key = `dt-${t.id}`;
                 return (
                   <div key={t.id} className={`test${open ? "" : " locked"}`}>
-                    <span className={`tag ${free ? "free" : "paid"}`}>{free ? "Free" : "Family plan"}</span>
+                    {free ? <span className="tag free">Free</span> : <span className="tag paid"><span className="lock"><CrownIcon />Pro</span></span>}
                     <h3>{t.title}</h3>
                     <p>{t.blurb}</p>
                     {best[key] != null && <span className="muted small">Best: {best[key]}%</span>}
@@ -55,7 +55,7 @@ export default function ThinkingPage() {
                       {open ? (
                         <Link className="btn" href={`/thinking/${t.id}`}>Learn & practise</Link>
                       ) : (
-                        <button className="btn ghost" disabled={!plan} onClick={() => setPaywall(true)}>Unlock</button>
+                        <button className="btn gold" disabled={!plan} onClick={() => setPaywall(true)}>Upgrade to Pro</button>
                       )}
                       <span className="std" title="Common Core standard">{t.std}</span>
                       <span className="std" title={`Mathematical Practice: ${MP[t.mp]}`}>{t.mp}</span>
@@ -68,7 +68,7 @@ export default function ThinkingPage() {
         );
       })}
       {paywall && (
-        <Paywall plan={plan} onClose={() => setPaywall(false)} onUnlocked={() => { setPaywall(false); refresh(); confetti(); }} />
+        <Paywall onClose={() => setPaywall(false)} onUnlocked={() => setPaywall(false)} />
       )}
     </div>
   );

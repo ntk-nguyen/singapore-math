@@ -7,7 +7,7 @@
  *
  * Every topic makes a question with a worked solution and wrong answers taken from
  * real mistakes. Easy topics are free; intermediate and advanced topics need the
- * Family plan and are only served by the API after a server-side plan check.
+ * Pro plan and are only served by the API after a server-side plan check.
  */
 import type { Figure } from "./figures";
 import { LEVELS, type Level } from "./problems";
