@@ -50,11 +50,13 @@ export default function NumberSkillsPage() {
             <div className="tests">
               {list.map((t) => (
                 <div key={t.id} className="test">
-                  <span className="std">CCSS {t.std}</span>
                   <h3>{t.title}</h3>
                   <p>{t.blurb}</p>
                   {best[`ns-${t.id}`] != null && <span className="muted small">Best: {best[`ns-${t.id}`]}%</span>}
-                  <Link className="btn self-start" href={`/number-skills/${t.id}`}>Learn & practise</Link>
+                  <div className="row">
+                    <Link className="btn" href={`/number-skills/${t.id}`}>Learn & practise</Link>
+                    <span className="std" title="Common Core standard">{t.std}</span>
+                  </div>
                 </div>
               ))}
             </div>

@@ -193,3 +193,25 @@ footer.foot { max-width: 980px; margin: 0 auto; padding: 0 16px 32px; font-size:
 .sprintq { display: flex; align-items: center; gap: 12px; font: 800 2.4rem var(--display); }
 .sprintq input { width: 3.2em; font: 800 2.4rem var(--display); text-align: center; }
 .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 320px; }
+
+/* learn home: grade picker, grade topics by area */
+.gradepick { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 600px) { .gradepick { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.gchip { font: 800 1.6rem var(--display); line-height: 1; border: 2px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 14px; padding: 8px 4px 10px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.gchip small { font: 700 0.72rem var(--body); color: var(--muted); }
+.gchip:hover { border-color: var(--accent); }
+.gchip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.gchip.on small { color: var(--accent-ink); }
+.panel.continue { border-color: var(--accent); }
+.domain { background: var(--surface); border: 2px solid var(--line); border-left: 8px solid var(--dom); border-radius: 18px; padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 12px; }
+.domain-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 4px 12px; }
+.domain-head a { font-weight: 700; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.tile { border: 2px solid var(--line); border-radius: 14px; padding: 12px 14px; background: var(--bg); color: var(--ink); text-decoration: none; display: flex; flex-direction: column; gap: 4px; transition: transform 0.12s, border-color 0.12s; }
+.tile:hover { border-color: var(--dom, var(--accent)); transform: translateY(-2px); }
+.tile-title { font: 700 1.05rem var(--display); line-height: 1.2; }
+.tile-blurb { color: var(--muted); font-size: 0.88rem; flex: 1; }
+.tile.locked { opacity: 0.85; }
+.tag.best { background: var(--soft); color: var(--ink); }
+.anchor { scroll-margin-top: 80px; }
+.tests.trio { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }

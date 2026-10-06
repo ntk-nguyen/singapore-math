@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { PracticeRound } from "@/components/PracticeRound";
-import { useProgress } from "@/components/Progress";
+import { useProgress, useRemember } from "@/components/Progress";
 import { Solution } from "@/components/QuestionCard";
 import { fractionQuestion, getFracTopic, type FracTopic } from "@/lib/fractions";
 
@@ -12,6 +12,7 @@ export default function FractionTopicPage() {
   const { id } = useParams<{ id: string }>();
   const topic = getFracTopic(id);
   const { ready } = useProgress();
+  useRemember(topic ? { href: `/fractions/${topic.id}`, title: topic.title } : null);
   if (!topic) {
     return (
       <div className="panel">
@@ -24,7 +25,7 @@ export default function FractionTopicPage() {
     <div className="stack">
       <div className="row">
         <div className="spacer">
-          <p className="eyebrow">Grade {topic.grade} · CCSS {topic.std}</p>
+          <p className="eyebrow">Grade {topic.grade} · Fractions & decimals</p>
           <h2>{topic.title}</h2>
         </div>
         <Link className="btn ghost" href="/fractions">All topics</Link>

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { MethodView } from "@/components/Method";
-import { useProgress } from "@/components/Progress";
+import { useProgress, useRemember } from "@/components/Progress";
 import { PracticeRound } from "@/components/PracticeRound";
 import { getTopic, methodQuestion, SYMBOL, type Topic } from "@/lib/arithmetic";
 
@@ -12,6 +12,7 @@ export default function TopicPage() {
   const { id } = useParams<{ id: string }>();
   const topic = getTopic(id);
   const { ready } = useProgress();
+  useRemember(topic ? { href: `/number-skills/${topic.id}`, title: topic.title } : null);
   if (!topic) {
     return (
       <div className="panel">
@@ -24,7 +25,7 @@ export default function TopicPage() {
     <div className="stack">
       <div className="row">
         <div className="spacer">
-          <p className="eyebrow">Grade {topic.grade} · CCSS {topic.std}</p>
+          <p className="eyebrow">Grade {topic.grade} · Number skills</p>
           <h2>{topic.title}</h2>
         </div>
         <Link className="btn ghost" href="/number-skills">All skills</Link>

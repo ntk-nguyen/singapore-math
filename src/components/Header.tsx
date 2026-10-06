@@ -5,13 +5,12 @@ import { usePathname } from "next/navigation";
 import { GRADES, type Grade } from "@/lib/questions";
 import { useProgress } from "./Progress";
 
+/** Learn is the home page; the topic pages it links to count as part of it. */
+const LEARN = ["/lessons", "/number-skills", "/fractions", "/problem-solving"];
 const TABS = [
   { href: "/", label: "Learn" },
-  { href: "/number-skills", label: "Number skills" },
-  { href: "/fractions", label: "Fractions & decimals" },
-  { href: "/times-tables", label: "Times tables" },
-  { href: "/problem-solving", label: "Problem solving" },
   { href: "/play", label: "Play" },
+  { href: "/times-tables", label: "Times tables" },
   { href: "/tests", label: "Practice tests" },
   { href: "/grown-ups", label: "For grown-ups" },
 ];
@@ -50,7 +49,7 @@ export function Header() {
 
 export function Tabs() {
   const path = usePathname();
-  const active = (href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+  const active = (href: string) => (href === "/" ? path === "/" || LEARN.some((p) => path.startsWith(p)) : path.startsWith(href));
   return (
     <nav className="tabs" aria-label="Sections">
       {TABS.map((t) => (

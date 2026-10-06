@@ -15,9 +15,16 @@ interface Progress {
   lessons: string[];
   /** Times-table fact mastery (0–3), keyed like "7x8". */
   facts: Record<string, number>;
+  /** The last lesson or practice set opened, for "Pick up where you left off". */
+  recent: Recent | null;
 }
 
-const DEFAULTS: Progress = { grade: 3, stars: 0, best: {}, placement: null, lessons: [], facts: {} };
+export interface Recent {
+  href: string;
+  title: string;
+}
+
+const DEFAULTS: Progress = { grade: 3, stars: 0, best: {}, placement: null, lessons: [], facts: {}, recent: null };
 const KEY = "bma-progress";
 
 interface Ctx extends Progress {
@@ -29,6 +36,7 @@ interface Ctx extends Progress {
   setPlacement: (g: Grade) => void;
   completeLesson: (id: string) => boolean;
   setFact: (key: string, mastery: number) => void;
+  setRecent: (r: Recent) => void;
 }
 
 const ProgressContext = createContext<Ctx | null>(null);
@@ -45,6 +53,7 @@ function load(): Progress {
       placement: isGrade(p.placement) ? p.placement : null,
       lessons: Array.isArray(p.lessons) ? p.lessons : [],
       facts: p.facts && typeof p.facts === "object" ? p.facts : {},
+      recent: p.recent && typeof p.recent.href === "string" && typeof p.recent.title === "string" ? p.recent : null,
     };
   } catch {
     return DEFAULTS;
@@ -92,9 +101,14 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const setRecent = useCallback(
+    (r: Recent) => setState((s) => (s.recent?.href === r.href && s.recent.title === r.title ? s : { ...s, recent: r })),
+    [],
+  );
+
   const value = useMemo(
-    () => ({ ...state, ready: loaded, setGrade, addStars, recordBest, setPlacement, completeLesson, setFact }),
-    [state, loaded, setGrade, addStars, recordBest, setPlacement, completeLesson, setFact],
+    () => ({ ...state, ready: loaded, setGrade, addStars, recordBest, setPlacement, completeLesson, setFact, setRecent }),
+    [state, loaded, setGrade, addStars, recordBest, setPlacement, completeLesson, setFact, setRecent],
   );
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>;
 }
@@ -103,4 +117,14 @@ export function useProgress(): Ctx {
   const ctx = useContext(ProgressContext);
   if (!ctx) throw new Error("useProgress must be used inside ProgressProvider");
   return ctx;
+}
+
+/** Remember this page as the one to come back to from the home page. */
+export function useRemember(recent: Recent | null) {
+  const { ready, setRecent } = useProgress();
+  const href = recent?.href;
+  const title = recent?.title;
+  useEffect(() => {
+    if (ready && href && title) setRecent({ href, title });
+  }, [ready, href, title, setRecent]);
 }
