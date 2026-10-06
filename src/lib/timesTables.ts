@@ -47,23 +47,60 @@ export function nextMastery(current: number, ok: boolean, ms: number): number {
   return ms <= 5000 ? Math.min(MASTERED, current + 1) : current;
 }
 
+/** How many questions later a missed fact comes back. */
+export const RETRY_GAP = 4;
+
 /**
- * Pick the next fact for the sprint: weighted toward facts not yet mastered,
- * never the same fact twice in a row.
+ * The facts for a sprint, dealt like a shuffled deck: every fact in the chosen tables
+ * comes up once before any fact repeats, facts not yet mastered come first, and each
+ * new deck starts with a different fact from the one just asked. A missed fact comes
+ * back once, a few questions later, so it can stick.
  */
-export function pickFact(tables: number[], mastery: Record<string, number>, r: () => number, last?: string): [number, number] {
-  const pool: [number, number, number][] = [];
-  for (const t of tables) for (let n = 1; n <= MAX; n++) {
-    const k = factKey(t, n);
-    if (k === last) continue;
-    const m = mastery[k] ?? 0;
-    pool.push([t, n, MASTERED + 1 - m]);
-  }
-  const total = pool.reduce((s, x) => s + x[2], 0);
-  let x = r() * total;
-  for (const [t, n, w] of pool) {
-    x -= w;
-    if (x < 0) return r() < 0.5 ? [t, n] : [n, t];
-  }
-  return [pool[0][0], pool[0][1]];
+export function factDeck(tables: number[], mastery: Record<string, number>, r: () => number) {
+  const facts = new Map<string, [number, number]>();
+  for (const t of tables) for (let n = 1; n <= MAX; n++) facts.set(factKey(t, n), t <= n ? [t, n] : [n, t]);
+  let deck: string[] = [];
+  const retries: { key: string; at: number }[] = [];
+  let asked = 0;
+  let last: string | undefined;
+
+  const deal = () => {
+    // Shuffle, then put the least-mastered facts first (a stable sort keeps the shuffle within a level).
+    const keys = [...facts.keys()];
+    for (let i = keys.length - 1; i > 0; i--) {
+      const j = Math.floor(r() * (i + 1));
+      [keys[i], keys[j]] = [keys[j], keys[i]];
+    }
+    keys.sort((a, b) => Math.min(mastery[a] ?? 0, MASTERED) - Math.min(mastery[b] ?? 0, MASTERED));
+    if (keys.length > 1 && keys[0] === last) keys.push(keys.shift()!);
+    deck = keys;
+  };
+
+  return {
+    /** The next fact, in a random order (7 × 8 or 8 × 7). */
+    next(): [number, number] {
+      const due = retries.findIndex((x) => x.at <= asked && x.key !== last);
+      let key: string;
+      if (due >= 0) {
+        key = retries.splice(due, 1)[0].key;
+        // Asked again now, so it does not also need its place in this deck.
+        const k = deck.indexOf(key);
+        if (k >= 0) deck.splice(k, 1);
+      } else {
+        if (!deck.length) deal();
+        key = deck.shift()!;
+      }
+      asked++;
+      last = key;
+      const [a, b] = facts.get(key)!;
+      return r() < 0.5 ? [a, b] : [b, a];
+    },
+    /** The fact was answered wrongly: ask it again a few questions from now. */
+    missed(a: number, b: number) {
+      const key = factKey(a, b);
+      if (facts.has(key) && !retries.some((x) => x.key === key)) retries.push({ key, at: asked + RETRY_GAP });
+    },
+    /** How many different facts the chosen tables hold. */
+    size: facts.size,
+  };
 }

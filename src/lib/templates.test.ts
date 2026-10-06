@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { methodQuestion, TOPICS } from "./arithmetic";
 import { fractionQuestion, FRACTION_TOPICS } from "./fractions";
-import { generators, KINDS, LEVELS, practiceSet, type Kind } from "./problems";
+import { generators, KINDS, LEVELS, MIDDLE_WORD, practiceSet, type Kind } from "./problems";
 import { QUICK } from "./quickfire";
-import { GRADES, makeQuestion, type Question } from "./questions";
-import { seeded } from "./rng";
+import { GRADES, makeQuestion, playDeck, type Question } from "./questions";
+import { deck, seeded } from "./rng";
 import { checkQuestion, drawFresh, noRepeats, questionKey, render, valueOf, type Template, type Tier } from "./templates";
 import { buildPaper, TESTS } from "./tests";
 import { thinkingQuestion, THINKING_TOPICS } from "./thinking";
@@ -12,6 +12,7 @@ import { thinkingQuestion, THINKING_TOPICS } from "./thinking";
 const ALL: Template[] = [
   ...GRADES.flatMap((g) => QUICK[g]),
   ...(Object.keys(KINDS) as Kind[]).flatMap((k) => LEVELS.flatMap((l) => generators(k, l.id))),
+  ...MIDDLE_WORD,
 ];
 const DRAWS = 400;
 
@@ -89,10 +90,20 @@ describe("validator", () => {
 describe("fresh draws", () => {
   const distinct = (qs: Question[]) => new Set(qs.map(questionKey)).size;
 
-  it("a Play round never repeats a question", () => {
+  it("a Play session never repeats a question", () => {
     for (const g of GRADES) {
-      const r = seeded(g);
-      expect(distinct(drawFresh(() => makeQuestion(g, r), 30))).toBe(30);
+      const next = playDeck(g, seeded(g));
+      expect(distinct(Array.from({ length: 30 }, next))).toBe(30);
+    }
+  });
+
+  it("deals every item once before any comes back, and never the same one twice in a row", () => {
+    const items = ["a", "b", "c", "d", "e", "f", "g"];
+    for (let s = 1; s <= 30; s++) {
+      const next = deck(items, seeded(s));
+      const dealt = Array.from({ length: items.length * 4 }, next);
+      for (let k = 0; k < 4; k++) expect(dealt.slice(k * items.length, (k + 1) * items.length).sort()).toEqual(items);
+      for (let i = 1; i < dealt.length; i++) expect(dealt[i]).not.toBe(dealt[i - 1]);
     }
   });
 
@@ -113,8 +124,10 @@ describe("fresh draws", () => {
   it("test papers never repeat a question", () => {
     for (const t of TESTS.filter((x) => x.id !== "placement")) {
       for (const g of GRADES) {
-        const paper = buildPaper(t, g);
-        expect(distinct(paper), `${t.id} grade ${g}`).toBe(paper.length);
+        for (let attempt = 1; attempt <= 5; attempt++) {
+          const paper = buildPaper(t, g, attempt);
+          expect(distinct(paper), `${t.id} grade ${g}`).toBe(paper.length);
+        }
       }
     }
   });

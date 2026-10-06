@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { generators, KINDS, LEVELS, practiceSet, type Kind } from "./problems";
 import { seeded } from "./rng";
-import { factKey, MASTERED, nextMastery, pickFact, strategy } from "./timesTables";
+import { factDeck, factKey, MASTERED, nextMastery, RETRY_GAP, strategy, TABLES } from "./timesTables";
 
 describe("word problems and equations", () => {
   for (const kind of Object.keys(KINDS) as Kind[]) {
@@ -66,12 +66,44 @@ describe("times tables", () => {
     expect(nextMastery(2, false, 1000)).toBe(0);
   });
 
-  it("picks facts from the chosen tables and avoids repeats", () => {
-    const r = seeded(3);
-    for (let i = 0; i < 500; i++) {
-      const [a, b] = pickFact([7], {}, r, "7x7");
-      expect(a === 7 || b === 7).toBe(true);
-      expect(factKey(a, b)).not.toBe("7x7");
+  it("deals every fact in the chosen tables once before any repeats", () => {
+    for (const tables of [[7], [3, 4], TABLES]) {
+      for (let s = 1; s <= 20; s++) {
+        const deck = factDeck(tables, {}, seeded(s));
+        const keys = Array.from({ length: deck.size }, () => {
+          const [a, b] = deck.next();
+          expect(tables.includes(a) || tables.includes(b)).toBe(true);
+          return factKey(a, b);
+        });
+        expect(new Set(keys).size).toBe(deck.size);
+      }
     }
+    // 3 × 4 and 4 × 3 are one fact, so × 3 and × 4 together hold 23 facts, not 24.
+    expect(factDeck([3, 4], {}, seeded(1)).size).toBe(23);
+  });
+
+  it("starts each new deck with a different fact and never asks the same fact twice in a row", () => {
+    const deck = factDeck([7], {}, seeded(9));
+    let last = "";
+    for (let i = 0; i < 200; i++) {
+      const k = factKey(...deck.next());
+      expect(k).not.toBe(last);
+      last = k;
+    }
+  });
+
+  it("brings a missed fact back a few questions later, once", () => {
+    const deck = factDeck([2, 3, 4, 5, 6, 7, 8, 9], {}, seeded(5));
+    const first = deck.next();
+    deck.missed(...first);
+    const next = Array.from({ length: 10 }, () => factKey(...deck.next()));
+    expect(next.indexOf(factKey(...first))).toBe(RETRY_GAP);
+    expect(next.filter((k) => k === factKey(...first))).toHaveLength(1);
+  });
+
+  it("asks facts that are not mastered yet first", () => {
+    const mastery: Record<string, number> = {};
+    for (let n = 1; n <= 12; n++) mastery[factKey(6, n)] = n === 8 ? 0 : MASTERED;
+    expect(factKey(...factDeck([6], mastery, seeded(2)).next())).toBe(factKey(6, 8));
   });
 });

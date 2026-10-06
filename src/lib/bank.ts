@@ -32,15 +32,22 @@ export const BANK: Item[] = [
 ];
 
 /**
- * The items written for `grade`. When there are fewer than `min`, the nearest grades
- * are added too, a grade below before a grade above.
+ * The items written for `grade`. When there are fewer than `min`, the grades below are
+ * added too, nearest first. A grade above is only borrowed when the grade and the ones
+ * below have fewer than `floor` items between them, so a paper never asks a child
+ * about next year's work just to fill up.
  */
-export function nearGrade(items: Item[], grade: Grade, min = 6): Item[] {
-  const dist = (g: number) => (g <= grade ? grade - g : g - grade + 0.5);
-  const grades = [...new Set(items.map((i) => i.grade))].sort((a, b) => dist(a) - dist(b));
+export function nearGrade(items: Item[], grade: Grade, min = 6, floor = 3): Item[] {
+  const below = [...new Set(items.map((i) => i.grade))].filter((g) => g <= grade).sort((a, b) => b - a);
   const out: Item[] = [];
-  for (const g of grades) {
+  for (const g of below) {
     if (out.length >= min) break;
+    out.push(...items.filter((i) => i.grade === g));
+  }
+  if (out.length >= floor) return out;
+  const above = [...new Set(items.map((i) => i.grade))].filter((g) => g > grade).sort((a, b) => a - b);
+  for (const g of above) {
+    if (out.length >= floor) break;
     out.push(...items.filter((i) => i.grade === g));
   }
   return out;

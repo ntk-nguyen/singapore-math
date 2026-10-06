@@ -2,8 +2,8 @@ import type { Method } from "./arithmetic";
 import type { Figure } from "./figures";
 import type { BarModelSpec } from "./models";
 import { QUICK } from "./quickfire";
-import { helpers, type Rng } from "./rng";
-import { render } from "./templates";
+import { deck, helpers, type Rng } from "./rng";
+import { noRepeats, render } from "./templates";
 
 export { NAMES } from "./templates";
 
@@ -46,4 +46,13 @@ export function makeQuestion(grade: Grade, r: Rng, index?: number): Question {
 
 export function isGrade(n: unknown): n is Grade {
   return typeof n === "number" && Number.isInteger(n) && n >= 1 && n <= 8;
+}
+
+/**
+ * Questions for a Play session at a grade. The question types are dealt like a shuffled
+ * deck, so every type comes up once before any comes up again, and no question repeats.
+ */
+export function playDeck(grade: Grade, r: Rng): () => Question {
+  const nextTemplate = deck(QUICK[grade], r);
+  return noRepeats(() => render(nextTemplate(), r).question);
 }

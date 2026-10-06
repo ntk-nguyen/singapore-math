@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { confetti } from "@/components/Confetti";
 import { useProgress, useRemember } from "@/components/Progress";
-import { factKey, MASTERED, MAX, nextMastery, pickFact, strategy, TABLES } from "@/lib/timesTables";
+import { factKey, MASTERED, MAX, nextMastery, factDeck, strategy, TABLES } from "@/lib/timesTables";
 
 const TRICKS: { t: number; name: string; tip: string }[] = [
   { t: 2, name: "Doubles", tip: "× 2 is doubling: 2 × 8 is 8 + 8 = 16." },
@@ -56,7 +56,7 @@ export default function TimesTablesPage() {
           <Sprint tables={tables} onDone={() => setPlaying(false)} />
         ) : (
           <>
-            <p className="muted">Pick the tables to practise. Facts you miss come back more often until they stick.</p>
+            <p className="muted">Pick the tables to practise. Every fact comes up once before any repeats, and facts you miss come back a few questions later.</p>
             <div className="row" role="group" aria-label="Tables">
               {TABLES.map((t) => {
                 const on = tables.includes(t);
@@ -136,7 +136,9 @@ const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "Go"];
 
 function Sprint({ tables, onDone }: { tables: number[]; onDone: () => void }) {
   const { facts, setFact, addStars, recordBest, best } = useProgress();
-  const [fact, setFactQ] = useState<[number, number]>(() => pickFact(tables, facts, Math.random));
+  // Every fact in the chosen tables comes up once before any repeats; misses come back later.
+  const [deck] = useState(() => factDeck(tables, facts, Math.random));
+  const [fact, setFactQ] = useState<[number, number]>(() => deck.next());
   const [input, setInput] = useState("");
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -181,10 +183,11 @@ function Sprint({ tables, onDone }: { tables: number[]; onDone: () => void }) {
       setHint(null);
     } else {
       setStreak(0);
+      deck.missed(a, b);
       setHint(`${a} × ${b} = ${a * b}. ${strategy(a, b).how}`);
     }
     setInput("");
-    setFactQ(pickFact(tables, facts, Math.random, key));
+    setFactQ(deck.next());
     askedAt.current = now();
     inputRef.current?.focus();
   };
