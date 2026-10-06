@@ -5,7 +5,7 @@
  */
 import type { BarModelSpec } from "./models";
 import { NAMES, numberChoices, type Grade, type Question } from "./questions";
-import { gcd, helpers, type Rng } from "./rng";
+import { gcd, helpers, seeded, type Rng } from "./rng";
 
 export type Level = "easy" | "intermediate" | "advanced";
 export type Kind = "word" | "equations";
@@ -287,4 +287,27 @@ export function practiceSet(kind: Kind, level: Level, r: Rng, n = 10): Question[
   const gens = generators(kind, level);
   const order = h.shuffle(Array.from({ length: n }, (_, i) => i % gens.length));
   return order.map((i) => toQuestion(gens[i](h), r));
+}
+
+/** One problem type, for building test papers from. */
+export interface ProblemType {
+  kind: Kind;
+  level: Level;
+  grade: Grade;
+  std: string;
+  make: (r: Rng) => Question;
+}
+
+/** Every word-problem and equation type, with the grade and standard it is written for. */
+export function problemTypes(): ProblemType[] {
+  const out: ProblemType[] = [];
+  for (const kind of ["word", "equations"] as Kind[]) {
+    for (const { id: level } of LEVELS) {
+      for (const gen of generators(kind, level)) {
+        const { grade, std } = gen(helpers(seeded(1)));
+        out.push({ kind, level, grade, std, make: (r) => toQuestion(gen(helpers(r)), r) });
+      }
+    }
+  }
+  return out;
 }

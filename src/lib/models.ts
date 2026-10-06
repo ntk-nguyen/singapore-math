@@ -14,4 +14,6 @@ export type BarModelSpec =
   /** Ratio: r red units against b blue units. */
   | { t: "ratio"; r: number; b: number; total: number; names?: [string, string]; noun?: string }
   /** Equation: n units of x plus a constant c make total. */
-  | { t: "eq"; n: number; c: number; total: number; x: number | null };
+  | { t: "eq"; n: number; c: number; total: number; x: number | null }
+  /** Fraction bars: equal-length bars, each cut into d equal parts with the first n shaded. */
+  | { t: "fbars"; bars: { n: number; d: number; label?: string }[]; note?: string };

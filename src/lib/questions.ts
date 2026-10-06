@@ -1,6 +1,6 @@
 import type { Method } from "./arithmetic";
 import type { BarModelSpec } from "./models";
-import { gcd, helpers, type Rng } from "./rng";
+import { gcd, helpers, seeded, type Rng } from "./rng";
 
 export type Grade = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 export const GRADES: Grade[] = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -208,6 +208,11 @@ const GEN: Record<Grade, Gen[]> = {
     },
   ],
 };
+
+/** Common Core code of each quick-fire generator at a grade, in generator order. */
+export function generatorStds(grade: Grade): string[] {
+  return GEN[grade].map((g) => g(helpers(seeded(1))).std);
+}
 
 export function generatorCount(grade: Grade): number {
   return GEN[grade].length;
