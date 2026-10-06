@@ -469,3 +469,15 @@ table.cmp th.cmp-pro { background: var(--accent-soft); }
 .trialband-cta { display: flex; flex-direction: column; gap: 8px; align-items: stretch; min-width: 240px; }
 .trialband-cta .muted { color: rgba(255, 255, 255, 0.75); }
 @media (max-width: 767px) { .trialband { grid-template-columns: 1fr; padding: 24px 20px; } .trialband-cta { min-width: 0; } }
+
+/* Question formats */
+.std .fmt { margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--sky-soft, rgba(56, 189, 248, 0.15)); color: var(--ink); font-weight: 600; }
+.qask { font-weight: 600; margin: 0; }
+.typein { display: flex; gap: 12px; flex-wrap: wrap; }
+.typein-box { flex: 1 1 160px; min-width: 0; font: 600 1.5rem var(--body); font-variant-numeric: tabular-nums; padding: 12px 14px; border-radius: 16px; border: 1.5px solid var(--line-strong); background: var(--surface); color: var(--ink); }
+.typein-box:focus { outline: 2px solid var(--sky); outline-offset: 2px; }
+.order { display: grid; gap: 12px; }
+.order-line { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 8px; }
+.order-slot { min-height: 44px; display: grid; place-items: center; border-radius: 12px; border: 1.5px dashed var(--line-strong); color: var(--muted, inherit); font: 600 1.1rem var(--body); }
+.order-slot.filled { border-style: solid; border-color: var(--sky); color: var(--ink); }
+.numline .arrow { fill: var(--amber, #f59e0b); }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { hasProPlan } from "@/lib/entitlement";
+import { vary } from "@/lib/formats";
 import { isKind, isLevel, LEVELS, practiceSet } from "@/lib/problems";
 
 export const dynamic = "force-dynamic";
@@ -13,5 +14,5 @@ export async function GET(req: Request, ctx: { params: Promise<{ kind: string }>
   if (!free && !(await hasProPlan())) {
     return NextResponse.json({ error: "This level needs the Pro plan." }, { status: 402 });
   }
-  return NextResponse.json({ questions: practiceSet(kind, level, Math.random) });
+  return NextResponse.json({ questions: practiceSet(kind, level, Math.random).map((q) => vary(q, Math.random)) });
 }

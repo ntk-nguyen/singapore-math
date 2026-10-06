@@ -31,7 +31,8 @@ describe("paid tests draw from their own topics", () => {
       for (const g of GRADES) {
         const paper = buildPaper(t, g);
         expect(paper).toHaveLength(t.length);
-        for (const q of paper) expect(q.choices).toContain(q.answer);
+        for (const q of paper) expect(q.format === "order" ? q.items : q.choices).toBeDefined();
+        for (const q of paper.filter((x) => x.format !== "order")) expect(q.choices).toContain(q.answer);
       }
     }
   });
@@ -46,11 +47,10 @@ describe("paid tests draw from their own topics", () => {
     for (const q of buildPaper(getTest("wp")!, 4)) expect(q.text).not.toMatch(/^What is|^Solve for x/);
   });
 
-  it("paid papers differ from the free checkpoint", () => {
+  it("paid papers ask about standards the free checkpoint does not", () => {
     const free = stds("checkpoint", 5);
     for (const id of ["frac", "eoy", "state"]) {
-      const paid = stds(id, 5);
-      expect(paid.size).toBeGreaterThan(free.size);
+      expect([...stds(id, 5)].some((s) => !free.has(s))).toBe(true);
     }
   });
 

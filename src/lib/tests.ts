@@ -1,6 +1,8 @@
 import { BANK, nearGrade, type Item, type Strand } from "./bank";
 import { makeQuestion, type Grade, type Question } from "./questions";
 import { helpers, seeded } from "./rng";
+import { vary } from "./formats";
+import { pickFresh } from "./templates";
 
 export interface TestInfo {
   id: string;
@@ -58,17 +60,22 @@ export function testItems(test: TestInfo, selected: Grade): Item[] {
 /**
  * Build a fixed (non-adaptive) test paper. Pooled tests take turns between strands,
  * so a paper mixes word problems, fractions and so on rather than repeating one kind.
+ * No question appears twice on a paper, and questions come in a mix of formats.
  */
 export function buildPaper(test: TestInfo, selected: Grade): Question[] {
   const grade = testGrade(test, selected);
   const r = seeded(test.seed * 10 + grade);
-  if (!test.pool) return Array.from({ length: test.length }, (_, i) => makeQuestion(grade, r, i));
+  const seen = new Set<string>();
+  if (!test.pool) return Array.from({ length: test.length }, (_, i) => vary(pickFresh(seen, () => makeQuestion(grade, r, i)), r));
   const { shuffle } = helpers(r);
   const byStrand = new Map<Strand, Item[]>();
   for (const item of testItems(test, selected)) byStrand.set(item.strand, [...(byStrand.get(item.strand) ?? []), item]);
   const lists = shuffle([...byStrand.values()].map((l) => shuffle(l)));
   return Array.from({ length: test.length }, (_, i) => {
     const list = lists[i % lists.length];
-    return list[Math.floor(i / lists.length) % list.length].make(r);
+    // A repeat moves on to the next question type in the strand.
+    const first = Math.floor(i / lists.length);
+    let tries = 0;
+    return vary(pickFresh(seen, () => list[(first + Math.floor(tries++ / 5)) % list.length].make(r)), r);
   });
 }

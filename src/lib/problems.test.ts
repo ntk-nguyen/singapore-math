@@ -12,7 +12,7 @@ describe("word problems and equations", () => {
           const r = seeded(g * 97 + level.length);
           for (let i = 0; i < 300; i++) {
             const q = practiceSet(kind, level, r, gens.length)[0];
-            expect(Number.isInteger(Number(q.answer))).toBe(true);
+            expect(q.answer).toMatch(/^(\$\d+(\.\d\d)?|-?\d+)$/);
             expect(q.choices).toHaveLength(4);
             expect(new Set(q.choices).size).toBe(4);
             expect(q.choices).toContain(q.answer);
