@@ -39,6 +39,8 @@ export function FigureView({ figure }: { figure: Figure }) {
           </table>
         </figure>
       );
+    case "line":
+      return <NumberLine f={figure} />;
     case "code":
       return (
         <figure className="figure">
@@ -97,6 +99,26 @@ function LinePlot({ f }: { f: Extract<Figure, { t: "dots" }> }) {
           </g>
         ))}
         <text className="tick" x={W / 2} y={H - 2} textAnchor="middle">{f.unit}</text>
+      </svg>
+    </figure>
+  );
+}
+
+function NumberLine({ f }: { f: Extract<Figure, { t: "line" }> }) {
+  const W = 360, H = 84, L = 22, y = 48;
+  const step = (W - 2 * L) / (f.ticks.length - 1), x = (i: number) => L + step * i;
+  return (
+    <figure className="figure numline">
+      <svg className="graph" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Number line from ${f.ticks[0]} to ${f.ticks[f.ticks.length - 1]} with an arrow at one tick`}>
+        <line className="axis" x1={L - 10} x2={W - L + 10} y1={y} y2={y} />
+        {f.ticks.map((t, i) => (
+          <g key={i}>
+            <line className="axis" x1={x(i)} x2={x(i)} y1={y - (t ? 8 : 5)} y2={y + (t ? 8 : 5)} />
+            {t && <text className="tick" x={x(i)} y={y + 26} textAnchor="middle">{t}</text>}
+          </g>
+        ))}
+        <path className="arrow" d={`M ${x(f.arrow)} ${y - 10} l -8 -14 h 16 z`} />
+        <text className="tick" x={x(f.arrow)} y={12} textAnchor="middle">?</text>
       </svg>
     </figure>
   );

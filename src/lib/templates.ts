@@ -10,7 +10,7 @@
  */
 import type { Figure } from "./figures";
 import type { BarModelSpec } from "./models";
-import type { Grade, Question } from "./questions";
+import type { Format, Grade, Question } from "./questions";
 import { gcd, helpers, type Rng } from "./rng";
 
 export type Tier = 0 | 1 | 2;
@@ -128,6 +128,12 @@ export interface Draft {
   negatives?: boolean;
   /** When one template asks about more than one standard. */
   std?: string;
+  /** A fixed format (odd one out, put in order, number line...). Omitted means multiple choice, which `vary` may ask other ways. */
+  format?: Format;
+  /** For "order": the items, in the right order. `answer` is them joined by ", ". */
+  items?: string[];
+  /** A second line under the question. */
+  ask?: string;
 }
 
 export interface Template {
@@ -212,6 +218,12 @@ export function render(tpl: Template, r: Rng, tier: Tier = tpl.tier): Rendered {
   const d = tpl.make(c);
   const form = d.form ?? "int";
   const answer = write(d.answer, form);
+  const base = { grade: tpl.grade, text: tidy(d.text), std: d.std ?? tpl.std, answer, model: d.model, steps: d.steps?.map(tidy), figure: d.figure, format: d.format, ask: d.ask };
+  if (d.format === "order") {
+    return { real: 0, negatives: !!d.negatives, question: { ...base, items: c.shuffle([...d.items!]), choices: [] } };
+  }
+  // In "odd one out" the other choices are meant to be equal in value.
+  const byValue = d.format !== "oddone";
   const sensible = (v: number | string) => {
     if (typeof v === "string") return v.length > 0 && !/\/0$/.test(v) && !(valueOf(v) < 0 && !d.negatives);
     if (!Number.isFinite(v) || (v < 0 && !d.negatives)) return false;
@@ -221,7 +233,7 @@ export function render(tpl: Template, r: Rng, tier: Tier = tpl.tier): Rendered {
   const values = new Set([valueOf(answer)]);
   const add = (v: number | string) => {
     const s = write(v, form), x = valueOf(s);
-    if (choices.length >= 4 || !sensible(v) || choices.includes(s) || (!Number.isNaN(x) && values.has(x))) return false;
+    if (choices.length >= 4 || !sensible(v) || choices.includes(s) || (byValue && !Number.isNaN(x) && values.has(x))) return false;
     choices.push(s);
     values.add(x);
     return true;
@@ -242,44 +254,63 @@ export function render(tpl: Template, r: Rng, tier: Tier = tpl.tier): Rendered {
     }
   }
   if (choices.length < 4) throw new Error(`${tpl.id}: not enough choices for "${d.text}"`);
-  return {
-    real,
-    negatives: !!d.negatives,
-    question: {
-      grade: tpl.grade,
-      text: tidy(d.text),
-      std: d.std ?? tpl.std,
-      answer,
-      choices: c.shuffle(choices),
-      model: d.model,
-      steps: d.steps?.map(tidy),
-      figure: d.figure,
-    },
-  };
+  return { real, negatives: !!d.negatives, question: { ...base, choices: c.shuffle(choices), mistakes: d.format ? undefined : explained(d, answer, sensible) } };
+}
+
+/**
+ * The template's mistakes as written answers, for "find the mistake". A mistake is left
+ * out when its answer is not sensible, equals the right answer, or another mistake gives
+ * the same answer (then either explanation would be right).
+ */
+function explained(d: Draft, answer: string, sensible: (v: number | string) => boolean): { answer: string; why: string }[] {
+  const form = d.form ?? "int";
+  const rows = d.mistakes.filter((m) => sensible(m.value)).map((m) => ({ answer: write(m.value, form), why: m.why }));
+  const key = (s: string) => (Number.isNaN(valueOf(s)) ? s : valueOf(s).toFixed(6));
+  const count = new Map<string, number>();
+  for (const x of rows) count.set(key(x.answer), (count.get(key(x.answer)) ?? 0) + 1);
+  const whys = new Set<string>();
+  return rows.filter((x) => {
+    if (count.get(key(x.answer))! > 1 || key(x.answer) === key(answer) || whys.has(x.why)) return false;
+    whys.add(x.why);
+    return true;
+  });
 }
 
 /* ---------------- validator ---------------- */
 
 /**
- * Problems with a generated question, or an empty list: four distinct choices, exactly
- * one right answer (no other choice with the same value), and sensible numbers (no
- * NaN, no float noise, no negatives unless the topic uses them).
+ * Problems with a generated question, or an empty list. Multiple choice needs four
+ * distinct choices with exactly one right answer (no other choice of the same value);
+ * true/false needs True and False; "find the mistake" needs at least three explanations;
+ * "put in order" needs distinct items whose order is the answer. Every format needs
+ * sensible numbers (no NaN, no float noise, no negatives unless the topic uses them).
  */
 export function checkQuestion(q: Question, opts: { negatives?: boolean } = {}): string[] {
   const out: string[] = [];
-  if (q.choices.length !== 4) out.push(`has ${q.choices.length} choices`);
-  if (new Set(q.choices).size !== q.choices.length) out.push("repeats a choice");
-  const hits = q.choices.filter((c) => c === q.answer).length;
-  if (hits !== 1) out.push(`answer appears ${hits} times`);
-  const vals = q.choices.map(valueOf).filter((v) => !Number.isNaN(v));
-  if (new Set(vals.map((v) => v.toFixed(6))).size !== vals.length) out.push("two choices have the same value");
-  const all = [q.text, ...q.choices, ...(q.steps ?? [])].join(" | ");
+  const f = q.format ?? "choice";
+  if (f === "order") {
+    const items = q.items ?? [];
+    if (items.length < 3) out.push("has fewer than three items to order");
+    if (new Set(items).size !== items.length) out.push("repeats an item");
+    if ([...items].sort().join() !== q.answer.split(", ").sort().join()) out.push("answer is not the items in order");
+  } else if (f === "truefalse") {
+    if (q.choices.join() !== "True,False" || !["True", "False"].includes(q.answer)) out.push("true/false is malformed");
+  } else {
+    const n = f === "mistake" ? 3 : 4;
+    if (q.choices.length < n || q.choices.length > 4) out.push(`has ${q.choices.length} choices`);
+    if (new Set(q.choices).size !== q.choices.length) out.push("repeats a choice");
+    const hits = q.choices.filter((c) => c === q.answer).length;
+    if (hits !== 1) out.push(`answer appears ${hits} times`);
+    const vals = q.choices.map(valueOf).filter((v) => !Number.isNaN(v));
+    if (f !== "oddone" && new Set(vals.map((v) => v.toFixed(6))).size !== vals.length) out.push("two choices have the same value");
+  }
+  const all = [q.text, q.ask ?? "", ...q.choices, ...(q.items ?? []), ...(q.steps ?? [])].join(" | ");
   if (/undefined|NaN|Infinity|\[object|\bnull\b/.test(all)) out.push("has a broken value");
   if (/\d\.\d{5,}/.test(all)) out.push("has float noise");
   if (!q.text.trim()) out.push("has no text");
   if (!opts.negatives) {
     if (/(^|[\s(:=$])[-−]\d/.test(q.text)) out.push("has a negative number in the text");
-    if (q.choices.some((c) => valueOf(c) < 0)) out.push("has a negative choice");
+    if ([...q.choices, ...(q.items ?? [])].some((c) => valueOf(c) < 0)) out.push("has a negative choice");
   }
   const a = valueOf(q.answer);
   if (!Number.isNaN(a) && !Number.isFinite(a)) out.push("answer is not finite");
@@ -290,12 +321,13 @@ export function checkQuestion(q: Question, opts: { negatives?: boolean } = {}): 
 
 /**
  * What makes two questions the same: the text, and any figure the text is about. When
- * the text has no numbers ("Which is greatest?"), the choices are the question, so they
- * count too.
+ * the choices or items are the question ("Which is greatest?", "Put these in order",
+ * "Which is the odd one out?"), they count too.
  */
 export function questionKey(q: Question): string {
   const key = q.figure ? `${q.text}|${JSON.stringify(q.figure)}` : q.text;
-  return /\d/.test(q.text) ? key : `${key}|${[...q.choices].sort().join(",")}`;
+  if (q.items) return `${key}|${[...q.items].sort().join(",")}`;
+  return /\d/.test(q.text) && q.format !== "oddone" ? key : `${key}|${[...q.choices].sort().join(",")}`;
 }
 
 /**

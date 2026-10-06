@@ -67,7 +67,8 @@ describe("paid tests draw from their own topics", () => {
       for (const g of GRADES) {
         const paper = buildPaper(t, g, g);
         expect(paper).toHaveLength(t.length);
-        for (const q of paper) expect(q.choices).toContain(q.answer);
+        for (const q of paper) expect(q.format === "order" ? q.items : q.choices).toBeDefined();
+        for (const q of paper.filter((x) => x.format !== "order")) expect(q.choices).toContain(q.answer);
       }
     }
   });

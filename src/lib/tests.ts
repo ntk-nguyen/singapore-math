@@ -1,6 +1,7 @@
 import { BANK, nearGrade, type Item, type Strand } from "./bank";
 import { generatorCount, makeQuestion, type Grade, type Question } from "./questions";
 import { helpers, seeded } from "./rng";
+import { vary } from "./formats";
 import { pickFresh } from "./templates";
 
 export interface TestInfo {
@@ -73,7 +74,8 @@ function paperSeed(test: TestInfo, grade: Grade, attempt: number): number {
  * Build a fixed-length (non-adaptive) test paper. Each attempt is a new paper: the same
  * `attempt` seed always gives the same paper, a different one gives different questions.
  * Pooled tests take turns between strands, so a paper mixes word problems, fractions
- * and so on rather than repeating one kind. No question appears twice on a paper.
+ * and so on rather than repeating one kind. No question appears twice on a paper, and
+ * questions come in a mix of formats.
  */
 export function buildPaper(test: TestInfo, selected: Grade, attempt: number = attemptSeed()): Question[] {
   const grade = testGrade(test, selected);
@@ -83,7 +85,7 @@ export function buildPaper(test: TestInfo, selected: Grade, attempt: number = at
   if (!test.pool) {
     // Every question type for the grade, in a new order each attempt.
     const order = shuffle(Array.from({ length: generatorCount(grade) }, (_, i) => i));
-    return Array.from({ length: test.length }, (_, i) => pickFresh(seen, () => makeQuestion(grade, r, order[i % order.length])));
+    return Array.from({ length: test.length }, (_, i) => vary(pickFresh(seen, () => makeQuestion(grade, r, order[i % order.length])), r));
   }
   const byStrand = new Map<Strand, Item[]>();
   for (const item of testItems(test, selected)) byStrand.set(item.strand, [...(byStrand.get(item.strand) ?? []), item]);
@@ -93,6 +95,6 @@ export function buildPaper(test: TestInfo, selected: Grade, attempt: number = at
     // A repeat moves on to the next question type in the strand.
     const first = Math.floor(i / lists.length);
     let tries = 0;
-    return pickFresh(seen, () => list[(first + Math.floor(tries++ / 5)) % list.length].make(r));
+    return vary(pickFresh(seen, () => list[(first + Math.floor(tries++ / 5)) % list.length].make(r)), r);
   });
 }

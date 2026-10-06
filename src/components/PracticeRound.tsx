@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Question } from "@/lib/questions";
+import { vary } from "@/lib/formats";
 import { noRepeats } from "@/lib/templates";
 import { confetti } from "./Confetti";
 import { useProgress } from "./Progress";
@@ -12,8 +13,8 @@ const ROUND = 10;
 /** Ten questions in a row with stars, a streak and a saved best score. */
 export function PracticeRound({ make, bestKey }: { make: () => Question; bestKey: string }) {
   const { addStars, recordBest } = useProgress();
-  // Never the same question twice, including after "Practise again".
-  const [fresh] = useState(() => noRepeats(make));
+  // Never the same question twice, including after "Practise again", and asked in a mix of formats.
+  const [fresh] = useState(() => noRepeats(() => vary(make(), Math.random)));
   const [q, setQ] = useState(fresh);
   const [done, setDone] = useState(0);
   const [right, setRight] = useState(0);
