@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { confetti } from "@/components/Confetti";
-import { useProgress } from "@/components/Progress";
+import { useProgress, useRemember } from "@/components/Progress";
 import { QuestionCard } from "@/components/QuestionCard";
 import { Results, type Answered } from "@/components/Results";
 import { placementResult, recordAnswer, startPlacement, type PlacementState } from "@/lib/placement";
@@ -15,6 +15,7 @@ export default function TestPage() {
   const { id } = useParams<{ id: string }>();
   const test = getTest(id);
   const { grade, ready } = useProgress();
+  useRemember(test ? { href: `/tests/${test.id}`, title: test.name } : null);
   if (!test) {
     return (
       <div className="panel">

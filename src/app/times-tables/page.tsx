@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { confetti } from "@/components/Confetti";
-import { useProgress } from "@/components/Progress";
+import { useProgress, useRemember } from "@/components/Progress";
 import { factKey, MASTERED, MAX, nextMastery, pickFact, strategy, TABLES } from "@/lib/timesTables";
 
 const TRICKS: { t: number; name: string; tip: string }[] = [
@@ -21,6 +21,7 @@ const TRICKS: { t: number; name: string; tip: string }[] = [
 
 export default function TimesTablesPage() {
   const { facts, ready } = useProgress();
+  useRemember({ href: "/times-tables", title: "Times tables" });
   const [sel, setSel] = useState<[number, number]>([7, 8]);
   const [tables, setTables] = useState<number[]>([7]);
   const [playing, setPlaying] = useState(false);
@@ -36,7 +37,7 @@ export default function TimesTablesPage() {
   return (
     <div className="stack">
       <div>
-        <p className="eyebrow">Grade 3 · CCSS 3.OA.C.7 · Free</p>
+        <p className="eyebrow">Grades 2 to 5 · Free</p>
         <h2>Times tables without rote</h2>
         <p className="muted" style={{ marginTop: 6, maxWidth: "65ch" }}>
           Learn the anchor facts (× 1, × 2, × 5, × 10) and build every other fact from them. Because 7 × 8 is the same as 8 × 7, there are only 78 facts to know, and the tricks below cover most of them.

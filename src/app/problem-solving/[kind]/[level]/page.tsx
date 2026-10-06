@@ -4,14 +4,16 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { confetti } from "@/components/Confetti";
-import { useProgress } from "@/components/Progress";
+import { useProgress, useRemember } from "@/components/Progress";
 import { QuestionCard } from "@/components/QuestionCard";
 import { isKind, isLevel, KINDS, LEVELS } from "@/lib/problems";
 import type { Question } from "@/lib/questions";
 
 export default function PracticePage() {
   const { kind, level } = useParams<{ kind: string; level: string }>();
-  if (!isKind(kind) || !isLevel(level)) {
+  const found = isKind(kind) && isLevel(level);
+  useRemember(found ? { href: `/problem-solving/${kind}/${level}`, title: `${KINDS[kind].title}: ${LEVELS.find((l) => l.id === level)!.label.toLowerCase()}` } : null);
+  if (!found) {
     return (
       <div className="panel">
         <h2>Practice set not found</h2>
