@@ -10,10 +10,10 @@ import { QuestionCard } from "./QuestionCard";
 
 const ROUND = 10;
 
-/** Ten questions in a row with stars, a streak and a saved best score. */
+/** Ten questions in a row with XP, a streak and a saved best score. */
 export function PracticeRound({ make, bestKey }: { make: () => Question; bestKey: string }) {
   const { addStars, recordBest } = useProgress();
-  // Never the same question twice, including after "Practise again", and asked in a mix of formats.
+  // Never the same question twice, including after "Practice again", and asked in a mix of formats.
   const [fresh] = useState(() => noRepeats(() => vary(make(), Math.random)));
   const [q, setQ] = useState(fresh);
   const [done, setDone] = useState(0);
@@ -56,7 +56,7 @@ export function PracticeRound({ make, bestKey }: { make: () => Question; bestKey
     <section className="panel">
       <div className="row">
         <div className="spacer">
-          <p className="eyebrow">Practise</p>
+          <p className="eyebrow">Practice</p>
           <h3>Ten in a row</h3>
         </div>
         <span className="streak">{streak > 1 ? `${streak} in a row` : ""}</span>
@@ -68,7 +68,7 @@ export function PracticeRound({ make, bestKey }: { make: () => Question; bestKey
           <p className="muted">
             {right >= 8 ? "Excellent! Try the next skill." : "Use “Show me how” on the tricky ones, then try again."}
           </p>
-          <button className="btn self-start" onClick={restart}>Practise again</button>
+          <button className="btn self-start" onClick={restart}>Practice again</button>
         </>
       ) : (
         <QuestionCard key={qn} q={q} onAnswer={answer}>

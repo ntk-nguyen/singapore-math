@@ -9,7 +9,7 @@ import { seeded, type Rng } from "./rng";
 import { checkQuestion, render } from "./templates";
 import { thinkingQuestion, THINKING_TOPICS } from "./thinking";
 
-/** Every topic the way a child practises it: one maker per Play grade, skill, fractions topic, word/equation level and data & thinking topic. */
+/** Every topic the way a child practices it: one maker per Play grade, skill, fractions topic, word/equation level and data & thinking topic. */
 const PRACTICE: { id: string; grade: Grade; make: (r: Rng) => Question }[] = [
   ...GRADES.map((g) => ({ id: `play-grade-${g}`, grade: g, make: (r: Rng) => makeQuestion(g, r) })),
   ...TOPICS.map((t) => ({ id: t.id, grade: t.grade, make: (r: Rng) => methodQuestion(t, r) })),

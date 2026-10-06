@@ -15,7 +15,7 @@ export default function PlayPage() {
 }
 
 function Round({ grade }: { grade: Grade }) {
-  const { addStars } = useProgress();
+  const { addStars, recordBest } = useProgress();
   // Every question type once before any comes back, never the same question twice while this grade is open, in a mix of formats.
   const [fresh] = useState(() => { const next = playDeck(grade, Math.random); return () => vary(next(), Math.random); });
   const [q, setQ] = useState<Question | null>(null);
@@ -47,6 +47,7 @@ function Round({ grade }: { grade: Grade }) {
   const next = () => {
     if (done >= ROUND) {
       if (right >= 8) confetti();
+      recordBest(`play-g${grade}`, right * 10);
       setQ(null);
       return;
     }
@@ -86,7 +87,7 @@ function Round({ grade }: { grade: Grade }) {
                 ? "Excellent work. Try the next grade up!"
                 : right >= 5
                   ? "Good effort. Use “Show me the bar model” on the tricky ones."
-                  : "Keep practising. The bar model hints help a lot."}
+                  : "Keep practicing. The bar model hints help a lot."}
             </p>
             <button className="btn self-start" onClick={restart}>Play again</button>
           </>

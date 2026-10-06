@@ -56,7 +56,7 @@ export default function TimesTablesPage() {
           <Sprint tables={tables} onDone={() => setPlaying(false)} />
         ) : (
           <>
-            <p className="muted">Pick the tables to practise. Every fact comes up once before any repeats, and facts you miss come back a few questions later.</p>
+            <p className="muted">Pick the tables to practice. Every fact comes up once before any repeats, and facts you miss come back a few questions later.</p>
             <div className="row" role="group" aria-label="Tables">
               {TABLES.map((t) => {
                 const on = tables.includes(t);
@@ -100,7 +100,7 @@ export default function TimesTablesPage() {
               <span className="std">× {x.t}</span>
               <h3>{x.name}</h3>
               <p>{x.tip}</p>
-              <button className="btn ghost self-start" onClick={() => start([x.t])}>Practise × {x.t}</button>
+              <button className="btn ghost self-start" onClick={() => start([x.t])}>Practice × {x.t}</button>
             </div>
           ))}
         </div>
@@ -203,7 +203,7 @@ function Sprint({ tables, onDone }: { tables: number[]; onDone: () => void }) {
       <>
         <p className="result-big">{score}</p>
         <p className="muted">
-          correct in 60 seconds{best["tt-sprint"] != null ? ` · best ${Math.max(best["tt-sprint"], score)}` : ""}. Every 5 in a row earns a star.
+          correct in 60 seconds{best["tt-sprint"] != null ? ` · best ${Math.max(best["tt-sprint"], score)}` : ""}. Every 5 in a row earns 10 XP.
         </p>
         <button className="btn self-start" onClick={onDone}>Done</button>
       </>

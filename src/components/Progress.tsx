@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { dayKey, logDay, parseDays, streak as streakOf, XP_PER_STAR, type Day, type Days } from "@/lib/activity";
 import { isGrade, type Grade } from "@/lib/questions";
 
 /**
@@ -17,6 +18,8 @@ interface Progress {
   facts: Record<string, number>;
   /** The last lesson or practice set opened, for "Pick up where you left off". */
   recent: Recent | null;
+  /** XP earned and things finished per day, for the streak and the daily quest. */
+  days: Days;
 }
 
 export interface Recent {
@@ -24,12 +27,17 @@ export interface Recent {
   title: string;
 }
 
-const DEFAULTS: Progress = { grade: 3, stars: 0, best: {}, placement: null, lessons: [], facts: {}, recent: null };
+const DEFAULTS: Progress = { grade: 3, stars: 0, best: {}, placement: null, lessons: [], facts: {}, recent: null, days: {} };
 const KEY = "bma-progress";
 
 interface Ctx extends Progress {
   /** False until saved progress has been read from this device. */
   ready: boolean;
+  /** Stars shown as XP. */
+  xp: number;
+  /** Days in a row with some practice. */
+  streak: number;
+  today: Day;
   setGrade: (g: Grade) => void;
   addStars: (n: number) => void;
   recordBest: (testId: string, pct: number) => void;
@@ -54,6 +62,7 @@ function load(): Progress {
       lessons: Array.isArray(p.lessons) ? p.lessons : [],
       facts: p.facts && typeof p.facts === "object" ? p.facts : {},
       recent: p.recent && typeof p.recent.href === "string" && typeof p.recent.title === "string" ? p.recent : null,
+      days: parseDays(p.days),
     };
   } catch {
     return DEFAULTS;
@@ -81,16 +90,23 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, [state, loaded]);
 
   const setGrade = useCallback((grade: Grade) => setState((s) => ({ ...s, grade })), []);
-  const addStars = useCallback((n: number) => setState((s) => ({ ...s, stars: s.stars + n })), []);
+  const addStars = useCallback(
+    (n: number) => setState((s) => ({ ...s, stars: s.stars + n, days: logDay(s.days, new Date(), { xp: n * XP_PER_STAR }) })),
+    [],
+  );
+  // Every finished practice set, round or test also counts toward today's quest.
   const recordBest = useCallback(
-    (id: string, pct: number) => setState((s) => ({ ...s, best: { ...s.best, [id]: Math.max(s.best[id] ?? 0, pct) } })),
+    (id: string, pct: number) =>
+      setState((s) => ({ ...s, best: { ...s.best, [id]: Math.max(s.best[id] ?? 0, pct) }, days: logDay(s.days, new Date(), { done: 1 }) })),
     [],
   );
   const setPlacement = useCallback((g: Grade) => setState((s) => ({ ...s, placement: g, grade: g })), []);
   const completeLesson = useCallback(
     (id: string) => {
       if (state.lessons.includes(id)) return false;
-      setState((s) => ({ ...s, stars: s.stars + 1, lessons: [...s.lessons, id] }));
+      setState((s) => ({
+        ...s, stars: s.stars + 1, lessons: [...s.lessons, id], days: logDay(s.days, new Date(), { xp: XP_PER_STAR, done: 1 }),
+      }));
       return true;
     },
     [state.lessons],
@@ -106,10 +122,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const value = useMemo(
-    () => ({ ...state, ready: loaded, setGrade, addStars, recordBest, setPlacement, completeLesson, setFact, setRecent }),
-    [state, loaded, setGrade, addStars, recordBest, setPlacement, completeLesson, setFact, setRecent],
-  );
+  const value = useMemo(() => {
+    const now = new Date();
+    return {
+      ...state, ready: loaded, xp: state.stars * XP_PER_STAR, streak: streakOf(state.days, now), today: state.days[dayKey(now)] ?? { xp: 0, done: 0 },
+      setGrade, addStars, recordBest, setPlacement, completeLesson, setFact, setRecent,
+    };
+  }, [state, loaded, setGrade, addStars, recordBest, setPlacement, completeLesson, setFact, setRecent]);
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>;
 }
 

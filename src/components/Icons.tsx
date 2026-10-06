@@ -30,3 +30,8 @@ export const BoltIcon = () => <Icon d="M13 2 4 14h7l-1 8 9-12h-7z" />;
 export const TargetIcon = () => <Icon stroke d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 12h.01" />;
 export const GridIcon = () => <Icon stroke d="M4 4h16v16H4zM4 9.33h16M4 14.66h16M9.33 4v16M14.66 4v16" />;
 export const CrownIcon = () => <Icon d="M3 7l4.5 4L12 4l4.5 7L21 7l-2 11H5L3 7zm2 13h14v2H5z" />;
+export const FlameIcon = () => (
+  <Icon stroke d="M12 22c4 0 7-2.7 7-6.7 0-3.6-2.4-6-4.2-8.3-.4 2.2-1.5 3.6-2.8 4.3C12.5 8 11 4.6 8.6 2.5 8.4 6 5 9 5 14.8 5 19.2 8 22 12 22z" />
+);
+export const StarIcon = () => <Icon d="M12 2l3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z" />;
+export const SparkIcon = () => <Icon stroke d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6" />;

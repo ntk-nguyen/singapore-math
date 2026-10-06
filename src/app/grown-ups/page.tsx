@@ -53,7 +53,7 @@ export default function GrownUpsPage() {
         <h2>Built for kids under 13</h2>
         <ul className="ticks">
           <li>No ads, no third-party trackers, and no sign-up for children.</li>
-          <li>Stars, scores and placement are stored in this browser only. Clearing site data resets them.</li>
+          <li>XP, streaks, scores and placement are stored in this browser only. Clearing site data resets them.</li>
           <li>Only a grown-up can buy the Pro plan, through Stripe Checkout. We never see card details.</li>
         </ul>
       </section>

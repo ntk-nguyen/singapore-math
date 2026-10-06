@@ -26,7 +26,7 @@ export default function NumberSkillsPage() {
         <p className="eyebrow">Concrete → Pictorial → Abstract</p>
         <h2>Number skills: +, −, ×, ÷ by grade</h2>
         <p className="muted">
-          Place-value discs show what carrying and borrowing really mean, the area model turns into long multiplication, and long division is sharing one place at a time. Every lesson steps through a fresh example, then you practise 10 questions.
+          Place-value discs show what carrying and borrowing really mean, the area model turns into long multiplication, and long division is sharing one place at a time. Every lesson steps through a fresh example, then you practice 10 questions.
         </p>
       </div>
       <div className="row" role="group" aria-label="Grade">
@@ -54,7 +54,7 @@ export default function NumberSkillsPage() {
                   <p>{t.blurb}</p>
                   {best[`ns-${t.id}`] != null && <span className="muted small">Best: {best[`ns-${t.id}`]}%</span>}
                   <div className="row">
-                    <Link className="btn" href={`/number-skills/${t.id}`}>Learn & practise</Link>
+                    <Link className="btn" href={`/number-skills/${t.id}`}>Learn & practice</Link>
                     <span className="std" title="Common Core standard">{t.std}</span>
                   </div>
                 </div>

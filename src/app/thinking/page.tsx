@@ -23,7 +23,7 @@ export default function ThinkingPage() {
         <p className="eyebrow">Ready for a world with AI</p>
         <h2>Data & thinking</h2>
         <p className="muted">
-          A computer can work out an answer in a blink. Knowing whether to trust it is up to you. Read graphs and spot misleading ones, think about averages and chance, follow rules and simple code, estimate to check an answer, and explain why a method works. Each topic shows a worked example, then you practise 10 questions.
+          A computer can work out an answer in a blink. Knowing whether to trust it is up to you. Read graphs and spot misleading ones, think about averages and chance, follow rules and simple code, estimate to check an answer, and explain why a method works. Each topic shows a worked example, then you practice 10 questions.
         </p>
       </div>
       <div className="row" role="group" aria-label="Grade">
@@ -53,7 +53,7 @@ export default function ThinkingPage() {
                     {best[key] != null && <span className="muted small">Best: {best[key]}%</span>}
                     <div className="row">
                       {open ? (
-                        <Link className="btn" href={`/thinking/${t.id}`}>Learn & practise</Link>
+                        <Link className="btn" href={`/thinking/${t.id}`}>Learn & practice</Link>
                       ) : (
                         <button className="btn gold" disabled={!plan} onClick={() => setPaywall(true)}>Upgrade to Pro</button>
                       )}
