@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { appUrl, getStripe, StripeConfigError } from "@/lib/stripe";
 
-/** Start a Stripe Checkout (test mode) for the Family plan subscription. */
+/** Start a Stripe Checkout (test mode) for the Pro plan subscription. */
 export async function POST(req: Request) {
   try {
     const stripe = getStripe();
@@ -18,13 +18,13 @@ export async function POST(req: Request) {
                 currency: "usd",
                 unit_amount: 799,
                 recurring: { interval: "month" },
-                product_data: { name: "Bar Model Academy Family plan" },
+                product_data: { name: "MathBridge Pro plan" },
               },
             },
       ],
       subscription_data: { trial_period_days: 7 },
       success_url: `${base}/api/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${base}/tests`,
+      cancel_url: `${base}/pro`,
     });
     return NextResponse.json({ url: session.url });
   } catch (err) {

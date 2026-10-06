@@ -1,6 +1,6 @@
 /**
  * Word problems (solved with bar models) and solve-for-x equations, in three levels.
- * Easy is free; intermediate and advanced need the Family plan and are only served
+ * Easy is free; intermediate and advanced need the Pro plan and are only served
  * by the API after a server-side plan check.
  */
 import type { BarModelSpec } from "./models";

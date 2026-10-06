@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { confetti } from "@/components/Confetti";
 import { Paywall } from "@/components/Paywall";
+import { CrownIcon } from "@/components/Icons";
 import { useProgress } from "@/components/Progress";
 import { usePlan } from "@/components/usePlan";
 import { KINDS, LEVELS, type Kind } from "@/lib/problems";
 
 export default function ProblemSolvingPage() {
   const { best } = useProgress();
-  const [plan, refresh] = usePlan();
+  const [plan] = usePlan();
   const [paywall, setPaywall] = useState(false);
 
   return (
@@ -27,18 +27,18 @@ export default function ProblemSolvingPage() {
           <h3>{KINDS[kind].title}</h3>
           <div className="tests">
             {LEVELS.map((l) => {
-              const open = l.free || !!plan?.family;
+              const open = l.free || !!plan?.pro;
               const key = `ps-${kind}-${l.id}`;
               return (
                 <div key={l.id} className={`test${open ? "" : " locked"}`}>
-                  <span className={`tag ${l.free ? "free" : "paid"}`}>{l.free ? "Free" : "Family plan"}</span>
+                  {l.free ? <span className="tag free">Free</span> : <span className="tag paid"><span className="lock"><CrownIcon />Pro</span></span>}
                   <h3>{l.label}</h3>
                   <p>{KINDS[kind].blurb[l.id]}</p>
                   {best[key] != null && <span className="muted small">Best: {best[key]}%</span>}
                   {open ? (
                     <Link className="btn self-start" href={`/problem-solving/${kind}/${l.id}`}>Practise</Link>
                   ) : (
-                    <button className="btn ghost self-start" disabled={!plan} onClick={() => setPaywall(true)}>Unlock</button>
+                    <button className="btn gold self-start" disabled={!plan} onClick={() => setPaywall(true)}>Upgrade to Pro</button>
                   )}
                 </div>
               );
@@ -47,7 +47,7 @@ export default function ProblemSolvingPage() {
         </section>
       ))}
       {paywall && (
-        <Paywall plan={plan} onClose={() => setPaywall(false)} onUnlocked={() => { setPaywall(false); refresh(); confetti(); }} />
+        <Paywall onClose={() => setPaywall(false)} onUnlocked={() => setPaywall(false)} />
       )}
     </div>
   );

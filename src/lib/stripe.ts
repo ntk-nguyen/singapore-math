@@ -28,7 +28,7 @@ const ACTIVE = new Set<Stripe.Subscription.Status>(["active", "trialing"]);
 const cache = new Map<string, { ok: boolean; at: number }>();
 const CACHE_MS = 60_000;
 
-/** Whether a Stripe customer has an active or trialing Family plan subscription. */
+/** Whether a Stripe customer has an active or trialing Pro plan subscription. */
 export async function hasActiveSubscription(customerId: string): Promise<boolean> {
   const hit = cache.get(customerId);
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.ok;

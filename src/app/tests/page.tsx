@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
-import { confetti } from "@/components/Confetti";
+import { CrownIcon } from "@/components/Icons";
 import { Paywall } from "@/components/Paywall";
 import { useProgress } from "@/components/Progress";
 import { usePlan } from "@/components/usePlan";
@@ -19,21 +19,21 @@ function LockIcon() {
 
 function CheckoutNotice() {
   const params = useSearchParams();
-  if (params.get("unlocked")) return <p className="notice">Family plan unlocked. Enjoy the extra tests!</p>;
+  if (params.get("unlocked")) return <p className="notice">Pro plan unlocked. Enjoy the extra tests!</p>;
   if (params.get("checkout")) return <p className="notice bad">Checkout did not finish, so nothing was charged.</p>;
   return null;
 }
 
 export default function TestsPage() {
   const { best, placement } = useProgress();
-  const [plan, refresh] = usePlan();
+  const [plan] = usePlan();
   const [paywall, setPaywall] = useState(false);
-  const family = !!plan?.family;
+  const pro = !!plan?.pro;
 
   return (
     <div className="stack">
       <div className="intro">
-        <p className="eyebrow">Two free · six with Family plan</p>
+        <p className="eyebrow">Two free · six more with the Pro plan</p>
         <h2>Practice tests</h2>
         {placement && (
           <p className="muted">
@@ -46,18 +46,18 @@ export default function TestsPage() {
       </Suspense>
       <div className="tests">
         {TESTS.map((t) => {
-          const open = t.free || family;
+          const open = t.free || pro;
           return (
             <div key={t.id} className={`test${open ? "" : " locked"}`}>
-              <span className={`tag ${t.free ? "free" : "paid"}`}>{t.free ? "Free" : "Family plan"}</span>
+              {t.free ? <span className="tag free">Free</span> : <span className="tag paid"><span className="lock"><CrownIcon />Pro</span></span>}
               <h3>{t.name}</h3>
               <p>{t.desc}</p>
               {best[t.id] != null && <span className="muted small">Best: {best[t.id]}%</span>}
               {open ? (
                 <Link className="btn self-start" href={`/tests/${t.id}`}>Start</Link>
               ) : (
-                <button className="btn ghost self-start" onClick={() => setPaywall(true)} disabled={!plan}>
-                  <span className="lock"><LockIcon />Unlock</span>
+                <button className="btn gold self-start" onClick={() => setPaywall(true)} disabled={!plan}>
+                  <span className="lock"><LockIcon />Upgrade to Pro</span>
                 </button>
               )}
             </div>
@@ -65,15 +65,7 @@ export default function TestsPage() {
         })}
       </div>
       {paywall && (
-        <Paywall
-          plan={plan}
-          onClose={() => setPaywall(false)}
-          onUnlocked={() => {
-            setPaywall(false);
-            refresh();
-            confetti();
-          }}
-        />
+        <Paywall onClose={() => setPaywall(false)} onUnlocked={() => setPaywall(false)} />
       )}
     </div>
   );

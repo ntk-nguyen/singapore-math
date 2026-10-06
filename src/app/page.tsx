@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useProgress } from "@/components/Progress";
+import { ProCard } from "@/components/Paywall";
 import { usePlan } from "@/components/usePlan";
 import { gradeCatalog, type CatalogItem, type DomainId } from "@/lib/catalog";
 import { LESSONS } from "@/lib/lessons";
@@ -26,9 +27,9 @@ const DOMAIN_ICON: Record<DomainId, () => React.ReactNode> = {
   algebra: AlgebraIcon,
 };
 
-function Tile({ item, family }: { item: CatalogItem; family: boolean }) {
+function Tile({ item, pro }: { item: CatalogItem; pro: boolean }) {
   const { best, lessons } = useProgress();
-  const locked = !item.free && !family;
+  const locked = !item.free && !pro;
   const score = item.bestKey ? best[item.bestKey] : undefined;
   const done = item.lessonId ? lessons.includes(item.lessonId) : false;
   return (
@@ -41,7 +42,8 @@ function Tile({ item, family }: { item: CatalogItem; family: boolean }) {
         <span className="tile-blurb">{item.blurb}</span>
       </span>
       <span className="tile-tags">
-        {locked && <span className="tag paid">Family plan</span>}
+        {locked && <span className="tag paid"><span className="lock"><CrownIcon />Pro</span></span>}
+        {locked && <span className="unlock">Unlock</span>}
         {score != null && <span className="tag best">Best {score}%</span>}
         {done && <span className="tag done">Done</span>}
         <span className="chev" aria-hidden="true"><ChevronIcon /></span>
@@ -53,7 +55,7 @@ function Tile({ item, family }: { item: CatalogItem; family: boolean }) {
 export default function LearnPage() {
   const { grade, setGrade, recent, placement, stars, facts, ready } = useProgress();
   const [plan] = usePlan();
-  const family = !!plan?.family;
+  const pro = !!plan?.pro;
   const domains = gradeCatalog(grade);
   const lesson = LESSONS.find((l) => l.grade === grade)!;
   const mastered = Object.values(facts).filter((m) => m >= MASTERED).length;
@@ -136,7 +138,7 @@ export default function LearnPage() {
                 </div>
                 <div className="tiles">
                   {d.items.map((item) => (
-                    <Tile key={item.href + item.title} item={item} family={family} />
+                    <Tile key={item.href + item.title} item={item} pro={pro} />
                   ))}
                 </div>
               </section>
@@ -177,15 +179,21 @@ export default function LearnPage() {
             {ready && <span className="stat">{mastered} of 78 facts mastered.</span>}
             <Link className="btn ghost self-start" href="/times-tables">Practise</Link>
           </div>
-          <div className="sidecard pro">
-            <span className="tag paid"><span className="lock"><CrownIcon />{freeTests} free</span></span>
-            <h3>Practice tests</h3>
+          <div className="sidecard">
+            <div className="ch">
+              <span className="ic" aria-hidden="true"><TargetIcon /></span>
+              <div className="spacer">
+                <h3>Practice tests</h3>
+                <span className="tag free">{freeTests} free</span>
+              </div>
+            </div>
             <p>
               Placement check and Grade checkpoint are free.{" "}
-              {family ? `All ${paidTests} Family plan tests are unlocked.` : `${paidTests} more with the Family plan.`}
+              {pro ? `All ${paidTests} Pro plan tests are unlocked.` : `${paidTests} more with the Pro plan.`}
             </p>
-            <Link className="btn gold" href="/tests">See tests</Link>
+            <Link className="btn ghost self-start" href="/tests">See tests</Link>
           </div>
+          <ProCard />
         </aside>
       </div>
     </div>

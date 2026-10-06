@@ -54,7 +54,7 @@ export default function GrownUpsPage() {
         <ul className="ticks">
           <li>No ads, no third-party trackers, and no sign-up for children.</li>
           <li>Stars, scores and placement are stored in this browser only. Clearing site data resets them.</li>
-          <li>Only a grown-up can buy the Family plan, through Stripe Checkout. We never see card details.</li>
+          <li>Only a grown-up can buy the Pro plan, through Stripe Checkout. We never see card details.</li>
         </ul>
       </section>
       <Billing />
