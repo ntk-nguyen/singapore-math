@@ -10,7 +10,7 @@ import { GRADES } from "@/lib/questions";
 import { TESTS } from "@/lib/tests";
 import { MASTERED } from "@/lib/timesTables";
 import {
-  AlgebraIcon, ArrowIcon, BarsIcon, BoltIcon, CheckIcon, ChevronIcon, CrownIcon, FractionIcon, GridIcon, LockIcon,
+  AlgebraIcon, ArrowIcon, BarsIcon, BoltIcon, ChartIcon, CheckIcon, ChevronIcon, CrownIcon, FractionIcon, GridIcon, LockIcon,
   NumbersIcon, PathIcon, PlayIcon, TargetIcon,
 } from "@/components/Icons";
 
@@ -19,12 +19,14 @@ const DOMAIN_COLOR: Record<DomainId, string> = {
   numbers: "var(--bar-b)",
   fractions: "var(--bar-c)",
   algebra: "var(--good-fill)",
+  thinking: "var(--sky)",
 };
 const DOMAIN_ICON: Record<DomainId, () => React.ReactNode> = {
   "bar-models": BarsIcon,
   numbers: NumbersIcon,
   fractions: FractionIcon,
   algebra: AlgebraIcon,
+  thinking: ChartIcon,
 };
 
 function Tile({ item, pro }: { item: CatalogItem; pro: boolean }) {

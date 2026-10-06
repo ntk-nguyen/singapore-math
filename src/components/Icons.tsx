@@ -17,6 +17,7 @@ export const BarsIcon = () => <Icon d="M3 6h11v4H3zM3 14h18v4H3zM16 6h5v4h-5z" /
 export const NumbersIcon = () => <Icon stroke d="M7 4v6M4 7h6M14 7h6M5 15l4 4M9 15l-4 4M14 15h6M14 19h6" />;
 export const FractionIcon = () => <Icon d="M12 2a10 10 0 1 0 10 10H12V2zm2 0v8h8a10 10 0 0 0-8-8z" />;
 export const AlgebraIcon = () => <Icon stroke d="M4 6l6 12M10 6 4 18M14 10h6M14 14h6" />;
+export const ChartIcon = () => <Icon stroke d="M4 20h16M7 16v-5M12 16V6M17 16v-8" />;
 export const PathIcon = () => <Icon stroke d="M6 3v6a3 3 0 0 0 3 3h6a3 3 0 0 1 3 3v6M6 21a2 2 0 1 0 0-.01M18 3a2 2 0 1 0 0 .01" />;
 export const PlayIcon = () => <Icon d="M8 5v14l11-7z" />;
 export const CheckIcon = () => <Icon stroke d="M5 12.5l4.5 4.5L19 7.5" />;

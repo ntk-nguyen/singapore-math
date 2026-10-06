@@ -163,6 +163,27 @@ p { margin: 0; }
 .choice:disabled { cursor: default; }
 .choice.right { background: var(--good-fill); border-color: var(--good-fill); color: #fff; }
 .choice.wrong { background: var(--bad-fill); border-color: var(--bad-fill); color: #fff; }
+.choices.wide { grid-template-columns: 1fr; }
+.choices.wide .choice { font-size: 1rem; text-align: left; padding: 12px 16px; line-height: 1.4; }
+
+/* figures: graphs, tables and code a question is about */
+.figure { margin: 0; padding: 14px 16px; background: var(--surface-low); border-radius: 16px; display: flex; flex-direction: column; gap: 8px; max-width: 480px; overflow-x: auto; }
+.figure figcaption { font: 700 0.95rem var(--display); color: var(--accent); }
+.graph { width: 100%; height: auto; display: block; }
+.graph .grid { stroke: var(--line-strong); stroke-width: 1; }
+.graph .axis { stroke: var(--muted); stroke-width: 2; }
+.graph .tick { fill: var(--muted); font: 600 12px var(--body); }
+.graph .gbar { fill: var(--bar-a); }
+.graph .gdot { fill: var(--bar-b); }
+.pict { display: flex; flex-direction: column; gap: 6px; }
+.pict-row { display: grid; grid-template-columns: 80px 1fr; gap: 10px; align-items: center; }
+.pict-label { font-weight: 600; font-size: 0.9rem; }
+.pict-dots { color: var(--bar-b); font-size: 1.35rem; letter-spacing: 0.2em; line-height: 1; }
+.ftable { border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.ftable th, .ftable td { border: 1px solid var(--line-strong); padding: 6px 12px; text-align: center; }
+.ftable thead th { background: var(--surface-mid); font-size: 0.85rem; }
+.ftable tbody th { text-align: left; font-size: 0.85rem; background: var(--surface-mid); }
+.code { margin: 0; font: 600 0.95rem/1.6 ui-monospace, Menlo, Consolas, monospace; color: var(--ink); white-space: pre; }
 .feedback { font: 700 1.05rem var(--display); min-height: 1.5em; }
 .feedback.good { color: var(--good); }
 .feedback.bad { color: var(--bad); }

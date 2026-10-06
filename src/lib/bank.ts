@@ -7,15 +7,16 @@ import { fractionQuestion, FRACTION_TOPICS } from "./fractions";
 import { problemTypes, type Level } from "./problems";
 import { generatorStds, GRADES, makeQuestion, type Grade, type Question } from "./questions";
 import type { Rng } from "./rng";
+import { thinkingQuestion, THINKING_TOPICS } from "./thinking";
 
-export type Strand = "quick" | "computation" | "fractions" | "decimals" | "word" | "equations";
+export type Strand = "quick" | "computation" | "fractions" | "decimals" | "word" | "equations" | "thinking";
 
 export interface Item {
   id: string;
   grade: Grade;
   std: string;
   strand: Strand;
-  /** Word problems and equations only. */
+  /** Word problems, equations and data & thinking only. */
   level?: Level;
   make: (r: Rng) => Question;
 }
@@ -27,6 +28,7 @@ export const BANK: Item[] = [
   ...TOPICS.map((t): Item => ({ id: t.id, grade: t.grade, std: t.std, strand: "computation", make: (r) => methodQuestion(t, r) })),
   ...FRACTION_TOPICS.map((t): Item => ({ id: t.id, grade: t.grade, std: t.std, strand: t.strand, make: (r) => fractionQuestion(t, r) })),
   ...problemTypes().map((p, i): Item => ({ id: `${p.kind}-${p.level}-${i}`, grade: p.grade, std: p.std, strand: p.kind === "word" ? "word" : "equations", level: p.level, make: p.make })),
+  ...THINKING_TOPICS.map((t): Item => ({ id: t.id, grade: t.grade, std: t.std, strand: "thinking", level: t.level, make: (r) => thinkingQuestion(t, r) })),
 ];
 
 /**

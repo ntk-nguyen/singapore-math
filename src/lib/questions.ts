@@ -1,4 +1,5 @@
 import type { Method } from "./arithmetic";
+import type { Figure } from "./figures";
 import type { BarModelSpec } from "./models";
 import { gcd, helpers, seeded, type Rng } from "./rng";
 
@@ -28,6 +29,8 @@ export interface Question {
   method?: Method;
   /** Worked solution, shown with the bar model on "Show me how". */
   steps?: string[];
+  /** A graph, table or program the question is about, always shown. */
+  figure?: Figure;
 }
 
 export const NAMES = ["Mei", "Arjun", "Sofia", "Wei Ling", "Diego", "Aisha", "Ben", "Priya", "Kenji", "Zara", "Omar", "Lucy"];

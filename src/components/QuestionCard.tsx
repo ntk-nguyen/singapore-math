@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { Question } from "@/lib/questions";
 import { BarModel } from "./BarModel";
+import { FigureView } from "./Figure";
 import { MethodView } from "./Method";
 
 const PRAISE = ["Brilliant!", "You got it!", "Super!", "Spot on!"];
@@ -47,6 +48,7 @@ export function QuestionCard({
         Grade {q.grade} · CCSS {q.std}
       </span>
       <p className="qtext">{q.text}</p>
+      {q.figure && <FigureView figure={q.figure} />}
       {(q.model || q.method || q.steps) && (showModel ? (
         <Solution q={q} />
       ) : (
@@ -54,7 +56,8 @@ export function QuestionCard({
           {q.method || q.steps ? "Show me how" : "Show me the bar model"}
         </button>
       ))}
-      <div className="choices">
+      {/* Sentence answers ("No, it should be about 300") get one wide column. */}
+      <div className={`choices${q.choices.some((c) => c.length > 14) ? " wide" : ""}`}>
         {q.choices.map((c) => (
           <button key={c} className={cls(c)} disabled={!!chosen} onClick={() => choose(c)}>
             {c}
