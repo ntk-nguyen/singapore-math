@@ -5,7 +5,7 @@
  */
 import type { Grade, Question } from "./questions";
 import { gcd, helpers, type Rng } from "./rng";
-import { pickFresh, render, smallFromLarge, usd, type Ctx, type Draft, type Mistake, type Template, type Tier } from "./templates";
+import { frac, pickFresh, render, smallFromLarge, usd, type Ctx, type Draft, type Mistake, type Template, type Tier } from "./templates";
 
 export type Level = "easy" | "intermediate" | "advanced";
 export type Kind = "word" | "equations";
@@ -102,6 +102,34 @@ const WORD: Record<Level, Template[]> = {
         model: { t: "pw", parts: [a, w - a], labels: ["had", "got"], unk: 1, whole: w },
         steps: [`The whole is ${w}. One part is the ${a} ${n} had.`, `The missing part is ${w} − ${a} = ${w - a}.`],
         mistakes: [m(w + a, "added the numbers"), m(w, "gave the total"), m(a, "gave the start")] };
+    }),
+    W("w1-left", 1, "1.OA.A.1", "easy", (c) => {
+      const [n, f] = [c.name(), c.name()], th = c.thing("food"), a = c.ri(11, 19), b = c.ri(2, 9);
+      return { text: `${n} had ${c.count(a, th)}. ${n} gave ${b} to ${f}. How many ${th.many} does ${n} have now?`, answer: a - b,
+        model: { t: "pw", parts: [b, a - b], labels: ["gave", "left"], unk: 1, whole: a },
+        steps: [`The whole is ${a}. Take away the ${b} given to ${f}.`, `${a} − ${b} = ${a - b}.`],
+        mistakes: [m(a + b, "added"), m(b, "gave the number given away"), m(a - b + 1, "counted back one too few")] };
+    }),
+    W("w1-fewer", 1, "1.OA.A.1", "easy", (c) => {
+      const [p, q] = [c.name(), c.name()], th = c.thing("toys"), a = c.ri(8, 18), d = c.ri(2, 6);
+      return { text: `${p} has ${c.count(a, th)}. ${q} has ${d} fewer than ${p}. How many ${th.many} does ${q} have?`, answer: a - d,
+        model: { t: "cmp", a: a - d, b: a, names: [q, p], unk: "small" },
+        steps: [`${q}'s bar is ${d} shorter than ${p}'s.`, `${a} − ${d} = ${a - d}.`],
+        mistakes: [m(a + d, "added"), m(d, "gave the difference"), m(a, `gave ${p}'s number`)] };
+    }),
+    W("w1-three", 1, "1.OA.A.2", "easy", (c) => {
+      const [x, y, z] = c.shuffle(["ducks", "hens", "geese", "goats", "cows", "pigs"]).slice(0, 3), a = c.ri(2, 7), b = c.ri(2, 7), d = c.ri(2, 6);
+      return { text: `A farm has ${a} ${x}, ${b} ${y} and ${d} ${z}. How many animals is that in all?`, answer: a + b + d,
+        model: { t: "pw", parts: [a, b, d], labels: [x, y, z], unk: "whole" },
+        steps: [`Add two numbers first: ${a} + ${b} = ${a + b}.`, `Then add the third: ${a + b} + ${d} = ${a + b + d}.`],
+        mistakes: [m(a + b, `forgot the ${z}`), m(b + d, `forgot the ${x}`), m(a + b + d - 1, "missed one when counting on")] };
+    }),
+    W("w1-start", 1, "1.OA.A.1", "easy", (c) => {
+      const n = c.name(), th = c.thing("food"), w = c.ri(11, 20), b = c.ri(2, 9);
+      return { text: `Some ${th.many} were in a basket. ${n} put in ${b} more. Now there are ${w}. How many ${th.many} were in the basket at first?`, answer: w - b,
+        model: { t: "pw", parts: [w - b, b], labels: ["at first", "put in"], unk: 0, whole: w },
+        steps: [`The whole is ${w}. One part is the ${b} put in.`, `At first = ${w} − ${b} = ${w - b}.`],
+        mistakes: [m(w + b, "added"), m(b, "gave the number put in"), m(w, "gave the total now")] };
     }),
     W("w-start", 2, "2.OA.A.1", "easy", (c) => {
       const n = c.name(), item = c.thing("collect").many, b = c.n([[5, 20], [10, 40], [20, 60]]), left = c.n([[5, 30], [10, 50], [20, 80]]);
@@ -345,6 +373,95 @@ const WORD: Record<Level, Template[]> = {
   ],
 };
 
+/* ---------------- Grade 7–8 word problems ---------------- */
+
+/**
+ * Word problems for Grades 7 and 8 (percent, proportion, equations, functions and
+ * geometry in context). They are not one of the practice levels, which top out at
+ * Grade 6 heuristics; test papers draw them for Grades 7 and 8.
+ */
+export const MIDDLE_WORD: Template[] = [
+  W("w7-tip", 7, "7.RP.A.3", "advanced", (c) => {
+    const n = c.name(), meal = 2 * c.ri(8, 40), p = c.pick([10, 15, 20, 25]), tip = (meal * p) / 100;
+    return { text: `${n}'s family has a meal that costs $${meal}. They add a ${p}% tip. How much do they pay in all?`, answer: Math.round(meal * (100 + p)) / 100, form: "money",
+      steps: [`The tip is ${p}% of $${meal}: ${p / 100} × ${meal} = $${tip}.`, `Total = $${meal} + $${tip} = ${usd(meal + tip)}.`],
+      mistakes: [m(tip, "gave the tip only"), m(meal + p, "added the percent as dollars"), m(Math.round(meal * (100 - p)) / 100, "took the tip off")] };
+  }),
+  W("w7-interest", 7, "7.RP.A.3", "advanced", (c) => {
+    const n = c.name(), P = 100 * c.ri(2, 20), rate = c.ri(2, 6), years = c.ri(2, 6), I = (P * rate * years) / 100;
+    return { text: `${n} puts $${P} in a savings account that pays ${rate}% simple interest a year. How much interest does it earn in ${years} years?`, answer: I, form: "money",
+      steps: [`One year: ${rate}% of $${P} = $${(P * rate) / 100}.`, `${years} years: ${years} × $${(P * rate) / 100} = $${I}.`],
+      mistakes: [m((P * rate) / 100, "found one year only"), m(P + I, "gave the total in the account"), m(I * 10, "put the decimal point in the wrong place")] };
+  }),
+  W("w7-scale", 7, "7.G.A.1", "advanced", (c) => {
+    const k = c.ri(2, 25), d = c.ri(3, 15), [a, b] = [c.pick(["Ashford", "Brookton", "Cedarville", "Dunmore"]), c.pick(["Elmwood", "Fairview", "Glenhaven", "Hillcrest"])];
+    return { text: `On a map, 1 cm stands for ${k} km. ${a} and ${b} are ${d} cm apart on the map. How far apart are they in real life, in km?`, answer: d * k,
+      steps: [`Each cm is ${k} km.`, `${d} cm is ${d} × ${k} = ${d * k} km.`],
+      mistakes: [m(d + k, "added"), m(k, "gave the scale"), m(d * k + k, "counted one cm too many")] };
+  }),
+  W("w7-notebooks", 7, "7.EE.B.4a", "advanced", (c) => {
+    const n = c.name(), x = c.ri(2, 9), k = c.ri(2, 8), pen = c.ri(1, 9), T = k * x + pen;
+    return { text: `${n} buys ${k} notebooks and a pen. The pen costs $${pen} and ${n} spends $${T} in all. How much does one notebook cost?`, answer: x, form: "money",
+      steps: [`Write an equation: ${k}x + ${pen} = ${T}.`, `Subtract ${pen}: ${k}x = ${T - pen}.`, `Divide by ${k}: x = ${x}, so one notebook costs $${x}.`],
+      mistakes: [m(T / k, "forgot to take off the pen"), m((T + pen) / k, "added the pen instead of subtracting"), m(T - pen, "forgot to divide"), m(x + pen, "added the pen to one notebook")] };
+  }),
+  W("w7-temp", 7, "7.NS.A.3", "advanced", (c) => {
+    const a = c.ri(2, 12), b = c.ri(3, 10), r = c.ri(5, 20), end = -a - b + r;
+    return { text: `At midnight it was −${a}°C. By 4 a.m. the temperature fell ${b} degrees, then by noon it rose ${r} degrees. What was the temperature at noon, in °C?`, answer: end, negatives: true,
+      steps: [`Start at −${a}. Falling ${b}: −${a} − ${b} = −${a + b}.`, `Rising ${r}: −${a + b} + ${r} = ${signed(end)}.`],
+      mistakes: [m(-a + b + r, "added the fall"), m(a - b + r, "started at +" + a), m(-a - b - r, "subtracted the rise")] };
+  }),
+  W("w7-rate", 7, "7.RP.A.1", "advanced", (c) => {
+    const n = c.name(), b = c.pick([2, 3, 4, 5, 8]), a = c.pick(Array.from({ length: b - 1 }, (_, i) => i + 1).filter((x) => gcd(x, b) === 1)), k = c.ri(2, 6);
+    const [verb, unit, units] = c.pick([["walks", "mile", "miles"], ["jogs", "mile", "miles"], ["swims", "kilometer", "kilometers"], ["paddles", "kilometer", "kilometers"]]);
+    return { text: `${n} ${verb} ${a}/${b} of a ${unit} every 1/${k} of an hour. At this rate, how many ${units} does ${n} go in one hour?`, answer: frac(a * k, b, true),
+      steps: [`Unit rate = (${a}/${b}) ÷ (1/${k}).`, `Dividing by 1/${k} is multiplying by ${k}: ${a}/${b} × ${k} = ${frac(a * k, b, true)}.`],
+      mistakes: [m(frac(a, b * k, true), "multiplied by 1/" + k + " instead of dividing"), m(frac(b, a * k, true), "divided the wrong way round"), m(frac(a, b, true), "gave the distance for 1/" + k + " of an hour")] };
+  }),
+  W("w8-tickets", 8, "8.EE.C.8c", "advanced", (c) => {
+    const a = c.ri(8, 15), ch = c.ri(3, a - 2), A = c.ri(5, 40), C = c.ri(5, 40), n = A + C, T = a * A + ch * C;
+    return { text: `A school play sold ${n} tickets for $${T}. Adult tickets cost $${a} and child tickets cost $${ch}. How many adult tickets were sold?`, answer: A,
+      steps: [`Let x be adult tickets, so ${n} − x are child tickets.`, `${a}x + ${ch}(${n} − x) = ${T}, so ${a - ch}x = ${T - ch * n}.`, `x = ${T - ch * n} ÷ ${a - ch} = ${A}.`],
+      mistakes: [m(C, "found the child tickets"), m(T - ch * n, "forgot to divide by the price difference"), m(Math.round(n / 2), "split the tickets evenly")] };
+  }),
+  W("w8-fee", 8, "8.F.B.4", "advanced", (c) => {
+    const F = 5 * c.ri(4, 14), r = 5 * c.ri(3, 9), h = c.ri(3, 6), X = F + 2 * r, Y = F + h * r;
+    const who = c.pick(["A plumber", "An electrician", "A piano tuner", "A dog walker"]);
+    return { text: `${who} charges a call-out fee plus the same amount for each hour. A 2-hour job costs $${X} and a ${h}-hour job costs $${Y}. What is the call-out fee?`, answer: F, form: "money",
+      steps: [`The extra ${h - 2} hours cost $${Y} − $${X} = $${Y - X}, so each hour costs $${r}.`, `2 hours cost $${2 * r}, so the fee is $${X} − $${2 * r} = $${F}.`],
+      mistakes: [m(r, "gave the hourly rate"), m(X - r, "took off only one hour"), m(Y - X, "gave the cost of the extra hours")] };
+  }),
+  W("w8-ladder", 8, "8.G.B.7", "advanced", (c) => {
+    const [p, q, h] = c.pick([[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25], [6, 8, 10]] as const), k = c.ri(1, 4);
+    const [foot, up] = c.ri(0, 1) ? [p * k, q * k] : [q * k, p * k], len = h * k;
+    const [given, want, gWhere, wWhere] = c.ri(0, 1) ? [foot, up, "Its foot is " + foot + " ft from the wall", "How high up the wall does it reach"] : [up, foot, "It reaches " + up + " ft up the wall", "How far is its foot from the wall"];
+    return { text: `A ${len} ft ladder leans against a wall. ${gWhere}. ${wWhere}, in ft?`, answer: want,
+      steps: [`The ladder is the hypotenuse: ${given}² + ?² = ${len}².`, `?² = ${len * len} − ${given * given} = ${want * want}, so the answer is ${want} ft.`],
+      mistakes: [m(len - given, "subtracted the lengths"), m(len * len - given * given, "forgot the square root"), m(len + given, "added the lengths")] };
+  }),
+  W("w8-cone", 8, "8.G.C.9", "advanced", (c) => {
+    const r = c.ri(2, 9), h = 3 * c.ri(1, 6), what = c.pick(["paper cup", "funnel", "ice cream cone", "party hat"]);
+    const v = (x: number) => +x.toFixed(2);
+    return { text: `A ${what} is a cone with radius ${r} cm and height ${h} cm. Using π ≈ 3.14, what is its volume in cm³?`, answer: v((3.14 * r * r * h) / 3), form: "dec",
+      steps: [`V = (1/3)πr²h = (1/3) × 3.14 × ${r}² × ${h}.`, `= 3.14 × ${r * r} × ${h / 3} = ${v((3.14 * r * r * h) / 3)} cm³.`],
+      mistakes: [m(v(3.14 * r * r * h), "forgot the 1/3 (cylinder formula)"), m(v((3.14 * 4 * r * r * h) / 3), "used the diameter as the radius"), m(v((3.14 * r * h) / 3), "forgot to square the radius")] };
+  }),
+  W("w8-gym", 8, "8.EE.C.7b", "advanced", (c) => {
+    const months = c.ri(2, 12), d = c.ri(2, 10), q = c.ri(15, 40), p = q + d, a = 5 * c.ri(0, 6), b = a + months * d;
+    return { text: `Gym A costs $${a} to join and $${p} a month. Gym B costs $${b} to join and $${q} a month. After how many months have both gyms cost the same?`, answer: months,
+      steps: [`Write an equation: ${a} + ${p}m = ${b} + ${q}m.`, `${p - q}m = ${b - a}, so m = ${months}.`],
+      mistakes: [m(b - a, "forgot to divide"), m(months + 1, "counted the month after"), m(p - q, "gave the difference in monthly cost")] };
+  }),
+  W("w8-sci", 8, "8.EE.A.4", "advanced", (c) => {
+    const a = c.ri(2, 9), b = c.ri(3, 9), p = c.ri(4, 9), q = c.ri(2, 5), ab = a * b;
+    const sci = (m0: number, e: number) => `${m0} × 10^${e}`;
+    const answer = ab >= 10 ? sci(ab / 10, p + q + 1) : sci(ab, p + q);
+    return { text: `A factory makes ${sci(a, p)} bottle caps a day. How many does it make in ${sci(b, q)} days? Give the answer in scientific notation.`, answer,
+      steps: [`Multiply the numbers: ${a} × ${b} = ${ab}. Add the powers: 10^${p} × 10^${q} = 10^${p + q}.`, ab >= 10 ? `${ab} × 10^${p + q} = ${answer}.` : `So it is ${answer}.`],
+      mistakes: [m(sci(ab >= 10 ? ab / 10 : ab, p * q), "multiplied the powers"), m(sci(a + b, p + q), "added the numbers"), m(ab >= 10 ? sci(ab / 10, p + q) : sci(ab, p + q + 1), "lost track of a power of 10")] };
+  }),
+];
+
 /* ---------------- equations ---------------- */
 
 const EQ: Record<Level, Template[]> = {
@@ -531,5 +648,6 @@ export function problemTypes(): ProblemType[] {
       }
     }
   }
+  for (const tpl of MIDDLE_WORD) out.push({ kind: "word", level: "advanced", grade: tpl.grade, std: tpl.std, make: (r) => render(tpl, r).question });
   return out;
 }

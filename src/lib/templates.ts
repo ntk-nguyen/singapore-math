@@ -202,6 +202,9 @@ function nudge(s: string, k: number): string {
   return (Number(s) + k * 10 ** -places).toFixed(places);
 }
 
+/** Write 1x as x, the way people do: "5x + 3 = 1x + 7" → "5x + 3 = x + 7". */
+export const tidy = (s: string) => s.replace(/(^|[^\d.,])1x\b/g, "$1x");
+
 export interface Rendered {
   question: Question;
   /** How many wrong choices came from the template's real mistakes (the rest are nearby numbers). */
@@ -215,7 +218,7 @@ export function render(tpl: Template, r: Rng, tier: Tier = tpl.tier): Rendered {
   const d = tpl.make(c);
   const form = d.form ?? "int";
   const answer = write(d.answer, form);
-  const base = { grade: tpl.grade, text: d.text, std: d.std ?? tpl.std, answer, model: d.model, steps: d.steps, figure: d.figure, format: d.format, ask: d.ask };
+  const base = { grade: tpl.grade, text: tidy(d.text), std: d.std ?? tpl.std, answer, model: d.model, steps: d.steps?.map(tidy), figure: d.figure, format: d.format, ask: d.ask };
   if (d.format === "order") {
     return { real: 0, negatives: !!d.negatives, question: { ...base, items: c.shuffle([...d.items!]), choices: [] } };
   }

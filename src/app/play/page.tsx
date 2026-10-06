@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import { confetti } from "@/components/Confetti";
 import { useProgress } from "@/components/Progress";
 import { QuestionCard } from "@/components/QuestionCard";
-import { makeQuestion, type Grade, type Question } from "@/lib/questions";
+import { playDeck, type Grade, type Question } from "@/lib/questions";
 import { vary } from "@/lib/formats";
-import { noRepeats } from "@/lib/templates";
 
 const ROUND = 10;
 
@@ -17,8 +16,8 @@ export default function PlayPage() {
 
 function Round({ grade }: { grade: Grade }) {
   const { addStars } = useProgress();
-  // Never the same question twice while this grade is open.
-  const [fresh] = useState(() => noRepeats(() => vary(makeQuestion(grade, Math.random), Math.random)));
+  // Every question type once before any comes back, never the same question twice while this grade is open, in a mix of formats.
+  const [fresh] = useState(() => { const next = playDeck(grade, Math.random); return () => vary(next(), Math.random); });
   const [q, setQ] = useState<Question | null>(null);
   const [done, setDone] = useState(0);
   const [right, setRight] = useState(0);

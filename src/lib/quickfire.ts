@@ -67,10 +67,14 @@ const G1: Template[] = [
     return { text: `${a} + ? = ${w}. What is the missing number?`, answer: w - a,
       mistakes: [m(w + a, "added the two numbers"), m(w, "copied the total"), m(w - a + 1, "counted on one too many")] };
   }),
-  T("q1-clock", 1, "1.MD.B.3", ({ ri }) => {
-    const h = ri(1, 9), k = ri(2, 12 - h);
-    return { text: `It is ${h} o'clock. What hour will it be ${k} hours from now?`, answer: h + k,
-      mistakes: [m(Math.abs(h - k) || h + k + 2, "counted back"), m(k, "gave the number of hours"), m(h + k + 1, "counted the start hour too")] };
+  T("q1-clock", 1, "1.MD.B.3", (c) => {
+    const n = c.name(), h = c.ri(1, 11), half = c.ri(0, 1) === 1, what = c.pick(["school starts", "lunch is ready", "the bus comes", "the movie starts", "soccer practice starts", "the library opens"]);
+    const pad = (x: number) => String(x).padStart(2, "0");
+    return half
+      ? { text: `${n} looks at the clock when ${what}. The short hand is halfway between ${h} and ${h + 1}. The long hand points to 6. What time is it?`, answer: `${h}:30`,
+          mistakes: [m(`${h + 1}:30`, "read the hour hand as the next number"), m(`6:${pad(h * 5)}`, "mixed up the hands"), m(`${h}:06`, "read the 6 as 6 minutes"), m(`${h + 1}:00`, "read the next hour")] }
+      : { text: `${n} looks at the clock when ${what}. The short hand points to ${h}. The long hand points to 12. What time is it?`, answer: `${h}:00`,
+          mistakes: [m(`12:${pad(h * 5)}`, "mixed up the hands"), m(`${h}:12`, "read the 12 as 12 minutes"), m(`${h}:30`, "thought the long hand on 12 means half past"), m(`${h + 1}:00`, "read the next hour")] };
   }),
   T("q1-numline", 1, "1.NBT.A.1", ({ ri, pick }) => {
     const start = 10 * ri(0, 8), k = pick([1, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13, 14, 16, 17, 18, 19]), n = start + k;
@@ -185,9 +189,13 @@ const G3: Template[] = [
       mistakes: [m(l * w, "found the area"), m(l + w, "added only two sides"), m(2 * l + w, "missed a side")] };
   }),
   T("q3-equiv", 3, "3.NF.A.3", ({ ri, pick }) => {
-    const d = pick([2, 3, 4, 5, 6, 8, 10]), n = ri(1, d - 1), k = pick([2, 3, 4, 5].filter((x) => d * x <= 40));
-    return { text: `${n}/${d} = ?/${d * k}. What is the missing numerator?`, answer: n * k,
-      mistakes: [m(n, "kept the numerator the same"), m(n + k, "added instead of multiplying"), m(n + d * k - d, "added what was added to the bottom")] };
+    // Grade 3 keeps denominators small (2, 3, 4, 6, 8 in the standard; up to 12 here).
+    const d = pick([2, 3, 4, 5, 6]), k = pick([2, 3, 4, 5, 6].filter((x) => d * x <= 12)), n = pick(Array.from({ length: d - 1 }, (_, i) => i + 1).filter((x) => gcd(x, d) === 1));
+    return ri(0, 1)
+      ? { text: `${n}/${d} = ?/${d * k}. What is the missing numerator?`, answer: n * k,
+          mistakes: [m(n, "kept the numerator the same"), m(n + k, "added instead of multiplying"), m(n + d * k - d, "added what was added to the bottom")] }
+      : { text: `${n * k}/${d * k} = ?/${d}. What is the missing numerator?`, answer: n,
+          mistakes: [m(n * k, "kept the numerator the same"), m(n * k - k, "subtracted instead of dividing"), m(n * k - (d * k - d), "took away what was taken from the bottom")] };
   }),
   T("q3-area", 3, "3.MD.C.7", (c) => {
     const l = c.ri(3, 12), w = c.ri(2, 9), what = c.pick(["garden", "rug", "poster", "patio"]), unit = what === "poster" ? "cm" : "m";
@@ -195,7 +203,10 @@ const G3: Template[] = [
       mistakes: [m(2 * (l + w), "found the perimeter"), m(l + w, "added the sides"), m(l * w + l, "multiplication fact slip")] };
   }),
   T("q3-add3", 3, "3.NBT.A.2", (c) => {
-    const [a, b] = c.addPair(3, c.tier > 0);
+    // Grade 3 adds within 1000.
+    let [a, b] = c.addPair(3, c.tier > 0);
+    for (let i = 0; i < 50 && a + b > 999; i++) [a, b] = c.addPair(3, c.tier > 0);
+    if (a + b > 999) b = 999 - a;
     return { text: `What is ${a} + ${b}?`, answer: a + b,
       mistakes: [m(noCarry(a, b), "forgot to carry"), m(a + b - 10, "lost a carried ten"), m(a + b + 100, "carried into the hundreds twice")] };
   }),

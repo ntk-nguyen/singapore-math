@@ -1,5 +1,5 @@
 import { BANK, nearGrade, type Item, type Strand } from "./bank";
-import { makeQuestion, type Grade, type Question } from "./questions";
+import { generatorCount, makeQuestion, type Grade, type Question } from "./questions";
 import { helpers, seeded } from "./rng";
 import { vary } from "./formats";
 import { pickFresh } from "./templates";
@@ -11,7 +11,7 @@ export interface TestInfo {
   free: boolean;
   /** Number of questions. */
   length: number;
-  /** Fixed seed so everyone at a grade sees the same paper. */
+  /** The test's own seed. Each attempt mixes in its own seed, so a retake is a new paper. */
   seed: number;
   /** Grades the test is written for. Omitted means the selected grade. */
   grades?: Grade[];
@@ -57,17 +57,36 @@ export function testItems(test: TestInfo, selected: Grade): Item[] {
   return test.pool ? nearGrade(BANK.filter(test.pool), testGrade(test, selected)) : [];
 }
 
+/** A seed for one attempt at a test. */
+export function attemptSeed(): number {
+  return Math.floor(Math.random() * 2 ** 31);
+}
+
+/** Mix the test, grade and attempt into one well-spread seed, so nearby attempts give unrelated papers. */
+function paperSeed(test: TestInfo, grade: Grade, attempt: number): number {
+  let h = Math.imul(test.seed * 10 + grade, 0x9e3779b1) ^ Math.imul(attempt >>> 0, 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 16), 0x7feb352d);
+  h = Math.imul(h ^ (h >>> 15), 0x846ca68b);
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
 /**
- * Build a fixed (non-adaptive) test paper. Pooled tests take turns between strands,
- * so a paper mixes word problems, fractions and so on rather than repeating one kind.
- * No question appears twice on a paper, and questions come in a mix of formats.
+ * Build a fixed-length (non-adaptive) test paper. Each attempt is a new paper: the same
+ * `attempt` seed always gives the same paper, a different one gives different questions.
+ * Pooled tests take turns between strands, so a paper mixes word problems, fractions
+ * and so on rather than repeating one kind. No question appears twice on a paper, and
+ * questions come in a mix of formats.
  */
-export function buildPaper(test: TestInfo, selected: Grade): Question[] {
+export function buildPaper(test: TestInfo, selected: Grade, attempt: number = attemptSeed()): Question[] {
   const grade = testGrade(test, selected);
-  const r = seeded(test.seed * 10 + grade);
+  const r = seeded(paperSeed(test, grade, attempt));
   const seen = new Set<string>();
-  if (!test.pool) return Array.from({ length: test.length }, (_, i) => vary(pickFresh(seen, () => makeQuestion(grade, r, i)), r));
   const { shuffle } = helpers(r);
+  if (!test.pool) {
+    // Every question type for the grade, in a new order each attempt.
+    const order = shuffle(Array.from({ length: generatorCount(grade) }, (_, i) => i));
+    return Array.from({ length: test.length }, (_, i) => vary(pickFresh(seen, () => makeQuestion(grade, r, order[i % order.length])), r));
+  }
   const byStrand = new Map<Strand, Item[]>();
   for (const item of testItems(test, selected)) byStrand.set(item.strand, [...(byStrand.get(item.strand) ?? []), item]);
   const lists = shuffle([...byStrand.values()].map((l) => shuffle(l)));

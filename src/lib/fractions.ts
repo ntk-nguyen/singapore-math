@@ -156,6 +156,42 @@ export const FRACTION_TOPICS: FracTopic[] = [
     },
   },
 
+  {
+    id: "g3-frac-line", grade: 3, strand: "fractions", std: "3.NF.A.2",
+    title: "Fractions on a number line", blurb: "Cut the space from 0 to 1 into equal parts. Each jump is one of those parts.",
+    make: ({ ri, pick }) => {
+      const d = pick([2, 3, 4, 6, 8]), n = ri(1, 2 * d - 1), whole = n === d;
+      return {
+        text: `A number line from 0 to 2 has each whole cut into ${d} equal parts. A point is ${n} ${n === 1 ? "jump" : "jumps"} from 0. What number is the point at?`,
+        answer: whole ? "1" : `${n}/${d}`,
+        // Fractions greater than 1 are written as fractions here, the way Grade 3 writes them on a number line.
+        choices: whole ? ["1", `1/${d}`, `${d}/${d + 1}`, `${d + 1}/${d}`] : [`${n}/${d}`, `${n}/${2 * d}`, `${d}/${n}`, `${n + 1}/${d}`, `${n - 1 || n + 2}/${d}`],
+        wrong: [],
+        steps: [`Each whole is cut into ${d} equal parts, so each jump is 1/${d}.`, `${n} jumps of 1/${d} is ${n}/${d}${whole ? ", which is 1 whole" : ""}.`],
+      };
+    },
+  },
+  {
+    id: "g3-frac-whole", grade: 3, strand: "fractions", std: "3.NF.A.3c",
+    title: "Whole numbers as fractions", blurb: "4/4 is 1 whole, 8/4 is 2 wholes, and 3 is 3/1.",
+    make: ({ ri, pick }) => {
+      const d = pick([2, 3, 4, 6, 8]), w = ri(1, 5);
+      return ri(0, 1)
+        ? {
+            text: `Fill in the missing number: ${w} = ?/${d}`,
+            answer: String(w * d),
+            wrong: [String(w + d), String(d), String(w), String(w * d + 1)],
+            model: { t: "fbars", bars: Array.from({ length: Math.min(w, 3) }, () => bar(d, d)) },
+            steps: [`1 whole cut into ${d} equal parts is ${d}/${d}.`, `${w} wholes is ${w} × ${d} = ${w * d} parts: ${w} = ${w * d}/${d}.`],
+          }
+        : {
+            text: `${w * d}/${d} is how many wholes?`,
+            answer: String(w),
+            wrong: [String(w * d), String(w * d - d), String(d), String(w + 1)],
+            steps: [`${d} parts make 1 whole.`, `${w * d} parts make ${w * d} ÷ ${d} = ${w} wholes.`],
+          };
+    },
+  },
   /* ---------------- Grade 4 ---------------- */
   {
     id: "g4-frac-compare", grade: 4, strand: "fractions", std: "4.NF.A.2",
@@ -531,10 +567,15 @@ export function fractionQuestion(topic: FracTopic, r: Rng): Question {
   const m = topic.make(h);
   let choices: string[];
   if (m.choices) {
-    // No two choices with the same value, so there is exactly one right answer.
+    // No two choices with the same value (that would be two right answers).
     const seen = new Set<number>();
     choices = [m.answer, ...m.choices.filter((c) => c !== m.answer)]
-      .filter((c) => !/\/0$/.test(c) && !seen.has(valueOf(c)) && !!seen.add(valueOf(c)))
+      .filter((c) => {
+        const x = valueOf(c);
+        if (/\/0$/.test(c) || (!Number.isNaN(x) && seen.has(x))) return false;
+        seen.add(x);
+        return true;
+      })
       .slice(0, 4);
   } else {
     const v = valueOf(m.answer);

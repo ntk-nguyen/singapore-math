@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { QUICK } from "./quickfire";
 import { GRADES, type Grade } from "./questions";
 import { buildPaper, getTest, testGrade, testItems, TESTS } from "./tests";
 
@@ -15,21 +16,56 @@ describe("test catalog", () => {
     expect(testGrade(getTest("checkpoint")!, 2)).toBe(2);
   });
 
-  it("builds the same paper every time", () => {
+  it("builds the same paper for the same attempt", () => {
     const t = getTest("checkpoint")!;
-    const a = buildPaper(t, 4);
+    const a = buildPaper(t, 4, 12345);
     expect(a).toHaveLength(15);
-    expect(buildPaper(t, 4)).toEqual(a);
+    expect(buildPaper(t, 4, 12345)).toEqual(a);
+  });
+
+  it("gives a new paper on a retake", () => {
+    for (const t of TESTS.filter((x) => x.id !== "placement")) {
+      for (const g of GRADES) {
+        const texts = (attempt: number) => new Set(buildPaper(t, g, attempt).map((q) => q.text));
+        const first = texts(1);
+        const again = [...texts(2)].filter((x) => first.has(x)).length;
+        // Almost every question is new; a few short ones ("Which fraction is the greatest?") can share their wording.
+        expect(again / first.size, `${t.id} grade ${g}`).toBeLessThan(0.25);
+      }
+    }
+  });
+
+  it("covers every quick-fire question type for the grade on the checkpoint", () => {
+    for (const g of GRADES) {
+      expect(new Set(buildPaper(getTest("checkpoint")!, g, 7).map((q) => q.std))).toEqual(new Set(QUICK[g].map((x) => x.std)));
+    }
+  });
+});
+
+describe("tests fit the grade", () => {
+  it("never borrows questions from a grade above the one the test is set at", () => {
+    for (const t of TESTS.filter((x) => x.pool)) {
+      for (const g of GRADES) {
+        const at = testGrade(t, g);
+        for (const item of testItems(t, g)) expect(item.grade, `${t.id} grade ${g}: ${item.id}`).toBeLessThanOrEqual(at);
+      }
+    }
+  });
+
+  it("the word problem marathon has word problems written for every grade", () => {
+    for (const g of GRADES) {
+      expect(testItems(getTest("wp")!, g).some((i) => i.grade === g), `grade ${g}`).toBe(true);
+    }
   });
 });
 
 describe("paid tests draw from their own topics", () => {
-  const stds = (id: string, g: Grade) => new Set(buildPaper(getTest(id)!, g).map((q) => q.std));
+  const stds = (id: string, g: Grade) => new Set(buildPaper(getTest(id)!, g, 42).map((q) => q.std));
 
   it("every paid test has questions for every grade", () => {
     for (const t of TESTS.filter((x) => x.pool)) {
       for (const g of GRADES) {
-        const paper = buildPaper(t, g);
+        const paper = buildPaper(t, g, g);
         expect(paper).toHaveLength(t.length);
         for (const q of paper) expect(q.format === "order" ? q.items : q.choices).toBeDefined();
         for (const q of paper.filter((x) => x.format !== "order")) expect(q.choices).toContain(q.answer);
@@ -44,7 +80,7 @@ describe("paid tests draw from their own topics", () => {
   });
 
   it("the word problem marathon only asks word problems", () => {
-    for (const q of buildPaper(getTest("wp")!, 4)) expect(q.text).not.toMatch(/^What is|^Solve for x/);
+    for (const g of GRADES) for (const q of buildPaper(getTest("wp")!, g, 3)) expect(q.text).not.toMatch(/^What is|^Solve for x/);
   });
 
   it("paid papers ask about standards the free checkpoint does not", () => {
