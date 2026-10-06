@@ -63,19 +63,25 @@ function ModelBody({ spec: m }: { spec: BarModelSpec }) {
         </Row>
       );
     }
-    case "cmp":
+    case "cmp": {
+      const unk = m.unk ?? "big";
+      const diff = m.b - m.a;
+      // With a total given, the bars themselves are unknown: show "?" instead of their values.
+      const small = m.total != null || unk === "small" ? "?" : m.a;
       return (
         <>
-          <Row label={m.names[0]}>
-            <Seg kind="a" grow={m.a}>{m.a}</Seg>
-            <div style={{ flexGrow: m.b - m.a }} />
+          <Row label={m.names[0]} brace={unk === "small" ? "?" : undefined}>
+            <Seg kind={small === "?" ? "q" : "a"} grow={m.a}>{small}</Seg>
+            <div style={{ flexGrow: diff }} />
           </Row>
-          <Row label={m.names[1]} brace="?">
-            <Seg kind="a" grow={m.a}>{m.a}</Seg>
-            <Seg kind="c" grow={m.b - m.a}>{m.b - m.a} more</Seg>
+          <Row label={m.names[1]} brace={unk === "big" ? "?" : undefined}>
+            <Seg kind={small === "?" ? "q" : "a"} grow={m.a}>{small}</Seg>
+            <Seg kind="c" grow={diff}>{unk === "diff" ? "?" : `${diff} more`}</Seg>
           </Row>
+          {m.total != null && <p className="muted small">Both bars together = {m.total}.</p>}
         </>
       );
+    }
     case "units":
       return (
         <>
@@ -93,14 +99,14 @@ function ModelBody({ spec: m }: { spec: BarModelSpec }) {
       const max = Math.max(m.r, m.b);
       return (
         <>
-          <Row label="Red" width={`${(m.r / max) * 100}%`}>
+          <Row label={m.names?.[0] ?? "Red"} width={`${(m.r / max) * 100}%`}>
             {Array.from({ length: m.r }, (_, i) => <Seg key={i} kind="a" grow={1} />)}
           </Row>
-          <Row label="Blue" width={`${(m.b / max) * 100}%`}>
+          <Row label={m.names?.[1] ?? "Blue"} width={`${(m.b / max) * 100}%`}>
             {Array.from({ length: m.b }, (_, i) => <Seg key={i} kind="b" grow={1} />)}
           </Row>
           <p className="muted small">
-            {m.r + m.b} units = {m.total} marbles. Find 1 unit, then count the blue units.
+            {m.r + m.b} units = {m.total} {m.noun ?? "marbles"}. Find 1 unit first.
           </p>
         </>
       );
@@ -112,10 +118,12 @@ function ModelBody({ spec: m }: { spec: BarModelSpec }) {
             {Array.from({ length: m.n }, (_, i) => (
               <Seg key={i} kind={m.x == null ? "q" : "b"} grow={2}>{m.x ?? "x"}</Seg>
             ))}
-            <Seg kind="c" grow={Math.max(1, Math.min(m.n, (m.c / Math.max(1, m.total - m.c)) * m.n * 2))}>{m.c}</Seg>
+            {m.c > 0 && <Seg kind="c" grow={Math.max(1, Math.min(m.n, (m.c / Math.max(1, m.total - m.c)) * m.n * 2))}>{m.c}</Seg>}
           </Row>
           <p className="muted small">
-            {m.n} units of x and {m.c} make {m.total}. Take away {m.c}, then share what is left among {m.n} units.
+            {m.c > 0
+              ? `${m.n} units of x and ${m.c} make ${m.total}. Take away ${m.c}, then share what is left among ${m.n} units.`
+              : `${m.n} units of x make ${m.total}. Share ${m.total} among ${m.n} units.`}
           </p>
         </>
       );

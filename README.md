@@ -4,6 +4,8 @@ A fun, interactive Singapore Math app for Grades 1–8, built with Next.js (App 
 
 - **Learn**: one worked bar-model lesson per grade, from number bonds (Grade 1) to linear equations (Grade 8).
 - **Number skills**: 27 lessons for Grades 1–6 on 2- to 5-digit addition, subtraction, multiplication and division, each tagged with its Common Core code. Make 10 with number bonds, place-value discs for regrouping, the area model leading to long multiplication, and long division as sharing place by place. Every lesson steps through a fresh example, and every practice question has "Show me how".
+- **Times tables**: anchor facts plus tricks (doubling, half of ten, ten minus one, five plus two…), a tappable 12 × 12 fact map that explains any fact, and a 60-second sprint that brings back missed facts until they're mastered. Free.
+- **Problem solving**: word problems solved with bar models and solve-for-x equations, each at three levels. Easy is free; intermediate and advanced need the Family plan and are only served by `/api/practice/[kind]` after a server-side plan check. Every question has a worked solution.
 - **Play**: a ten-question challenge at the child's grade, with stars, streaks, confetti and a "Show me the bar model" hint.
 - **Practice tests**: two free tests (adaptive Placement check, Grade checkpoint) and six Family plan tests behind a Stripe paywall.
 - **For grown-ups**: Common Core ↔ Singapore level map, how results compare with MAP Growth and state tests, privacy notes, and plan management.

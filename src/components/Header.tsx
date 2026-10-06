@@ -8,6 +8,8 @@ import { useProgress } from "./Progress";
 const TABS = [
   { href: "/", label: "Learn" },
   { href: "/number-skills", label: "Number skills" },
+  { href: "/times-tables", label: "Times tables" },
+  { href: "/problem-solving", label: "Problem solving" },
   { href: "/play", label: "Play" },
   { href: "/tests", label: "Practice tests" },
   { href: "/grown-ups", label: "For grown-ups" },
