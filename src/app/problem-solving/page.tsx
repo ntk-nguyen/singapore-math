@@ -15,10 +15,10 @@ export default function ProblemSolvingPage() {
 
   return (
     <div className="stack">
-      <div>
+      <div className="intro">
         <p className="eyebrow">Read · Draw · Write · Answer</p>
         <h2>Problem solving</h2>
-        <p className="muted" style={{ marginTop: 6, maxWidth: "65ch" }}>
+        <p className="muted">
           Singapore students draw a bar model before they calculate. Read the problem, draw what you know and mark what you don&apos;t with a “?”, write the number sentence, then answer. The same bars turn into algebra when you solve for x.
         </p>
       </div>

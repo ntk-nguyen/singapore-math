@@ -36,10 +36,10 @@ export default function TimesTablesPage() {
 
   return (
     <div className="stack">
-      <div>
+      <div className="intro">
         <p className="eyebrow">Grades 2 to 5 · Free</p>
         <h2>Times tables without rote</h2>
-        <p className="muted" style={{ marginTop: 6, maxWidth: "65ch" }}>
+        <p className="muted">
           Learn the anchor facts (× 1, × 2, × 5, × 10) and build every other fact from them. Because 7 × 8 is the same as 8 × 7, there are only 78 facts to know, and the tricks below cover most of them.
         </p>
       </div>

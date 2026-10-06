@@ -22,10 +22,10 @@ export default function NumberSkillsPage() {
 
   return (
     <div className="stack">
-      <div>
+      <div className="intro">
         <p className="eyebrow">Concrete → Pictorial → Abstract</p>
         <h2>Number skills: +, −, ×, ÷ by grade</h2>
-        <p className="muted" style={{ marginTop: 6, maxWidth: "65ch" }}>
+        <p className="muted">
           Place-value discs show what carrying and borrowing really mean, the area model turns into long multiplication, and long division is sharing one place at a time. Every lesson steps through a fresh example, then you practise 10 questions.
         </p>
       </div>
