@@ -3,13 +3,10 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { confetti } from "@/components/Confetti";
 import { MethodView } from "@/components/Method";
 import { useProgress } from "@/components/Progress";
-import { QuestionCard } from "@/components/QuestionCard";
+import { PracticeRound } from "@/components/PracticeRound";
 import { getTopic, methodQuestion, SYMBOL, type Topic } from "@/lib/arithmetic";
-
-const ROUND = 10;
 
 export default function TopicPage() {
   const { id } = useParams<{ id: string }>();
@@ -36,7 +33,7 @@ export default function TopicPage() {
       {ready ? (
         <>
           <Lesson topic={topic} />
-          <Practice topic={topic} />
+          <PracticeRound bestKey={`ns-${topic.id}`} make={() => methodQuestion(topic, Math.random)} />
         </>
       ) : (
         <div className="panel"><p className="muted">Loading…</p></div>
@@ -64,72 +61,6 @@ function Lesson({ topic }: { topic: Topic }) {
       >
         New example
       </button>
-    </section>
-  );
-}
-
-function Practice({ topic }: { topic: Topic }) {
-  const { addStars, recordBest } = useProgress();
-  const [q, setQ] = useState(() => methodQuestion(topic, Math.random));
-  const [done, setDone] = useState(0);
-  const [right, setRight] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [finished, setFinished] = useState(false);
-  const [qn, setQn] = useState(0);
-
-  const answer = (ok: boolean) => {
-    setDone(done + 1);
-    if (ok) {
-      setRight(right + 1);
-      setStreak(streak + 1);
-      addStars(streak + 1 >= 3 ? 2 : 1);
-    } else setStreak(0);
-  };
-
-  const next = () => {
-    if (done >= ROUND) {
-      const pct = Math.round((right / ROUND) * 100);
-      recordBest(`ns-${topic.id}`, pct);
-      if (pct >= 80) confetti();
-      setFinished(true);
-      return;
-    }
-    setQn(qn + 1);
-    setQ(methodQuestion(topic, Math.random));
-  };
-
-  const restart = () => {
-    setDone(0);
-    setRight(0);
-    setStreak(0);
-    setFinished(false);
-    setQn(qn + 1);
-    setQ(methodQuestion(topic, Math.random));
-  };
-
-  return (
-    <section className="panel">
-      <div className="row">
-        <div className="spacer">
-          <p className="eyebrow">Practise</p>
-          <h3>Ten in a row</h3>
-        </div>
-        <span className="streak">{streak > 1 ? `${streak} in a row` : ""}</span>
-      </div>
-      <div className="progress"><i style={{ width: `${(done / ROUND) * 100}%` }} /></div>
-      {finished ? (
-        <>
-          <p className="result-big">{right}/{ROUND}</p>
-          <p className="muted">
-            {right >= 8 ? "Excellent! Try the next skill." : "Use “Show me how” on the tricky ones, then try again."}
-          </p>
-          <button className="btn self-start" onClick={restart}>Practise again</button>
-        </>
-      ) : (
-        <QuestionCard key={qn} q={q} onAnswer={answer}>
-          <button className="btn self-start" onClick={next}>{done >= ROUND ? "See results" : "Next question"}</button>
-        </QuestionCard>
-      )}
     </section>
   );
 }

@@ -66,6 +66,7 @@ p { margin: 0; }
 .seg.a { background: var(--bar-a); }
 .seg.b { background: var(--bar-b); }
 .seg.c { background: var(--bar-c); color: #2a2000; }
+.seg.e { background: var(--surface); border: 2px solid var(--line); }
 .seg.q { background: repeating-linear-gradient(45deg, var(--unknown), var(--unknown) 6px, transparent 6px, transparent 12px); color: var(--ink); border: 2px dashed var(--unknown); }
 .brace { grid-column: 2; display: flex; flex-direction: column; align-items: center; font: 700 0.9rem var(--display); color: var(--ink); }
 .brace::before { content: ""; display: block; width: 100%; height: 10px; border: 2px solid var(--muted); border-top: none; border-radius: 0 0 10px 10px; }
