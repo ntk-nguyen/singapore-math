@@ -1,6 +1,7 @@
 /**
- * The home page's curriculum pathway: each topic area in a grade becomes a unit on a
- * vertical path, with progress worked out from the scores and lessons saved on this device.
+ * The home page's curriculum pathway: the grade's own topics, grouped into units on a vertical
+ * path (Addition & subtraction, Multiplication, Fractions, Decimals, Data & chance and so on, as
+ * the grade has them), with progress worked out from the scores and lessons saved on this device.
  */
 import type { CatalogItem, Domain, DomainId } from "./catalog";
 
@@ -17,7 +18,9 @@ export interface PathItem extends CatalogItem {
 }
 
 export interface Unit {
-  id: DomainId;
+  id: string;
+  /** The topic area the unit belongs to, for its icon and the skills chart. */
+  domain: DomainId;
   title: string;
   blurb: string;
   seeAll: Domain["seeAll"];
@@ -45,10 +48,29 @@ function itemState(item: CatalogItem, s: Saved): PathItem {
   return { ...item, state: "todo" };
 }
 
+/** Split each area into the units its items name, keeping the catalog's order. */
+function groups(domains: Domain[]): { domain: Domain; id: string; title: string; items: CatalogItem[] }[] {
+  const out: { domain: Domain; id: string; title: string; items: CatalogItem[] }[] = [];
+  for (const d of domains) {
+    const byId = new Map<string, (typeof out)[number]>();
+    for (const item of d.items) {
+      const id = item.unit?.id ?? d.id;
+      let g = byId.get(id);
+      if (!g) {
+        g = { domain: d, id, title: item.unit?.title ?? d.title, items: [] };
+        byId.set(id, g);
+        out.push(g);
+      }
+      g.items.push(item);
+    }
+  }
+  return out;
+}
+
 export function pathway(domains: Domain[], s: Saved): Unit[] {
   let current = false;
-  return domains.map((d) => {
-    const items = d.items.map((i) => itemState(i, s));
+  return groups(domains).map(({ domain: d, id, title, items: raw }) => {
+    const items = raw.map((i) => itemState(i, s));
     const open = items.filter((i) => i.state !== "locked").length;
     const done = items.filter((i) => i.state === "done").length;
     const pct = open ? Math.round((done / open) * 100) : 0;
@@ -60,16 +82,20 @@ export function pathway(domains: Domain[], s: Saved): Unit[] {
       current = true;
     } else state = "progress";
     const next = items.find((i) => i.state === "started" || i.state === "todo");
-    return { id: d.id, title: d.title, blurb: d.blurb, seeAll: d.seeAll, items, state, pct, done, open, next };
+    // The blurb names this grade's own topics, so each grade's path reads differently at a glance.
+    const names = items.map((i) => i.title);
+    const blurb = names.length > 3 ? `${names.slice(0, 3).join(" · ")} and ${names.length - 3} more` : names.join(" · ");
+    return { id, domain: d.id, title, blurb, seeAll: d.seeAll, items, state, pct, done, open, next };
   });
 }
 
 /**
- * A 0–100 skill score per unit for the diagnostics chart: the average of the saved scores,
- * with a finished lesson counting as 100 and untried topics left out.
+ * A 0–100 skill score for one topic area across its units, for the diagnostics chart: the
+ * average of the saved scores, with a finished lesson counting as 100 and untried topics left out.
  */
-export function skill(unit: Unit): number | null {
-  const scores = unit.items.filter((i) => i.state !== "locked").flatMap((i) => (i.state === "done" && i.score == null ? [100] : i.score != null ? [i.score] : []));
+export function skill(units: Unit[], domain: DomainId): number | null {
+  const items = units.filter((u) => u.domain === domain).flatMap((u) => u.items).filter((i) => i.state !== "locked");
+  const scores = items.flatMap((i) => (i.state === "done" && i.score == null ? [100] : i.score != null ? [i.score] : []));
   if (!scores.length) return null;
   return Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
 }

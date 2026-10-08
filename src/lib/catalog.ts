@@ -3,12 +3,12 @@
  * (bar models, numbers, fractions, algebra, data & thinking) for the Learn home page. Nothing new
  * is taught here: every item links to a lesson or practice set that already exists.
  */
-import { TOPICS } from "./arithmetic";
+import { TOPICS, type Op } from "./arithmetic";
 import { FRACTION_TOPICS } from "./fractions";
 import { LESSONS } from "./lessons";
 import { KINDS, LEVELS, type Kind, type Level } from "./problems";
 import type { Grade } from "./questions";
-import { isFreeTopic, THINKING_TOPICS } from "./thinking";
+import { AREAS, isFreeTopic, THINKING_TOPICS } from "./thinking";
 
 export interface CatalogItem {
   href: string;
@@ -20,7 +20,22 @@ export interface CatalogItem {
   lessonId?: string;
   /** False when the Pro plan is needed. */
   free: boolean;
+  /** The pathway unit this item sits in, when its area splits into smaller units (e.g. Multiplication). */
+  unit?: UnitTag;
 }
+
+export interface UnitTag {
+  id: string;
+  title: string;
+}
+
+const OP_UNIT: Record<Op, UnitTag> = {
+  make10: { id: "add-sub", title: "Addition & subtraction" },
+  add: { id: "add-sub", title: "Addition & subtraction" },
+  sub: { id: "add-sub", title: "Addition & subtraction" },
+  mul: { id: "mul", title: "Multiplication" },
+  div: { id: "div", title: "Division" },
+};
 
 export type DomainId = "bar-models" | "numbers" | "fractions" | "algebra" | "thinking";
 
@@ -70,7 +85,7 @@ export function gradeCatalog(grade: Grade): Domain[] {
       blurb: "Add, subtract, multiply and divide with place value.",
       seeAll: { href: "/number-skills", label: "All number skills" },
       items: TOPICS.filter((t) => t.grade === grade).map((t) => ({
-        href: `/number-skills/${t.id}`, title: t.title, blurb: t.blurb, bestKey: `ns-${t.id}`, free: true,
+        href: `/number-skills/${t.id}`, title: t.title, blurb: t.blurb, bestKey: `ns-${t.id}`, free: true, unit: OP_UNIT[t.op],
       })),
     },
     {
@@ -80,6 +95,7 @@ export function gradeCatalog(grade: Grade): Domain[] {
       seeAll: { href: "/fractions", label: "All fractions & decimals" },
       items: FRACTION_TOPICS.filter((t) => t.grade === grade).map((t) => ({
         href: `/fractions/${t.id}`, title: t.title, blurb: t.blurb, bestKey: `fd-${t.id}`, free: true,
+        unit: t.strand === "decimals" ? { id: "decimals", title: "Decimals" } : { id: "fractions", title: "Fractions" },
       })),
     },
     {
@@ -97,6 +113,7 @@ export function gradeCatalog(grade: Grade): Domain[] {
       items: THINKING_TOPICS.filter((t) => t.grade === grade).map((t) => ({
         // Locked topics go to the page that offers the Pro plan.
         href: isFreeTopic(t) ? `/thinking/${t.id}` : "/thinking", title: t.title, blurb: t.blurb, bestKey: `dt-${t.id}`, free: isFreeTopic(t),
+        unit: { id: `dt-${t.area}`, title: AREAS.find((a) => a.id === t.area)!.title },
       })),
     },
   ];
