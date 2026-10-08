@@ -38,9 +38,19 @@ describe("pathway", () => {
     const domains = gradeCatalog(4);
     const key = domains[1].items[0].bestKey!;
     const units = pathway(domains, { best: { [key]: 60 }, lessons: [], pro: false });
-    expect(skill(units[1])).toBe(60);
+    expect(skill(units, "numbers")).toBe(60);
     expect(units[1].items[0].state).toBe("started");
-    expect(skill(units[0])).toBeNull();
+    expect(skill(units, "bar-models")).toBeNull();
+  });
+
+  it("gives every grade its own path, built from that grade's topics", () => {
+    const shapes = GRADES.map((g) => pathway(gradeCatalog(g), { best: {}, lessons: [], pro: false }).map((u) => `${u.title}:${u.items.length}`).join("|"));
+    expect(new Set(shapes).size).toBe(GRADES.length);
+    for (const g of GRADES) {
+      const units = pathway(gradeCatalog(g), { best: {}, lessons: [], pro: false });
+      expect(units.flatMap((u) => u.items).length).toBe(gradeCatalog(g).flatMap((d) => d.items).length);
+      expect(new Set(units.map((u) => u.id)).size).toBe(units.length);
+    }
   });
 });
 

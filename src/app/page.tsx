@@ -6,7 +6,7 @@ import { useProgress } from "@/components/Progress";
 import { ProCard } from "@/components/Paywall";
 import { usePlan } from "@/components/usePlan";
 import { lastWeek, QUEST_GOAL } from "@/lib/activity";
-import { gradeCatalog, type DomainId } from "@/lib/catalog";
+import { gradeCatalog, type Domain, type DomainId } from "@/lib/catalog";
 import { LESSONS } from "@/lib/lessons";
 import { pathway, skill, type PathItem, type Unit } from "@/lib/pathway";
 import { GRADES } from "@/lib/questions";
@@ -29,7 +29,8 @@ export default function LearnPage() {
   const { grade, best, lessons, ready } = useProgress();
   const [plan] = usePlan();
   const pro = !!plan?.pro;
-  const units = pathway(gradeCatalog(grade), { best, lessons, pro });
+  const domains = gradeCatalog(grade);
+  const units = pathway(domains, { best, lessons, pro });
 
   return (
     <div className="stack">
@@ -45,7 +46,7 @@ export default function LearnPage() {
           )}
         </div>
         <aside className="side" aria-label="Your progress and more practice">
-          {ready && <Skills units={units} />}
+          {ready && <Skills units={units} domains={domains} />}
           {ready && <Week />}
           <MorePractice />
           <ProCard />
@@ -163,7 +164,7 @@ function Pathway({ units }: { units: Unit[] }) {
 }
 
 function Node({ unit }: { unit: Unit }) {
-  const Ic = DOMAIN_ICON[unit.id];
+  const Ic = DOMAIN_ICON[unit.domain];
   if (unit.state === "mastered") return <><span className="node mastered"><CheckIcon /></span><span className="node-label">100%</span></>;
   if (unit.state === "locked") return <><span className="node locked"><LockIcon /></span><span className="node-label">Locked</span></>;
   if (unit.state === "current") return <><span className="node current"><Ic /></span><span className="node-label strong">Current</span></>;
@@ -203,9 +204,7 @@ function UnitRow({ unit, n, open, onToggle }: { unit: Unit; n: number; open: boo
               {!locked && <UnitStars unit={unit} />}
             </span>
             <span className="unit-title">{unit.title}</span>
-            <span className="unit-blurb">
-              {unit.blurb} · {unit.items.length} {unit.items.length === 1 ? "topic" : "topics"}
-            </span>
+            <span className="unit-blurb">{unit.blurb}</span>
           </button>
           {open && unit.state === "current" ? (
             <span className="pill count"><TargetIcon />{unit.done}/{unit.open} done</span>
@@ -255,9 +254,10 @@ function Step({ item, next }: { item: PathItem; next: boolean }) {
 }
 
 /** Radar chart of the grade's topic areas plus a bar per area. */
-function Skills({ units }: { units: Unit[] }) {
+function Skills({ units, domains }: { units: Unit[]; domains: Domain[] }) {
   const { grade } = useProgress();
-  const rows = units.filter((u) => u.state !== "locked").map((u) => ({ id: u.id, title: u.title, v: skill(u) }));
+  const open = domains.filter((d) => units.some((u) => u.domain === d.id && u.state !== "locked"));
+  const rows = open.map((d) => ({ id: d.id, title: d.title, v: skill(units, d.id) }));
   const any = rows.some((r) => r.v != null);
   const R = 80;
   const c = 110;
