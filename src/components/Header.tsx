@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 import { GRADES, type Grade } from "@/lib/questions";
-import { CrownIcon } from "./Icons";
+import { CrownIcon, FlameIcon, StarIcon } from "./Icons";
 import { Logo } from "./Logo";
 import { useProgress } from "./Progress";
+import { ThemeToggle } from "./ThemeToggle";
 import { usePlan } from "./usePlan";
 
 /** Learn is the home page; the topic pages it links to count as part of it. */
@@ -21,7 +22,7 @@ const TABS = [
 ];
 
 export function Header() {
-  const { grade, setGrade, stars } = useProgress();
+  const { grade, setGrade, xp, streak, ready } = useProgress();
   const [plan] = usePlan();
   const pro = !!plan?.pro;
   return (
@@ -43,11 +44,17 @@ export function Header() {
               ))}
             </select>
           </label>
-          <div className="stars" title="Stars earned" aria-label={`${stars} stars`}>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path fill="var(--amber)" d="M12 2l3 6.6 7 .8-5.2 4.8 1.4 7L12 17.8 5.8 21.2l1.4-7L2 9.4l7-.8z" />
-            </svg>
-            <span data-testid="star-count">{stars}</span>
+          {ready && (
+            <div className="chip-stat streak" title={streak ? `${streak} days in a row` : "Practice today to start a streak"} aria-label={`${streak} day streak`}>
+              <FlameIcon />
+              <b>{streak}</b>
+              <span className="cs-unit">{streak === 1 ? "day" : "days"}</span>
+            </div>
+          )}
+          <div className="chip-stat xp" title="XP earned" aria-label={`${xp} XP`}>
+            <StarIcon />
+            <b data-testid="xp-count">{xp.toLocaleString("en-US")}</b>
+            <span className="cs-unit">XP</span>
           </div>
           {pro ? (
             <Link className="gopro on" href="/grown-ups" title="Pro plan is active">
@@ -60,6 +67,7 @@ export function Header() {
               <span className="gopro-label">Go Pro</span>
             </Link>
           )}
+          <ThemeToggle />
         </div>
       </div>
     </header>

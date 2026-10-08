@@ -54,7 +54,7 @@ export function Results({ log, placement }: { log: Answered[]; placement?: Grade
                   <td className="mono">{std}</td>
                   <td>{v.grade}</td>
                   <td>{v.right}/{v.n}</td>
-                  <td><span className={`pill ${secure ? "g" : "r"}`}>{secure ? "Secure" : "Practise"}</span></td>
+                  <td><span className={`pill ${secure ? "g" : "r"}`}>{secure ? "Secure" : "Practice"}</span></td>
                 </tr>
               );
             })}
@@ -74,7 +74,7 @@ export function Results({ log, placement }: { log: Answered[]; placement?: Grade
       </details>
       <div className="row">
         <Link className="btn" href="/tests">Back to tests</Link>
-        <Link className="btn ghost" href="/play">Practise in Play</Link>
+        <Link className="btn ghost" href="/play">Practice in Play</Link>
       </div>
     </div>
   );

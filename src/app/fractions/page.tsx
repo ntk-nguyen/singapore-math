@@ -24,7 +24,7 @@ export default function FractionsPage() {
         <p className="eyebrow">Concrete → Pictorial → Abstract</p>
         <h2>Fractions & decimals</h2>
         <p className="muted">
-          Every fraction is a bar cut into equal parts. Cut the parts again and you get equivalent fractions; cut two bars the same way and you can add them. Decimals are tenths and hundredths of the same bar. Each topic shows a worked example, then you practise 10 questions.
+          Every fraction is a bar cut into equal parts. Cut the parts again and you get equivalent fractions; cut two bars the same way and you can add them. Decimals are tenths and hundredths of the same bar. Each topic shows a worked example, then you practice 10 questions.
         </p>
       </div>
       <div className="row" role="group" aria-label="Grade">
@@ -52,7 +52,7 @@ export default function FractionsPage() {
                   <p>{t.blurb}</p>
                   {best[`fd-${t.id}`] != null && <span className="muted small">Best: {best[`fd-${t.id}`]}%</span>}
                   <div className="row">
-                    <Link className="btn" href={`/fractions/${t.id}`}>Learn & practise</Link>
+                    <Link className="btn" href={`/fractions/${t.id}`}>Learn & practice</Link>
                     <span className="std" title="Common Core standard">{t.std}</span>
                   </div>
                 </div>

@@ -6,6 +6,7 @@ import { Header } from "@/components/Header";
 import { LogoMark } from "@/components/Logo";
 import { ProgressProvider } from "@/components/Progress";
 import { PlanProvider } from "@/components/usePlan";
+import { THEME_SCRIPT } from "@/lib/theme";
 import "./globals.css";
 
 // Fonts are self-hosted by Next.js at build time, so child screens make no third-party requests.
@@ -21,7 +22,11 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, view
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${inter.variable}`}>
+    // The theme script sets data-theme on <html> before React hydrates, so React must accept it.
+    <html lang="en" className={`${jakarta.variable} ${inter.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
+      </head>
       <body>
         <ProgressProvider>
           <PlanProvider>

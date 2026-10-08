@@ -1,6 +1,6 @@
 /**
  * Quick-fire templates per grade, used by Play, the free grade checkpoint and the
- * placement check. Each one is tagged with the Common Core standard it practises and
+ * placement check. Each one is tagged with the Common Core standard it practices and
  * lists the wrong answers that real mistakes give. The first templates at each grade
  * are the original quick-fire set, kept in the same order.
  */

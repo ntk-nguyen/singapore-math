@@ -36,7 +36,7 @@ export default function ProblemSolvingPage() {
                   <p>{KINDS[kind].blurb[l.id]}</p>
                   {best[key] != null && <span className="muted small">Best: {best[key]}%</span>}
                   {open ? (
-                    <Link className="btn self-start" href={`/problem-solving/${kind}/${l.id}`}>Practise</Link>
+                    <Link className="btn self-start" href={`/problem-solving/${kind}/${l.id}`}>Practice</Link>
                   ) : (
                     <button className="btn gold self-start" disabled={!plan} onClick={() => setPaywall(true)}>Upgrade to Pro</button>
                   )}
