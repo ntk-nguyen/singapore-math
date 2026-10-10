@@ -27,9 +27,28 @@ describe("local Pro flag", () => {
     expect(devProEnabled()).toBe(true);
   });
 
-  it("is off unless DEV_PRO is exactly true", () => {
+  it("accepts 1, yes and on in any case", () => {
     vi.stubEnv("NODE_ENV", "development");
-    vi.stubEnv("DEV_PRO", "1");
+    for (const v of ["1", "yes", "ON", " True "]) {
+      vi.stubEnv("DEV_PRO", v);
+      expect(devProEnabled()).toBe(true);
+    }
+  });
+
+  it("stays off and warns for an unrecognised value", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("DEV_PRO", "tru");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    expect(devProEnabled()).toBe(false);
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('DEV_PRO="tru"'));
+    warn.mockRestore();
+  });
+
+  it("is off when unset or false", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("DEV_PRO", "false");
+    expect(devProEnabled()).toBe(false);
+    vi.stubEnv("DEV_PRO", "");
     expect(devProEnabled()).toBe(false);
   });
 

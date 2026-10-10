@@ -45,9 +45,20 @@ export function demoUnlockAllowed(): boolean {
   return process.env.NODE_ENV !== "production" && process.env.ALLOW_DEMO_UNLOCK === "true";
 }
 
+const ON = ["true", "1", "yes", "on"];
+const OFF = ["", "false", "0", "no", "off"];
+let warnedDevPro = false;
+
 /** Local development only: treat every visitor as Pro, with no cookie or Stripe. Never honoured in production. */
 export function devProEnabled(): boolean {
-  return process.env.NODE_ENV !== "production" && process.env.DEV_PRO === "true";
+  if (process.env.NODE_ENV === "production") return false;
+  const value = (process.env.DEV_PRO ?? "").trim().toLowerCase();
+  if (ON.includes(value)) return true;
+  if (!OFF.includes(value) && !warnedDevPro) {
+    warnedDevPro = true;
+    console.warn(`DEV_PRO="${process.env.DEV_PRO}" isn't recognised, so Pro stays off. Use DEV_PRO=true and restart npm run dev.`);
+  }
+  return false;
 }
 
 export const cookieOptions = {

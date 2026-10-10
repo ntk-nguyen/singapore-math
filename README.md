@@ -32,7 +32,7 @@ Checks: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` (all ru
 - `GET /api/tests/[id]` serves test papers and checks the Pro plan **on the server** (an active or trialing subscription, looked up in Stripe) before returning a paid test.
 - `POST /api/portal` opens the Stripe Customer Portal so parents can cancel.
 - The app refuses live keys (`sk_live_`/`rk_live_`). Use a test card such as `4242 4242 4242 4242`.
-- `DEV_PRO=true` makes you Pro on `npm run dev` with no Stripe: the server checks (`/api/tests`, `/api/papers`, `/api/practice`, `/api/thinking`) and `/api/plan` all report Pro. It is ignored in production.
+- `DEV_PRO=true` makes you Pro on `npm run dev` with no Stripe: the server checks (`/api/tests`, `/api/papers`, `/api/practice`, `/api/thinking`) and `/api/plan` all report Pro. It also accepts `1`, `yes` or `on`; restart the dev server after changing it. It is ignored in production.
 - `ALLOW_DEMO_UNLOCK=true` adds an "Unlock (demo)" button for local development. It is ignored in production.
 
 ## Privacy
