@@ -27,7 +27,7 @@ Checks: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` (all ru
 
 ## Payments (Stripe test mode only)
 
-- `POST /api/checkout` starts a Stripe Checkout subscription ($7.99/month, 7-day trial). Set `STRIPE_PRICE_ID` to use a Price from your dashboard instead of inline pricing.
+- `POST /api/checkout` starts a Stripe Checkout subscription with a 7-day trial, priced per child: $7.99/month for the first child and $3.99 for each extra child, up to 5 (quantity = children). The app finds or creates a graduated tiered Price with lookup key `mathbridge_pro_per_child_monthly` in test mode. Set `STRIPE_PRICE_ID` to use your own Price instead. To let parents change the number of children later, allow quantity changes in the Customer Portal settings.
 - `GET /api/checkout/success` verifies the Checkout Session and stores the Stripe customer id in a signed, httpOnly cookie.
 - `GET /api/tests/[id]` serves test papers and checks the Pro plan **on the server** (an active or trialing subscription, looked up in Stripe) before returning a paid test.
 - `POST /api/portal` opens the Stripe Customer Portal so parents can cancel.

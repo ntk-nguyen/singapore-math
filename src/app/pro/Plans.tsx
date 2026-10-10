@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CrownIcon } from "@/components/Icons";
-import { CheckoutButtons, PRO_PERKS, PRO_PRICE, useCheckout } from "@/components/Paywall";
+import { ChildCount, CheckoutButtons, EXTRA_CHILD_PRICE, PRO_PERKS, PRO_PRICE, useCheckout } from "@/components/Paywall";
 
 export function PlanCards({ freeTests }: { freeTests: number }) {
   const c = useCheckout();
@@ -36,9 +36,10 @@ export function PlanCards({ freeTests }: { freeTests: number }) {
         <h2>MathBridge Pro</h2>
         <p className="muted small">Everything in Free, plus the practice that builds exam confidence.</p>
         <p className="price">{PRO_PRICE}<small> / month</small></p>
-        <p className="small sky">7 days free, then {PRO_PRICE} a month</p>
+        <p className="small sky">For your first child. Each extra child is {EXTRA_CHILD_PRICE} a month, up to 5 children. 7 days free.</p>
         <ul className="ticks">
           <li><b>Everything in Free</b></li>
+          <li>A profile for each child, with their own progress, streak and scores</li>
           {PRO_PERKS.map((p) => <li key={p}>{p}</li>)}
         </ul>
         <div className="plan-cta stack" style={{ gap: 8 }}>
@@ -49,6 +50,7 @@ export function PlanCards({ freeTests }: { freeTests: number }) {
             </>
           ) : (
             <>
+              <ChildCount count={c.children} setCount={c.setChildren} />
               <CheckoutButtons {...c} label="Start 7-day free trial" className="btn" />
               <p className="muted small center">No charge until the trial ends · Cancel any time</p>
             </>
