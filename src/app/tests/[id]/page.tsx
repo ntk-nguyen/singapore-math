@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { confetti } from "@/components/Confetti";
 import { useProgress, useRemember } from "@/components/Progress";
 import { QuestionCard } from "@/components/QuestionCard";
@@ -11,7 +11,7 @@ import { placementResult, recordAnswer, startPlacement, type PlacementState } fr
 import { makeQuestion, type Grade, type Question } from "@/lib/questions";
 import { vary } from "@/lib/formats";
 import { pickFresh } from "@/lib/templates";
-import { getTest, type TestInfo } from "@/lib/tests";
+import { DIFFICULTIES, getTest, isDifficulty, type TestInfo } from "@/lib/tests";
 
 export default function TestPage() {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +37,7 @@ export default function TestPage() {
       </div>
       {!ready ? (
         <div className="panel"><p className="muted">Loading…</p></div>
-      ) : test.id === "placement" ? <Placement test={test} grade={grade} /> : <FixedTest key={grade} test={test} grade={grade} />}
+      ) : test.id === "placement" ? <Placement test={test} grade={grade} /> : <Suspense><FixedTest key={grade} test={test} grade={grade} /></Suspense>}
     </div>
   );
 }
@@ -106,6 +106,8 @@ function Placement({ test, grade }: { test: TestInfo; grade: Grade }) {
 
 /** A fixed paper, fetched from the server (which checks the Pro plan for paid tests). */
 function FixedTest({ test, grade }: { test: TestInfo; grade: Grade }) {
+  const asked = useSearchParams().get("level");
+  const level = isDifficulty(asked) ? asked : "standard";
   const finish = useFinish(test);
   const [questions, setQuestions] = useState<Question[] | null>(null);
   const [error, setError] = useState<{ status: number; message: string } | null>(null);
@@ -114,7 +116,7 @@ function FixedTest({ test, grade }: { test: TestInfo; grade: Grade }) {
 
   useEffect(() => {
     let live = true;
-    fetch(`/api/tests/${test.id}?grade=${grade}`, { cache: "no-store" })
+    fetch(`/api/tests/${test.id}?grade=${grade}&level=${level}`, { cache: "no-store" })
       .then(async (r) => {
         const data = await r.json();
         if (!live) return;
@@ -125,7 +127,7 @@ function FixedTest({ test, grade }: { test: TestInfo; grade: Grade }) {
     return () => {
       live = false;
     };
-  }, [test.id, grade]);
+  }, [test.id, grade, level]);
 
   if (error) {
     return (
@@ -149,6 +151,7 @@ function FixedTest({ test, grade }: { test: TestInfo; grade: Grade }) {
 
   return (
     <>
+      <p className="muted small">{DIFFICULTIES.find((d) => d.id === level)!.label} · question {i + 1} of {questions.length} · starts easier and gets harder</p>
       <Bar value={i / questions.length} />
       <div className="panel">
         <QuestionCard key={i} q={questions[i]} instant={false} onAnswer={answer} />

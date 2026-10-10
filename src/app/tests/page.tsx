@@ -9,7 +9,7 @@ import { useProgress } from "@/components/Progress";
 import { usePlan } from "@/components/usePlan";
 import { PAPER_KINDS, paperAvailable } from "@/lib/papers";
 import { GRADES, type Grade } from "@/lib/questions";
-import { TESTS } from "@/lib/tests";
+import { DIFFICULTIES, TESTS, type Difficulty } from "@/lib/tests";
 
 function LockIcon() {
   return (
@@ -30,7 +30,10 @@ export default function TestsPage() {
   const { best, placement } = useProgress();
   const [plan] = usePlan();
   const [paywall, setPaywall] = useState(false);
+  const [level, setLevel] = useState<Difficulty>("standard");
   const pro = !!plan?.pro;
+  // Standard is the default, so it stays out of the address.
+  const levelQuery = level === "standard" ? "" : `level=${level}`;
 
   return (
     <div className="stack">
@@ -46,6 +49,7 @@ export default function TestsPage() {
       <Suspense>
         <CheckoutNotice />
       </Suspense>
+      <DifficultyPicker value={level} onChange={setLevel} />
       <div className="tests">
         {TESTS.map((t) => {
           const open = t.free || pro;
@@ -56,7 +60,7 @@ export default function TestsPage() {
               <p>{t.desc}</p>
               {best[t.id] != null && <span className="muted small">Best: {best[t.id]}%</span>}
               {open ? (
-                <Link className="btn self-start" href={`/tests/${t.id}`}>Start</Link>
+                <Link className="btn self-start" href={`/tests/${t.id}${levelQuery && t.id !== "placement" ? `?${levelQuery}` : ""}`}>Start</Link>
               ) : (
                 <button className="btn gold self-start" onClick={() => setPaywall(true)} disabled={!plan}>
                   <span className="lock"><LockIcon />Upgrade to Pro</span>
@@ -66,10 +70,28 @@ export default function TestsPage() {
           );
         })}
       </div>
-      <PrintPanel pro={pro} planLoaded={!!plan} onLocked={() => setPaywall(true)} />
+      <PrintPanel pro={pro} planLoaded={!!plan} levelQuery={levelQuery} onLocked={() => setPaywall(true)} />
       {paywall && (
         <Paywall onClose={() => setPaywall(false)} onUnlocked={() => setPaywall(false)} />
       )}
+    </div>
+  );
+}
+
+/**
+ * Easy, standard or hard, for every fixed test and printed paper. The placement check
+ * adapts on its own, so it ignores this. Every paper runs from easier to harder.
+ */
+function DifficultyPicker({ value, onChange }: { value: Difficulty; onChange: (d: Difficulty) => void }) {
+  return (
+    <div className="difficulty" role="group" aria-label="Difficulty">
+      <span className="difficulty-label">Difficulty</span>
+      {DIFFICULTIES.map((d) => (
+        <button key={d.id} className={`chip${d.id === value ? " on" : ""}`} aria-pressed={d.id === value} title={d.blurb} onClick={() => onChange(d.id)}>
+          {d.label}
+        </button>
+      ))}
+      <span className="muted small">{DIFFICULTIES.find((d) => d.id === value)!.blurb} Every test starts easier and gets harder.</span>
     </div>
   );
 }
@@ -79,7 +101,7 @@ export default function TestsPage() {
  * its answer key every time. Free users can print the free grade checkpoint; the Pro
  * plan prints every test and topic, as many times as they like.
  */
-function PrintPanel({ pro, planLoaded, onLocked }: { pro: boolean; planLoaded: boolean; onLocked: () => void }) {
+function PrintPanel({ pro, planLoaded, levelQuery, onLocked }: { pro: boolean; planLoaded: boolean; levelQuery: string; onLocked: () => void }) {
   const { grade: myGrade } = useProgress();
   const router = useRouter();
   const [grade, setGrade] = useState<Grade | null>(null);
@@ -93,7 +115,7 @@ function PrintPanel({ pro, planLoaded, onLocked }: { pro: boolean; planLoaded: b
   );
   const make = () => {
     if (!open) return onLocked();
-    router.push(`/tests/print?kind=${kind.id}&grade=${g}`);
+    router.push(`/tests/print?kind=${kind.id}&grade=${g}${levelQuery ? `&${levelQuery}` : ""}`);
   };
 
   return (

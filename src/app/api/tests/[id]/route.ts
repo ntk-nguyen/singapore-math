@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { hasProPlan } from "@/lib/entitlement";
 import { isGrade } from "@/lib/questions";
-import { attemptSeed, buildPaper, getTest } from "@/lib/tests";
+import { attemptSeed, buildPaper, getTest, isDifficulty } from "@/lib/tests";
 
 export const dynamic = "force-dynamic";
 
@@ -19,5 +19,7 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   // A new paper on every attempt unless the caller asks for a particular one.
   const seed = Number(params.get("seed") ?? NaN);
   const attempt = Number.isSafeInteger(seed) && seed >= 0 ? seed : attemptSeed();
-  return NextResponse.json({ test: { id: test.id, name: test.name, free: test.free }, seed: attempt, questions: buildPaper(test, grade, attempt) });
+  const asked = params.get("level");
+  const level = isDifficulty(asked) ? asked : "standard";
+  return NextResponse.json({ test: { id: test.id, name: test.name, free: test.free }, seed: attempt, level, questions: buildPaper(test, grade, attempt, level) });
 }

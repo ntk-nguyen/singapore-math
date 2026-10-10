@@ -5,7 +5,7 @@
 import { methodQuestion, TOPICS } from "./arithmetic";
 import { fractionQuestion, FRACTION_TOPICS } from "./fractions";
 import { problemTypes, type Level } from "./problems";
-import { generatorStds, GRADES, makeQuestion, type Grade, type Question } from "./questions";
+import { generatorStds, generatorTiers, GRADES, makeQuestion, type Grade, type Question } from "./questions";
 import type { Rng } from "./rng";
 import { thinkingQuestion, THINKING_TOPICS } from "./thinking";
 
@@ -18,17 +18,22 @@ export interface Item {
   strand: Strand;
   /** Word problems, equations and data & thinking only. */
   level?: Level;
-  make: (r: Rng) => Question;
+  /** How hard the question type is, 0 (easy) to 2 (hard), for putting a paper in order. */
+  rank: number;
+  /** `shift` asks a type with difficulty tiers a tier easier (-1) or harder (+1); other types ignore it. */
+  make: (r: Rng, shift?: number) => Question;
 }
+
+const RANK: Record<Level, number> = { easy: 0, intermediate: 1, advanced: 2 };
 
 export const BANK: Item[] = [
   ...GRADES.flatMap((grade) =>
-    generatorStds(grade).map((std, i): Item => ({ id: `quick-${grade}-${i}`, grade, std, strand: "quick", make: (r) => makeQuestion(grade, r, i) })),
+    generatorStds(grade).map((std, i): Item => ({ id: `quick-${grade}-${i}`, grade, std, strand: "quick", rank: generatorTiers(grade)[i], make: (r, shift) => makeQuestion(grade, r, i, shift) })),
   ),
-  ...TOPICS.map((t): Item => ({ id: t.id, grade: t.grade, std: t.std, strand: "computation", make: (r) => methodQuestion(t, r) })),
-  ...FRACTION_TOPICS.map((t): Item => ({ id: t.id, grade: t.grade, std: t.std, strand: t.strand, make: (r) => fractionQuestion(t, r) })),
-  ...problemTypes().map((p, i): Item => ({ id: `${p.kind}-${p.level}-${i}`, grade: p.grade, std: p.std, strand: p.kind === "word" ? "word" : "equations", level: p.level, make: p.make })),
-  ...THINKING_TOPICS.map((t): Item => ({ id: t.id, grade: t.grade, std: t.std, strand: "thinking", level: t.level, make: (r) => thinkingQuestion(t, r) })),
+  ...TOPICS.map((t): Item => ({ id: t.id, grade: t.grade, std: t.std, strand: "computation", rank: 1, make: (r) => methodQuestion(t, r) })),
+  ...FRACTION_TOPICS.map((t): Item => ({ id: t.id, grade: t.grade, std: t.std, strand: t.strand, rank: 1, make: (r) => fractionQuestion(t, r) })),
+  ...problemTypes().map((p, i): Item => ({ id: `${p.kind}-${p.level}-${i}`, grade: p.grade, std: p.std, strand: p.kind === "word" ? "word" : "equations", level: p.level, rank: RANK[p.level], make: p.make })),
+  ...THINKING_TOPICS.map((t): Item => ({ id: t.id, grade: t.grade, std: t.std, strand: "thinking", level: t.level, rank: RANK[t.level], make: (r) => thinkingQuestion(t, r) })),
 ];
 
 /**
