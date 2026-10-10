@@ -45,6 +45,11 @@ export function demoUnlockAllowed(): boolean {
   return process.env.NODE_ENV !== "production" && process.env.ALLOW_DEMO_UNLOCK === "true";
 }
 
+/** Local development only: treat every visitor as Pro, with no cookie or Stripe. Never honoured in production. */
+export function devProEnabled(): boolean {
+  return process.env.NODE_ENV !== "production" && process.env.DEV_PRO === "true";
+}
+
 export const cookieOptions = {
   httpOnly: true,
   sameSite: "lax" as const,

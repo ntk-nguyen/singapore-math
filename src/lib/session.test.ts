@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { decodeClaim, encodeClaim } from "./session";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { decodeClaim, devProEnabled, encodeClaim } from "./session";
 import { isTestKey } from "./stripe-keys";
 
 describe("entitlement cookie", () => {
@@ -15,6 +15,28 @@ describe("entitlement cookie", () => {
     expect(decodeClaim(`${forged}.${mac}`)).toBeNull();
     expect(decodeClaim("garbage")).toBeNull();
     expect(decodeClaim(undefined)).toBeNull();
+  });
+});
+
+describe("local Pro flag", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("turns Pro on in development when DEV_PRO=true", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("DEV_PRO", "true");
+    expect(devProEnabled()).toBe(true);
+  });
+
+  it("is off unless DEV_PRO is exactly true", () => {
+    vi.stubEnv("NODE_ENV", "development");
+    vi.stubEnv("DEV_PRO", "1");
+    expect(devProEnabled()).toBe(false);
+  });
+
+  it("is ignored in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    vi.stubEnv("DEV_PRO", "true");
+    expect(devProEnabled()).toBe(false);
   });
 });
 
