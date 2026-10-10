@@ -17,7 +17,7 @@ const TABS = [
   { href: "/play", label: "Play" },
   { href: "/times-tables", label: "Times tables" },
   { href: "/tests", label: "Practice tests" },
-  { href: "/grown-ups", label: "For grown-ups" },
+  { href: "/parents", label: "Parents" },
   { href: "/pro", label: "Upgrade to Pro", pro: true },
 ];
 
@@ -57,7 +57,7 @@ export function Header() {
             <span className="cs-unit">XP</span>
           </div>
           {pro ? (
-            <Link className="gopro on" href="/grown-ups" title="Pro plan is active">
+            <Link className="gopro on" href="/parents" title="Pro plan is active">
               <CrownIcon />
               <span className="gopro-label">Pro</span>
             </Link>

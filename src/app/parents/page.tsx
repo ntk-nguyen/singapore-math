@@ -11,7 +11,7 @@ const ROWS: [number, string, string, string][] = [
   [8, "8.EE.C.7, 8.G.B.7, 8.F.B.4", "Linear equations, Pythagoras, slope", "Secondary 2"],
 ];
 
-export default function GrownUpsPage() {
+export default function ParentsPage() {
   return (
     <div className="stack">
       <section className="panel">

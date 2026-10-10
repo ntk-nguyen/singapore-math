@@ -38,7 +38,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <b><LogoMark className="foot-mark" />MathBridge</b>
                 <span>Concrete · Pictorial · Abstract. No ads, no trackers. Progress is saved on this device only. Payments run in Stripe test mode.</span>
                 <nav className="footlinks" aria-label="More">
-                  <Link href="/grown-ups">For grown-ups</Link>
+                  <Link href="/parents">Parents</Link>
                   <Link href="/pro">Pro plan</Link>
                 </nav>
               </div>

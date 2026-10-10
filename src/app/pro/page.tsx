@@ -25,7 +25,7 @@ const ROWS: [string, string, string][] = [
 ];
 
 const FAQ = [
-  ["Can I cancel any time?", "Yes. Cancel from For grown-ups before the 7-day trial ends and nothing is charged. After that the plan runs month to month."],
+  ["Can I cancel any time?", "Yes. Cancel from the Parents page before the 7-day trial ends and nothing is charged. After that the plan runs month to month."],
   ["Who should check out?", "A grown-up. Children never see a card form, and payment happens on Stripe’s own page. We never see card details."],
   ["Is this charging real money?", "Not yet. Payments run in Stripe test mode while MathBridge is in preview, so no real card is charged."],
   ["What grades does MathBridge cover?", "Grades 1 to 8, with every question mapped to a Common Core standard so results line up with US grade levels."],
@@ -81,7 +81,7 @@ export default function ProPage() {
       </section>
 
       <section className="stack faq" aria-labelledby="faq" style={{ gap: 12 }}>
-        <h2 id="faq" className="center">Questions grown-ups ask</h2>
+        <h2 id="faq" className="center">Questions parents ask</h2>
         {FAQ.map(([q, a]) => (
           <details key={q} className="faq-item">
             <summary>{q}</summary>
