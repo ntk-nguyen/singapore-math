@@ -1,19 +1,26 @@
 import { NextResponse } from "next/server";
+import { currentParent, linkedCustomer } from "@/lib/parent";
 import { clampChildren, MAX_CHILDREN } from "@/lib/profiles";
 import { appUrl, getStripe, proPriceId, StripeConfigError } from "@/lib/stripe";
 
 /**
  * Start a Stripe Checkout (test mode) for the Pro plan subscription. The quantity is the
  * number of children on the plan ($7.99 for the first, $3.99 for each extra), and the
- * parent can still change it on Stripe's page.
+ * parent can still change it on Stripe's page. A signed-in parent checks out as their
+ * account's Stripe customer (or with their email and account id, so the success step can
+ * link the new customer to the account).
  */
 export async function POST(req: Request) {
   try {
     const stripe = getStripe();
     const base = appUrl(req);
     const body = (await req.json().catch(() => ({}))) as { children?: unknown };
+    const parent = await currentParent();
+    const customer = parent ? await linkedCustomer(parent.id) : null;
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
+      ...(parent && { client_reference_id: parent.id }),
+      ...(customer ? { customer } : parent?.email ? { customer_email: parent.email } : {}),
       line_items: [
         {
           price: await proPriceId(),

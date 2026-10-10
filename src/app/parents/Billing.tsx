@@ -22,7 +22,7 @@ export function Billing() {
       <h2>{plan.pro ? "Pro plan" : "Free plan"}</h2>
       <p className="muted">
         {plan.pro
-          ? `All eight practice tests are unlocked on this device. Your plan covers ${plan.seats} ${plan.seats === 1 ? "child" : "children"}.`
+          ? `All eight practice tests are unlocked ${plan.parent ? "on every device where you sign in" : "on this device"}. Your plan covers ${plan.seats} ${plan.seats === 1 ? "child" : "children"}.`
           : "Learn, Play and two practice tests are free. The Pro plan unlocks six more tests."}
       </p>
       {plan.billing && (

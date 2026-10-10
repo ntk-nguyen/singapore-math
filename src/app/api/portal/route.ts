@@ -5,7 +5,7 @@ import { appUrl, getStripe, StripeConfigError } from "@/lib/stripe";
 /** Open the Stripe Customer Portal so parents can cancel or change their plan. */
 export async function POST(req: Request) {
   const customer = await stripeCustomer();
-  if (!customer) return NextResponse.json({ error: "No subscription on this device." }, { status: 404 });
+  if (!customer) return NextResponse.json({ error: "No subscription on this device or account." }, { status: 404 });
   try {
     const portal = await getStripe().billingPortal.sessions.create({ customer, return_url: `${appUrl(req)}/parents` });
     return NextResponse.json({ url: portal.url });
