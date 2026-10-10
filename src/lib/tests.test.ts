@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { QUICK } from "./quickfire";
 import { GRADES, type Grade } from "./questions";
+import { questionKey } from "./templates";
 import { buildPaper, getTest, testGrade, testItems, TESTS } from "./tests";
 
 describe("test catalog", () => {
@@ -26,7 +27,8 @@ describe("test catalog", () => {
   it("gives a new paper on a retake", () => {
     for (const t of TESTS.filter((x) => x.id !== "placement")) {
       for (const g of GRADES) {
-        const texts = (attempt: number) => new Set(buildPaper(t, g, attempt).map((q) => q.text));
+        // Keyed with the figure, as number-line questions share their wording and differ in the picture.
+        const texts = (attempt: number) => new Set(buildPaper(t, g, attempt).map(questionKey));
         const first = texts(1);
         const again = [...texts(2)].filter((x) => first.has(x)).length;
         // Almost every question is new; a few short ones ("Which fraction is the greatest?") can share their wording.

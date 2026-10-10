@@ -10,6 +10,7 @@ import { usePlan } from "./usePlan";
 export const PRO_PERKS = [
   "Six more full practice tests, from a word problem marathon to PSLE-style challenges",
   "Intermediate and advanced word problems and solve-for-x sets, with worked bar model solutions",
+  "Unlimited printable practice papers for every test and topic, each a new paper with its answer key",
   "Every new test and topic as it is added",
 ];
 export const PRO_PRICE = "$7.99";
