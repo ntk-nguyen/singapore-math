@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 
 const EVENT = "bma-confetti";
 
@@ -13,6 +14,8 @@ interface Piece { x: number; y: number; vx: number; vy: number; s: number; c: st
 
 export function ConfettiCanvas() {
   const ref = useRef<HTMLCanvasElement>(null);
+  const clear = useRef<() => void>(() => {});
+  const pathname = usePathname();
 
   useEffect(() => {
     const canvas = ref.current!;
@@ -21,8 +24,10 @@ export function ConfettiCanvas() {
     let pieces: Piece[] = [];
     let frame = 0;
 
+    // Drop finished pieces before drawing, so the last frame leaves an empty canvas.
     const tick = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pieces = pieces.filter((p) => p.life > 0 && p.y < canvas.height);
       for (const p of pieces) {
         p.x += p.vx;
         p.y += p.vy;
@@ -31,7 +36,6 @@ export function ConfettiCanvas() {
         ctx.fillStyle = p.c;
         ctx.fillRect(p.x, p.y, p.s, p.s * 0.6);
       }
-      pieces = pieces.filter((p) => p.life > 0);
       frame = pieces.length ? requestAnimationFrame(tick) : 0;
     };
 
@@ -47,12 +51,22 @@ export function ConfettiCanvas() {
       if (!frame) frame = requestAnimationFrame(tick);
     };
 
+    clear.current = () => {
+      pieces = [];
+      cancelAnimationFrame(frame);
+      frame = 0;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
     window.addEventListener(EVENT, burst);
     return () => {
       window.removeEventListener(EVENT, burst);
-      cancelAnimationFrame(frame);
+      clear.current();
     };
   }, []);
+
+  // Confetti belongs to the page that earned it.
+  useEffect(() => clear.current(), [pathname]);
 
   return <canvas ref={ref} className="fx" aria-hidden="true" />;
 }
