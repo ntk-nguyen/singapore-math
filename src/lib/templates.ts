@@ -15,6 +15,9 @@ import { gcd, helpers, type Rng } from "./rng";
 
 export type Tier = 0 | 1 | 2;
 
+/** A tier moved `by` steps easier (negative) or harder (positive), kept within easy to hard. */
+export const shiftTier = (t: Tier, by = 0): Tier => Math.max(0, Math.min(2, t + by)) as Tier;
+
 /* ---------------- contexts ---------------- */
 
 export const NAMES = [

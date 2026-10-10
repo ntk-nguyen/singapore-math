@@ -8,14 +8,22 @@ import { FigureView } from "@/components/Figure";
 import { LogoMark } from "@/components/Logo";
 import { formatOf, inputOf } from "@/lib/formats";
 import type { Question } from "@/lib/questions";
+import { sectionOf } from "@/lib/tests";
 
 interface Paper {
-  paper: { id: string; name: string; grade: number; code: string };
+  paper: { id: string; name: string; grade: number; code: string; level: string };
   seed: number;
   questions: Question[];
 }
 
 const LETTERS = "ABCDEFGH";
+
+/** Papers run from easier to harder in three sections, like a real exam. */
+const SECTIONS = [
+  { id: "A", name: "Warm-up" },
+  { id: "B", name: "Core" },
+  { id: "C", name: "Challenge" },
+] as const;
 
 export default function PrintPage() {
   return (
@@ -37,6 +45,9 @@ function PrintPaper() {
   const kind = params.get("kind") ?? "checkpoint";
   const grade = params.get("grade") ?? "3";
   const seed = params.get("seed");
+  const level = params.get("level");
+  // Standard papers leave the level out of the address.
+  const levelQuery = level && level !== "standard" ? `&level=${encodeURIComponent(level)}` : "";
   const [data, setData] = useState<Paper | null>(null);
   const [error, setError] = useState<{ status: number; message: string } | null>(null);
 
@@ -44,6 +55,7 @@ function PrintPaper() {
     let live = true;
     const q = new URLSearchParams({ grade });
     if (seed) q.set("seed", seed);
+    if (level) q.set("level", level);
     fetch(`/api/papers/${encodeURIComponent(kind)}?${q}`, { cache: "no-store" })
       .then(async (r) => {
         const body = await r.json();
@@ -52,17 +64,17 @@ function PrintPaper() {
         setError(null);
         setData(body);
         // Keep the seed in the address, so reloading or sharing the link gives this same paper.
-        if (!seed) router.replace(`/tests/print?kind=${encodeURIComponent(kind)}&grade=${grade}&seed=${body.seed}`);
+        if (!seed) router.replace(`/tests/print?kind=${encodeURIComponent(kind)}&grade=${grade}${levelQuery}&seed=${body.seed}`);
       })
       .catch(() => live && setError({ status: 0, message: "Could not reach the server." }));
     return () => {
       live = false;
     };
-  }, [kind, grade, seed, router]);
+  }, [kind, grade, seed, level, levelQuery, router]);
 
   const fresh = () => {
     setData(null);
-    router.push(`/tests/print?kind=${encodeURIComponent(kind)}&grade=${grade}`);
+    router.push(`/tests/print?kind=${encodeURIComponent(kind)}&grade=${grade}${levelQuery}`);
   };
 
   if (error) {
@@ -82,7 +94,7 @@ function PrintPaper() {
         <div className="spacer">
           <p className="eyebrow">Printable paper</p>
           <h2>{paper.name}</h2>
-          <p className="muted small">Grade {paper.grade} · {questions.length} questions · answer key on the last page. Every new paper has different questions.</p>
+          <p className="muted small">Grade {paper.grade} · {paper.level} · {questions.length} questions · answer key on the last page. Every new paper has different questions, from easier to harder.</p>
         </div>
         <Link className="btn ghost" href="/tests">Back</Link>
         <button className="btn ghost" onClick={fresh}>New paper</button>
@@ -94,16 +106,26 @@ function PrintPaper() {
         <header className="paper-head">
           <div className="paper-brand"><LogoMark className="paper-mark" />MathBridge</div>
           <h1>{paper.name}</h1>
-          <p className="paper-meta">Grade {paper.grade} · {questions.length} questions · Paper {paper.code}</p>
+          <p className="paper-meta">Grade {paper.grade} · {paper.level} · {questions.length} questions · Paper {paper.code}</p>
           <div className="paper-fields">
             <span>Name <i /></span>
             <span>Date <i /></span>
             <span>Score <i /> / {questions.length}</span>
           </div>
         </header>
-        <ol className="paper-qs">
-          {questions.map((q, n) => <PaperQuestion key={n} q={q} />)}
-        </ol>
+        {SECTIONS.map(({ id, name }) => {
+          const start = questions.findIndex((_, n) => sectionOf(n, questions.length) === id);
+          const qs = questions.filter((_, n) => sectionOf(n, questions.length) === id);
+          if (!qs.length) return null;
+          return (
+            <section key={id}>
+              <h2 className="paper-section">Section {id} · {name}</h2>
+              <ol className="paper-qs" start={start + 1}>
+                {qs.map((q, n) => <PaperQuestion key={n} q={q} />)}
+              </ol>
+            </section>
+          );
+        })}
 
         <section className="paper-key">
           <header className="paper-head">

@@ -5,7 +5,7 @@
  */
 import type { Grade, Question } from "./questions";
 import { gcd, helpers, type Rng } from "./rng";
-import { frac, pickFresh, render, smallFromLarge, usd, type Ctx, type Draft, type Mistake, type Template, type Tier } from "./templates";
+import { frac, pickFresh, render, shiftTier, smallFromLarge, usd, type Ctx, type Draft, type Mistake, type Template, type Tier } from "./templates";
 
 export type Level = "easy" | "intermediate" | "advanced";
 export type Kind = "word" | "equations";
@@ -635,7 +635,8 @@ export interface ProblemType {
   level: Level;
   grade: Grade;
   std: string;
-  make: (r: Rng) => Question;
+  /** `shift` draws the template a tier easier (-1) or harder (+1) than its level. */
+  make: (r: Rng, shift?: number) => Question;
 }
 
 /** Every word-problem and equation type, with the grade and standard it is written for. */
@@ -644,10 +645,10 @@ export function problemTypes(): ProblemType[] {
   for (const kind of ["word", "equations"] as Kind[]) {
     for (const { id: level } of LEVELS) {
       for (const tpl of generators(kind, level)) {
-        out.push({ kind, level, grade: tpl.grade, std: tpl.std, make: (r) => render(tpl, r).question });
+        out.push({ kind, level, grade: tpl.grade, std: tpl.std, make: (r, shift = 0) => render(tpl, r, shiftTier(tpl.tier, shift)).question });
       }
     }
   }
-  for (const tpl of MIDDLE_WORD) out.push({ kind: "word", level: "advanced", grade: tpl.grade, std: tpl.std, make: (r) => render(tpl, r).question });
+  for (const tpl of MIDDLE_WORD) out.push({ kind: "word", level: "advanced", grade: tpl.grade, std: tpl.std, make: (r, shift = 0) => render(tpl, r, shiftTier(tpl.tier, shift)).question });
   return out;
 }

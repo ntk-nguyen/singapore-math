@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { QUICK } from "./quickfire";
 import { GRADES, type Grade } from "./questions";
-import { questionKey } from "./templates";
-import { buildPaper, getTest, testGrade, testItems, TESTS } from "./tests";
+import { checkQuestion, questionKey } from "./templates";
+import { buildPaper, DIFFICULTIES, getTest, questionScore, sectionOf, testGrade, testItems, TESTS } from "./tests";
 
 describe("test catalog", () => {
   it("has exactly two free tests and six paid ones", () => {
@@ -95,5 +95,69 @@ describe("paid tests draw from their own topics", () => {
   it("mixes strands on a paper", () => {
     const items = testItems(getTest("eoy")!, 5);
     expect(new Set(items.map((i) => i.strand)).size).toBeGreaterThanOrEqual(4);
+  });
+});
+
+describe("difficulty", () => {
+  const papers = TESTS.filter((t) => t.id !== "placement");
+  const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+
+  it("makes sound papers at every difficulty, with no question twice and nothing above the grade", () => {
+    for (const t of papers) {
+      for (const g of GRADES) {
+        for (const { id } of DIFFICULTIES) {
+          const paper = buildPaper(t, g, 11, id);
+          expect(paper, `${t.id} grade ${g} ${id}`).toHaveLength(t.length);
+          expect(new Set(paper.map(questionKey)).size).toBe(paper.length);
+          for (const q of paper) {
+            expect(q.grade, `${t.id} grade ${g} ${id}`).toBeLessThanOrEqual(testGrade(t, g));
+            expect(checkQuestion(q, { negatives: true }), `${t.id} ${q.text}`).toEqual([]);
+          }
+        }
+      }
+    }
+  });
+
+  it("puts papers in order, easier questions first", () => {
+    let a = 0, c = 0;
+    for (const t of papers) {
+      for (const g of GRADES) {
+        for (let s = 1; s <= 4; s++) {
+          const paper = buildPaper(t, g, s);
+          const score = (part: string) => mean(paper.filter((_, i) => sectionOf(i, paper.length) === part).map(questionScore));
+          a += score("A");
+          c += score("C");
+          // Section C looks harder than section A on nearly every paper.
+          expect(score("C"), `${t.id} grade ${g}`).toBeGreaterThanOrEqual(score("A") - 0.5);
+        }
+      }
+    }
+    expect(c).toBeGreaterThan(a * 1.3);
+  });
+
+  it("makes hard papers look harder than easy ones", () => {
+    for (const t of papers) {
+      let easy = 0, hard = 0;
+      for (const g of GRADES) {
+        for (let s = 1; s <= 4; s++) {
+          easy += mean(buildPaper(t, g, s, "easy").map(questionScore));
+          hard += mean(buildPaper(t, g, s, "hard").map(questionScore));
+        }
+      }
+      expect(hard, t.id).toBeGreaterThan(easy);
+    }
+  });
+
+  it("leaves out advanced types on easy papers and easy types on hard ones, when there are enough others", () => {
+    const wp = getTest("wp")!;
+    expect(testItems(wp, 6, "easy").some((i) => i.level === "advanced")).toBe(false);
+    expect(testItems(wp, 6, "hard").some((i) => i.level === "easy")).toBe(false);
+    // Grade 1 has only easy word problems, so a hard paper keeps them.
+    expect(testItems(wp, 1, "hard").length).toBeGreaterThan(0);
+  });
+
+  it("splits a paper into three sections", () => {
+    expect(Array.from({ length: 15 }, (_, i) => sectionOf(i, 15)).join("")).toBe("AAAAABBBBBCCCCC");
+    expect(Array.from({ length: 10 }, (_, i) => sectionOf(i, 10)).join("")).toBe("AAABBBBCCC");
   });
 });

@@ -5,7 +5,7 @@
  */
 import type { Item, Strand } from "./bank";
 import type { Grade, Question } from "./questions";
-import { attemptSeed, buildPaper, testGrade, testItems, TESTS, type TestInfo } from "./tests";
+import { attemptSeed, buildPaper, testGrade, testItems, TESTS, type Difficulty, type TestInfo } from "./tests";
 
 export interface PaperKind {
   id: string;
@@ -55,9 +55,9 @@ export function paperGrade(kind: PaperKind, grade: Grade): Grade {
   return testGrade(kind.test, grade);
 }
 
-/** Build one paper. The same seed always gives the same paper, so a code reprints it. */
-export function buildPrintPaper(kind: PaperKind, grade: Grade, seed: number = attemptSeed()): Question[] {
-  return buildPaper({ ...kind.test, length: paperLength(kind, grade) }, grade, seed);
+/** Build one paper. The same seed and difficulty always give the same paper, so a code reprints it. */
+export function buildPrintPaper(kind: PaperKind, grade: Grade, seed: number = attemptSeed(), difficulty: Difficulty = "standard"): Question[] {
+  return buildPaper({ ...kind.test, length: paperLength(kind, grade) }, grade, seed, difficulty);
 }
 
 /**
@@ -70,7 +70,8 @@ export function paperLength(kind: PaperKind, grade: Grade): number {
   return Math.min(kind.test.length, Math.max(10, 2 * testItems(kind.test, grade).length));
 }
 
-/** A short code printed on the paper, so a grown-up can tell papers apart. */
-export function paperCode(seed: number): string {
-  return seed.toString(36).toUpperCase().padStart(6, "0");
+/** A short code printed on the paper, so a grown-up can tell papers apart. Easy and hard papers end in -E or -H. */
+export function paperCode(seed: number, difficulty: Difficulty = "standard"): string {
+  const code = seed.toString(36).toUpperCase().padStart(6, "0");
+  return difficulty === "standard" ? code : `${code}-${difficulty === "easy" ? "E" : "H"}`;
 }

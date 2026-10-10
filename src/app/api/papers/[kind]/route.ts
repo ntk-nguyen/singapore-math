@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { hasProPlan } from "@/lib/entitlement";
 import { buildPrintPaper, getPaperKind, paperAvailable, paperCode, paperGrade } from "@/lib/papers";
 import { isGrade } from "@/lib/questions";
-import { attemptSeed } from "@/lib/tests";
+import { attemptSeed, DIFFICULTIES, isDifficulty } from "@/lib/tests";
 
 export const dynamic = "force-dynamic";
 
@@ -24,9 +24,11 @@ export async function GET(req: Request, ctx: { params: Promise<{ kind: string }>
   }
   const s = Number(params.get("seed") ?? NaN);
   const seed = Number.isSafeInteger(s) && s >= 0 ? s : attemptSeed();
+  const asked = params.get("level");
+  const level = isDifficulty(asked) ? asked : "standard";
   return NextResponse.json({
-    paper: { id: kind.id, name: kind.name, grade: paperGrade(kind, grade), code: paperCode(seed) },
+    paper: { id: kind.id, name: kind.name, grade: paperGrade(kind, grade), code: paperCode(seed, level), level: DIFFICULTIES.find((d) => d.id === level)!.label },
     seed,
-    questions: buildPrintPaper(kind, grade, seed),
+    questions: buildPrintPaper(kind, grade, seed, level),
   });
 }
