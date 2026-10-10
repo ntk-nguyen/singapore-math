@@ -57,7 +57,17 @@ export function paperGrade(kind: PaperKind, grade: Grade): Grade {
 
 /** Build one paper. The same seed always gives the same paper, so a code reprints it. */
 export function buildPrintPaper(kind: PaperKind, grade: Grade, seed: number = attemptSeed()): Question[] {
-  return buildPaper(kind.test, grade, seed);
+  return buildPaper({ ...kind.test, length: paperLength(kind, grade) }, grade, seed);
+}
+
+/**
+ * How many questions a paper has. Practice tests keep their length. A topic with only
+ * a few question types at a grade (fractions in Grade 3, say) gets a shorter paper,
+ * about two of each type, rather than asking the same few things over and over.
+ */
+export function paperLength(kind: PaperKind, grade: Grade): number {
+  if (kind.group === "test") return kind.test.length;
+  return Math.min(kind.test.length, Math.max(10, 2 * testItems(kind.test, grade).length));
 }
 
 /** A short code printed on the paper, so a grown-up can tell papers apart. */

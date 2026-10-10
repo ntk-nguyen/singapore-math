@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildPrintPaper, getPaperKind, PAPER_KINDS, paperAvailable, paperCode, paperGrade } from "./papers";
+import { buildPrintPaper, getPaperKind, PAPER_KINDS, paperAvailable, paperCode, paperGrade, paperLength } from "./papers";
+import { formatOf } from "./formats";
 import { GRADES } from "./questions";
+import { shapeOf } from "./tests";
 import { questionKey } from "./templates";
 
 describe("printable papers", () => {
@@ -19,7 +21,7 @@ describe("printable papers", () => {
       for (const g of GRADES) {
         if (!paperAvailable(kind, g)) continue;
         const qs = buildPrintPaper(kind, g, 99);
-        expect(qs, `${kind.id} grade ${g}`).toHaveLength(kind.test.length);
+        expect(qs, `${kind.id} grade ${g}`).toHaveLength(paperLength(kind, g));
         expect(new Set(qs.map(questionKey)).size, `${kind.id} grade ${g}`).toBe(qs.length);
         // Never next year's work.
         expect(qs.every((q) => q.grade <= Math.max(paperGrade(kind, g), 1)), `${kind.id} grade ${g}`).toBe(true);
@@ -38,6 +40,32 @@ describe("printable papers", () => {
   it("does not offer a topic before it is taught", () => {
     expect(paperAvailable(getPaperKind("topic-equations")!, 1)).toBe(false);
     expect(paperAvailable(getPaperKind("topic-word")!, 1)).toBe(true);
+  });
+
+  it("keeps papers varied: few look-alike questions and no other format three times in a row", () => {
+    let alike = 0, total = 0;
+    for (const kind of PAPER_KINDS.filter((k) => k.id !== "topic-computation")) {
+      for (const g of GRADES) {
+        if (!paperAvailable(kind, g)) continue;
+        for (let s = 1; s <= 5; s++) {
+          const qs = buildPrintPaper(kind, g, s * 7919);
+          const shapes = qs.map(shapeOf);
+          alike += shapes.filter((x, i) => shapes.indexOf(x) < i).length;
+          total += qs.length;
+          qs.forEach((q, i) => {
+            if (i >= 2 && formatOf(q) !== "choice" && formatOf(q) === formatOf(qs[i - 1]) && formatOf(q) === formatOf(qs[i - 2])) expect.fail(`${kind.id} grade ${g}: three ${formatOf(q)} in a row`);
+          });
+        }
+      }
+    }
+    // Only short shared wordings ("Which fraction is the greatest?") come back.
+    expect(alike / total).toBeLessThan(0.12);
+  });
+
+  it("gives a topic with few question types a shorter paper", () => {
+    expect(paperLength(getPaperKind("topic-fractions")!, 3)).toBe(10);
+    expect(paperLength(getPaperKind("topic-word")!, 5)).toBe(20);
+    expect(paperLength(getPaperKind("wp")!, 1)).toBe(20);
   });
 
   it("prints a short paper code", () => {

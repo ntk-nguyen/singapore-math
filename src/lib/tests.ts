@@ -1,8 +1,8 @@
 import { BANK, nearGrade, type Item, type Strand } from "./bank";
 import { generatorCount, makeQuestion, type Grade, type Question } from "./questions";
-import { helpers, seeded } from "./rng";
-import { vary } from "./formats";
-import { pickFresh } from "./templates";
+import { helpers, seeded, type Rng } from "./rng";
+import { formatOf, vary } from "./formats";
+import { NAMES, pickFresh, questionKey } from "./templates";
 
 export interface TestInfo {
   id: string;
@@ -54,7 +54,9 @@ export function testGrade(test: TestInfo, selected: Grade): Grade {
 
 /** The question types a test draws from at a grade. */
 export function testItems(test: TestInfo, selected: Grade): Item[] {
-  return test.pool ? nearGrade(BANK.filter(test.pool), testGrade(test, selected)) : [];
+  // Draw on enough question types that a type comes back at most about twice on a
+  // paper, adding the grades below when the grade has too few of its own.
+  return test.pool ? nearGrade(BANK.filter(test.pool), testGrade(test, selected), Math.ceil(test.length * 0.6)) : [];
 }
 
 /** A seed for one attempt at a test. */
@@ -70,31 +72,72 @@ function paperSeed(test: TestInfo, grade: Grade, attempt: number): number {
   return (h ^ (h >>> 16)) >>> 0;
 }
 
+const NAME = new RegExp(`\\b(${NAMES.join("|")})\\b`, "g");
+
+/** A question with its names and numbers blanked out: "N has # stamps and N has #." */
+export function shapeOf(q: Question): string {
+  return q.text.replace(NAME, "N").replace(/\$?\d[\d,]*(\.\d+)?/g, "#").toLowerCase();
+}
+
+/**
+ * A question not yet on the paper, preferring one whose wording is not just a question
+ * already on it with new names and numbers. Some types all share their wording ("What
+ * is 46 × 7?"), so after a few tries any new question will do.
+ */
+function pickVaried(seen: Set<string>, shapes: Set<string>, make: () => Question): Question {
+  for (let i = 0; i < 10; i++) {
+    const q = make();
+    if (!seen.has(questionKey(q)) && !shapes.has(shapeOf(q))) {
+      seen.add(questionKey(q));
+      shapes.add(shapeOf(q));
+      return q;
+    }
+  }
+  const q = pickFresh(seen, make);
+  shapes.add(shapeOf(q));
+  return q;
+}
+
+/**
+ * Ask a question in one of its formats, trying again (up to a few times) when that
+ * would give the same format as the question before, so a paper does not run through
+ * several true-or-false or type-in questions in a row.
+ */
+function varyAfter(q: Question, prev: Question | undefined, r: Rng): Question {
+  let out = vary(q, r);
+  for (let i = 0; i < 4 && prev && formatOf(out) === formatOf(prev); i++) out = vary(q, r);
+  return out;
+}
+
 /**
  * Build a fixed-length (non-adaptive) test paper. Each attempt is a new paper: the same
  * `attempt` seed always gives the same paper, a different one gives different questions.
  * Pooled tests take turns between strands, so a paper mixes word problems, fractions
- * and so on rather than repeating one kind. No question appears twice on a paper, and
- * questions come in a mix of formats.
+ * and so on rather than repeating one kind, and go through every question type in a
+ * strand before any comes back. No question appears twice on a paper, nor (when it can
+ * be helped) the same question with new names and numbers, and questions come in a mix of formats, never the same format twice in a row when it can be helped.
  */
 export function buildPaper(test: TestInfo, selected: Grade, attempt: number = attemptSeed()): Question[] {
   const grade = testGrade(test, selected);
   const r = seeded(paperSeed(test, grade, attempt));
-  const seen = new Set<string>();
+  const seen = new Set<string>(), shapes = new Set<string>();
   const { shuffle } = helpers(r);
+  const out: Question[] = [];
   if (!test.pool) {
     // Every question type for the grade, in a new order each attempt.
     const order = shuffle(Array.from({ length: generatorCount(grade) }, (_, i) => i));
-    return Array.from({ length: test.length }, (_, i) => vary(pickFresh(seen, () => makeQuestion(grade, r, order[i % order.length])), r));
+    for (let i = 0; i < test.length; i++) out.push(varyAfter(pickVaried(seen, shapes, () => makeQuestion(grade, r, order[i % order.length])), out[i - 1], r));
+    return out;
   }
   const byStrand = new Map<Strand, Item[]>();
   for (const item of testItems(test, selected)) byStrand.set(item.strand, [...(byStrand.get(item.strand) ?? []), item]);
   const lists = shuffle([...byStrand.values()].map((l) => shuffle(l)));
-  return Array.from({ length: test.length }, (_, i) => {
+  for (let i = 0; i < test.length; i++) {
     const list = lists[i % lists.length];
     // A repeat moves on to the next question type in the strand.
     const first = Math.floor(i / lists.length);
     let tries = 0;
-    return vary(pickFresh(seen, () => list[(first + Math.floor(tries++ / 5)) % list.length].make(r)), r);
-  });
+    out.push(varyAfter(pickVaried(seen, shapes, () => list[(first + Math.floor(tries++ / 5)) % list.length].make(r)), out[i - 1], r));
+  }
+  return out;
 }
