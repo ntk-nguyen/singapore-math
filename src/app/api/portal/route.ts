@@ -7,7 +7,7 @@ export async function POST(req: Request) {
   const customer = await stripeCustomer();
   if (!customer) return NextResponse.json({ error: "No subscription on this device." }, { status: 404 });
   try {
-    const portal = await getStripe().billingPortal.sessions.create({ customer, return_url: `${appUrl(req)}/grown-ups` });
+    const portal = await getStripe().billingPortal.sessions.create({ customer, return_url: `${appUrl(req)}/parents` });
     return NextResponse.json({ url: portal.url });
   } catch (err) {
     if (err instanceof StripeConfigError) return NextResponse.json({ error: err.message }, { status: 503 });

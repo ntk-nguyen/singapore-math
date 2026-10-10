@@ -11,7 +11,7 @@ A fun, interactive Singapore Math app for Grades 1–8, built with Next.js (App 
 - **Play**: a ten-question challenge at the child's grade, with stars, streaks, confetti and a "Show me the bar model" hint.
 - **Practice tests**: two free tests (adaptive Placement check, Grade checkpoint) and six Pro plan tests behind a Stripe paywall.
 - **Upgrade to Pro** (`/pro`): Free vs Pro plan comparison and the 7-day trial. The header's Go Pro button, the home sidebar card and every locked test or level lead here or to the in-app upgrade prompt.
-- **For grown-ups**: Common Core ↔ Singapore level map, how results compare with MAP Growth and state tests, privacy notes, and plan management.
+- **Parents**: Common Core ↔ Singapore level map, how results compare with MAP Growth and state tests, privacy notes, and plan management.
 
 Every question is tagged with a Common Core code, so results are reported by standard. The design and product plan lives in the project's `plan.md` (Google Stitch prompts, baselining against US tests, paywall, COPPA notes).
 

@@ -45,7 +45,7 @@ export function PlanCards({ freeTests }: { freeTests: number }) {
           {pro ? (
             <>
               <span className="notice">Your Pro plan is active.</span>
-              <Link className="btn ghost" href="/grown-ups">Manage plan</Link>
+              <Link className="btn ghost" href="/parents">Manage plan</Link>
             </>
           ) : (
             <>
