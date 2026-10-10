@@ -9,6 +9,10 @@ export interface PlanInfo {
   billing: boolean;
   checkout: boolean;
   demoUnlock: boolean;
+  /** Google sign-in is set up on this server. */
+  signIn: boolean;
+  /** The signed-in parent, or null. */
+  parent: { name: string | null; email: string | null } | null;
 }
 
 const PlanContext = createContext<[PlanInfo | null, () => void]>([null, () => {}]);
@@ -22,7 +26,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     fetch("/api/plan", { cache: "no-store" })
       .then((r) => r.json())
       .then((p: PlanInfo) => live && setPlan(p))
-      .catch(() => live && setPlan({ pro: false, seats: 0, billing: false, checkout: false, demoUnlock: false }));
+      .catch(() => live && setPlan({ pro: false, seats: 0, billing: false, checkout: false, demoUnlock: false, signIn: false, parent: null }));
     return () => {
       live = false;
     };

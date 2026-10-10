@@ -1,48 +1,25 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { dayKey, logDay, parseDays, streak as streakOf, XP_PER_STAR, type Day, type Days } from "@/lib/activity";
-import { AVATARS, cleanName, isAvatar, MAX_CHILDREN, type Avatar } from "@/lib/profiles";
-import { isGrade, type Grade } from "@/lib/questions";
+import { dayKey, logDay, streak as streakOf, XP_PER_STAR, type Day } from "@/lib/activity";
+import {
+  DEFAULT_PROGRESS as DEFAULTS, parseProfiles, parseProgress, STARTER_NAME,
+  type Family, type Profile, type Progress, type Recent,
+} from "@/lib/family";
+import { AVATARS, cleanName, MAX_CHILDREN, type Avatar } from "@/lib/profiles";
+import { type Grade } from "@/lib/questions";
+
+export type { Profile, Progress, Recent };
 
 /**
- * Child progress, one profile per child, kept on this device only (no accounts
- * yet, and no child data leaves the browser). Parent accounts come with the
- * database follow-up.
+ * Child progress, one profile per child, kept on this device. When a parent signs in,
+ * FamilySync also keeps a copy in their account so it follows them to other devices.
  */
-export interface Progress {
-  grade: Grade;
-  stars: number;
-  best: Record<string, number>;
-  placement: Grade | null;
-  lessons: string[];
-  /** Times-table fact mastery (0–3), keyed like "7x8". */
-  facts: Record<string, number>;
-  /** The last lesson or practice set opened, for "Pick up where you left off". */
-  recent: Recent | null;
-  /** XP earned and things finished per day, for the streak and the daily quest. */
-  days: Days;
-}
-
-export interface Recent {
-  href: string;
-  title: string;
-}
-
-export interface Profile {
-  id: string;
-  /** First name or nickname only. */
-  name: string;
-  avatar: Avatar;
-  progress: Progress;
-}
-
-interface Store {
+interface Store extends Family {
+  /** The child practicing now, on this device only. */
   active: string;
-  profiles: Profile[];
 }
 
-const DEFAULTS: Progress = { grade: 3, stars: 0, best: {}, placement: null, lessons: [], facts: {}, recent: null, days: {} };
 const KEY = "mb-profiles";
 /** Single-child progress saved before profiles existed; moved into the first profile. */
 const OLD_KEY = "bma-progress";
@@ -50,8 +27,8 @@ const OLD_KEY = "bma-progress";
 const PICKED_KEY = "mb-picked";
 
 const newId = () => `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-const firstProfile = (progress: Progress): Profile => ({ id: newId(), name: "Player 1", avatar: AVATARS[0], progress });
-const DEFAULT_STORE: Store = { active: "default", profiles: [{ id: "default", name: "Player 1", avatar: AVATARS[0], progress: DEFAULTS }] };
+const firstProfile = (progress: Progress): Profile => ({ id: newId(), name: STARTER_NAME, avatar: AVATARS[0], progress });
+const DEFAULT_STORE: Store = { active: "default", profiles: [{ id: "default", name: STARTER_NAME, avatar: AVATARS[0], progress: DEFAULTS }], removed: [] };
 
 interface Ctx extends Progress {
   /** False until saved progress has been read from this device. */
@@ -79,23 +56,13 @@ interface Ctx extends Progress {
   updateProfile: (id: string, change: { name?: string; avatar?: Avatar }) => void;
   /** Deletes a child and their progress. The last profile can't be removed. */
   removeProfile: (id: string) => void;
+  /** Every child and the deleted ids, for syncing with a signed-in parent's account. */
+  family: Family;
+  /** Replace this device's children with a synced copy (keeps who is practicing when they're still there). */
+  applyFamily: (f: Family) => void;
 }
 
 const ProgressContext = createContext<Ctx | null>(null);
-
-function parseProgress(p: Partial<Progress> | null | undefined): Progress {
-  if (!p || typeof p !== "object") return DEFAULTS;
-  return {
-    grade: isGrade(p.grade) ? p.grade : DEFAULTS.grade,
-    stars: typeof p.stars === "number" ? p.stars : 0,
-    best: p.best && typeof p.best === "object" ? p.best : {},
-    placement: isGrade(p.placement) ? p.placement : null,
-    lessons: Array.isArray(p.lessons) ? p.lessons : [],
-    facts: p.facts && typeof p.facts === "object" ? p.facts : {},
-    recent: p.recent && typeof p.recent.href === "string" && typeof p.recent.title === "string" ? p.recent : null,
-    days: parseDays(p.days),
-  };
-}
 
 function readJson(key: string): unknown {
   try {
@@ -108,19 +75,15 @@ function readJson(key: string): unknown {
 
 function load(): Store {
   const saved = readJson(KEY) as Partial<Store> | null;
-  if (saved && Array.isArray(saved.profiles)) {
-    const profiles = saved.profiles
-      .filter((p): p is Profile => !!p && typeof p.id === "string" && typeof p.name === "string")
-      .slice(0, MAX_CHILDREN)
-      .map((p) => ({ id: p.id, name: cleanName(p.name) || "Player", avatar: isAvatar(p.avatar) ? p.avatar : AVATARS[0], progress: parseProgress(p.progress) }));
-    if (profiles.length) {
-      const active = profiles.some((p) => p.id === saved.active) ? (saved.active as string) : profiles[0].id;
-      return { active, profiles };
-    }
+  const profiles = parseProfiles(saved?.profiles);
+  const removed = Array.isArray(saved?.removed) ? saved.removed.filter((r): r is string => typeof r === "string") : [];
+  if (profiles.length) {
+    const active = profiles.some((p) => p.id === saved?.active) ? (saved?.active as string) : profiles[0].id;
+    return { active, profiles, removed };
   }
   // First visit since profiles arrived: keep the existing streak and XP as the first child.
-  const first = firstProfile(parseProgress(readJson(OLD_KEY) as Partial<Progress> | null));
-  return { active: first.id, profiles: [first] };
+  const first = firstProfile(parseProgress(readJson(OLD_KEY)));
+  return { active: first.id, profiles: [first], removed };
 }
 
 export function ProgressProvider({ children }: { children: ReactNode }) {
@@ -155,7 +118,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   /** Change the progress of the child practicing now. */
   const setProgress = useCallback(
     (fn: (p: Progress) => Progress) =>
-      setStore((st) => ({ ...st, profiles: st.profiles.map((p) => (p.id === st.active ? { ...p, progress: fn(p.progress) } : p)) })),
+      setStore((st) => {
+        const cur = st.profiles.find((p) => p.id === st.active);
+        const next = cur && fn(cur.progress);
+        if (!cur || next === cur.progress) return st;
+        return { ...st, profiles: st.profiles.map((p) => (p === cur ? { ...p, progress: next!, updatedAt: Date.now() } : p)) };
+      }),
     [],
   );
 
@@ -181,7 +149,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       const name = cleanName(raw);
       if (!name || store.profiles.length >= MAX_CHILDREN) return null;
       const id = newId();
-      setStore((st) => ({ ...st, profiles: [...st.profiles, { id, name, avatar, progress: { ...DEFAULTS, grade } }] }));
+      setStore((st) => ({ ...st, profiles: [...st.profiles, { id, name, avatar, progress: { ...DEFAULTS, grade }, updatedAt: Date.now() }] }));
       return id;
     },
     [store.profiles.length],
@@ -192,7 +160,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setStore((st) => ({
         ...st,
         profiles: st.profiles.map((p) =>
-          p.id === id ? { ...p, name: (change.name !== undefined && cleanName(change.name)) || p.name, avatar: change.avatar ?? p.avatar } : p,
+          p.id === id
+            ? { ...p, name: (change.name !== undefined && cleanName(change.name)) || p.name, avatar: change.avatar ?? p.avatar, updatedAt: Date.now() }
+            : p,
         ),
       })),
     [],
@@ -203,10 +173,21 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setStore((st) => {
         if (st.profiles.length <= 1) return st;
         const profiles = st.profiles.filter((p) => p.id !== id);
-        return { active: st.active === id ? profiles[0].id : st.active, profiles };
+        return { active: st.active === id ? profiles[0].id : st.active, profiles, removed: [...st.removed, id] };
       }),
     [],
   );
+
+  const applyFamily = useCallback(
+    (f: Family) =>
+      setStore((st) => {
+        if (!f.profiles.length) return st;
+        const active = f.profiles.some((p) => p.id === st.active) ? st.active : f.profiles[0].id;
+        return { active, profiles: f.profiles, removed: f.removed };
+      }),
+    [],
+  );
+  const family = useMemo<Family>(() => ({ profiles: store.profiles, removed: store.removed }), [store.profiles, store.removed]);
 
   const setGrade = useCallback((grade: Grade) => setProgress((s) => ({ ...s, grade })), [setProgress]);
   const addStars = useCallback(
@@ -247,10 +228,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       ...state, ready: loaded, xp: state.stars * XP_PER_STAR, streak: streakOf(state.days, now), today: state.days[dayKey(now)] ?? { xp: 0, done: 0 },
       setGrade, addStars, recordBest, setPlacement, completeLesson, setFact, setRecent,
       profiles: store.profiles, active, needsPick: loaded && !picked && store.profiles.length > 1,
-      switchProfile, addProfile, updateProfile, removeProfile,
+      switchProfile, addProfile, updateProfile, removeProfile, family, applyFamily,
     };
   }, [state, loaded, setGrade, addStars, recordBest, setPlacement, completeLesson, setFact, setRecent,
-    store.profiles, active, picked, switchProfile, addProfile, updateProfile, removeProfile]);
+    store.profiles, active, picked, switchProfile, addProfile, updateProfile, removeProfile, family, applyFamily]);
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>;
 }
 

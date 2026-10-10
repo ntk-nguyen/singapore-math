@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { ConfettiCanvas } from "@/components/Confetti";
+import { FamilySync } from "@/components/FamilySync";
 import { Header } from "@/components/Header";
 import { LogoMark } from "@/components/Logo";
 import { WhoIsPracticing } from "@/components/Profiles";
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <ProgressProvider>
           <PlanProvider>
+            <FamilySync />
             <ConfettiCanvas />
             <Header />
             <WhoIsPracticing />
@@ -38,7 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <footer className="foot">
               <div className="footin">
                 <b><LogoMark className="foot-mark" />MathBridge</b>
-                <span>Concrete · Pictorial · Abstract. No ads, no trackers. Progress is saved on this device only. Payments run in Stripe test mode.</span>
+                <span>Concrete · Pictorial · Abstract. No ads, no trackers. Progress is saved on this device, and in your account when a grown-up signs in. Payments run in Stripe test mode.</span>
                 <nav className="footlinks" aria-label="More">
                   <Link href="/parents">Parents</Link>
                   <Link href="/pro">Pro plan</Link>

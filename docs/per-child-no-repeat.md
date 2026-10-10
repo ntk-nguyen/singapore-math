@@ -1,6 +1,6 @@
 # Per-child no-repeat tracking (design note, step 2)
 
-Status: not built. Needs parent accounts, child profiles and a database first.
+Status: not built. Parent accounts (Google sign-in), child profiles and Postgres now exist; children live as JSON in `families.data`, keyed by the profile id the browser made.
 
 ## Goal
 
@@ -74,7 +74,7 @@ misconception to teach; items almost everyone misses go to review.
 
 ## Order of work
 
-1. Parent accounts, child profiles, Postgres (separate project).
+1. ~~Parent accounts, child profiles, Postgres.~~ Done: `families` holds each family's children; use `(user_id, profile id)` where this note says `child_id`.
 2. `question_seen` table and `/api/draw` + `/api/answer`.
 3. Point Play, practice rounds and the problem-solving pages at `/api/draw` when a child
    is signed in.

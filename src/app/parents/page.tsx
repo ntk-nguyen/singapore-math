@@ -1,4 +1,5 @@
 import { TESTS } from "@/lib/tests";
+import { Account } from "./Account";
 import { Billing } from "./Billing";
 import { Children } from "./Children";
 
@@ -18,6 +19,7 @@ const ROWS: [number, string, string, string][] = [
 export default function ParentsPage() {
   return (
     <div className="stack">
+      <Account />
       <Children tests={TEST_NAMES} />
       <section className="panel">
         <p className="eyebrow">Standards map</p>
@@ -57,9 +59,9 @@ export default function ParentsPage() {
         <p className="eyebrow">Privacy</p>
         <h2>Built for kids under 13</h2>
         <ul className="ticks">
-          <li>No ads, no third-party trackers, and no sign-up for children.</li>
+          <li>No ads, no third-party trackers, and no sign-up for children. Only a parent can sign in, with Google.</li>
           <li>Each child gets a profile with a first name or nickname and a built-in avatar. No photos, birthdays or surnames.</li>
-          <li>XP, streaks, scores and placement are stored in this browser only, per child. Clearing site data resets them.</li>
+          <li>XP, streaks, scores and placement are stored in this browser, per child. When a parent signs in, they are also saved to the parent’s account so they follow you to other devices; deleting the account deletes that copy.</li>
           <li>Only a grown-up can buy the Pro plan, through Stripe Checkout. We never see card details.</li>
         </ul>
       </section>
