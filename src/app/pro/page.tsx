@@ -21,10 +21,12 @@ const ROWS: [string, string, string][] = [
   ["Play and times tables", "yes", "yes"],
   ["Word problems and solve for x", "Easy level", "Easy, intermediate, advanced"],
   ["Practice tests", `${FREE_TESTS} tests`, `All ${TESTS.length} tests`],
+  ["Child profiles with their own progress", "yes", "yes"],
   ["Worked solutions", "yes", "yes"],
 ];
 
 const FAQ = [
+  ["How does pricing work for siblings?", "The first child is $7.99 a month and each extra child is $3.99, up to 5 children. Every child gets their own profile, streak and scores. You can change the number of children from the Parents page."],
   ["Can I cancel any time?", "Yes. Cancel from the Parents page before the 7-day trial ends and nothing is charged. After that the plan runs month to month."],
   ["Who should check out?", "A grown-up. Children never see a card form, and payment happens on Stripe’s own page. We never see card details."],
   ["Is this charging real money?", "Not yet. Payments run in Stripe test mode while MathBridge is in preview, so no real card is charged."],

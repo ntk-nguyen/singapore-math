@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import { GRADES, type Grade } from "@/lib/questions";
 import { CrownIcon, FlameIcon, StarIcon } from "./Icons";
 import { Logo } from "./Logo";
+import { ProfileSwitcher } from "./Profiles";
 import { useProgress } from "./Progress";
 import { ThemeToggle } from "./ThemeToggle";
 import { usePlan } from "./usePlan";
@@ -33,6 +34,7 @@ export function Header() {
         </Link>
         <Tabs pro={pro} />
         <div className="meta">
+          <ProfileSwitcher />
           <label className="grade" htmlFor="gradeSel">
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M12 3 1 9l11 6 9-4.9V17h2V9L12 3zM5 13.2v4L12 21l7-3.8v-4L12 17l-7-3.8z" />

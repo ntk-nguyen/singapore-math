@@ -4,6 +4,8 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 
 export interface PlanInfo {
   pro: boolean;
+  /** Children the Pro plan covers (0 without one). */
+  seats: number;
   billing: boolean;
   checkout: boolean;
   demoUnlock: boolean;
@@ -20,7 +22,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     fetch("/api/plan", { cache: "no-store" })
       .then((r) => r.json())
       .then((p: PlanInfo) => live && setPlan(p))
-      .catch(() => live && setPlan({ pro: false, billing: false, checkout: false, demoUnlock: false }));
+      .catch(() => live && setPlan({ pro: false, seats: 0, billing: false, checkout: false, demoUnlock: false }));
     return () => {
       live = false;
     };

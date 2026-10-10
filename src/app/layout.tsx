@@ -4,6 +4,7 @@ import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { ConfettiCanvas } from "@/components/Confetti";
 import { Header } from "@/components/Header";
 import { LogoMark } from "@/components/Logo";
+import { WhoIsPracticing } from "@/components/Profiles";
 import { ProgressProvider } from "@/components/Progress";
 import { PlanProvider } from "@/components/usePlan";
 import { THEME_SCRIPT } from "@/lib/theme";
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PlanProvider>
             <ConfettiCanvas />
             <Header />
+            <WhoIsPracticing />
             <main className="wrap">{children}</main>
             <footer className="foot">
               <div className="footin">

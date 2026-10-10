@@ -1,4 +1,8 @@
+import { TESTS } from "@/lib/tests";
 import { Billing } from "./Billing";
+import { Children } from "./Children";
+
+const TEST_NAMES = TESTS.map((t) => ({ id: t.id, name: t.name }));
 
 const ROWS: [number, string, string, string][] = [
   [1, "1.OA.A.1, 1.OA.C.6", "Number bonds; part-whole bar models", "Primary 1"],
@@ -14,6 +18,7 @@ const ROWS: [number, string, string, string][] = [
 export default function ParentsPage() {
   return (
     <div className="stack">
+      <Children tests={TEST_NAMES} />
       <section className="panel">
         <p className="eyebrow">Standards map</p>
         <h2>How levels line up with US grades</h2>
@@ -53,7 +58,8 @@ export default function ParentsPage() {
         <h2>Built for kids under 13</h2>
         <ul className="ticks">
           <li>No ads, no third-party trackers, and no sign-up for children.</li>
-          <li>XP, streaks, scores and placement are stored in this browser only. Clearing site data resets them.</li>
+          <li>Each child gets a profile with a first name or nickname and a built-in avatar. No photos, birthdays or surnames.</li>
+          <li>XP, streaks, scores and placement are stored in this browser only, per child. Clearing site data resets them.</li>
           <li>Only a grown-up can buy the Pro plan, through Stripe Checkout. We never see card details.</li>
         </ul>
       </section>

@@ -697,3 +697,53 @@ table.cmp th.cmp-pro { background: var(--accent-soft); }
   .pq-choices { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .pq-choices.wide { grid-template-columns: 1fr; }
 }
+
+/* Child profiles: header switcher, "Who's practicing?" picker, Parents page */
+.who { position: relative; }
+.who-btn { display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px 3px 3px; box-shadow: var(--sh1); font: 600 0.85rem var(--body); color: var(--ink); cursor: pointer; max-width: 160px; }
+.who-btn:hover { border-color: var(--line-strong); }
+.who-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who-av { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--surface-low); font-size: 1.05rem; line-height: 1; flex: none; }
+.who-av.big { width: 72px; height: 72px; font-size: 2.4rem; }
+.who-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 30; min-width: 220px; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--sh3); padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+.who-menu .eyebrow { margin: 4px 8px; }
+.who-item { display: flex; align-items: center; gap: 10px; background: none; border: none; border-radius: 12px; padding: 6px 8px; cursor: pointer; text-align: left; color: var(--ink); font: inherit; }
+.who-item:hover, .who-item.on { background: var(--surface-low); }
+.who-item b, .kid-name b, .who-card b { display: block; font: 700 0.95rem var(--display); }
+.who-item small, .kid-name small, .who-card small { color: var(--muted); font-size: 0.8rem; }
+.who-manage { border-top: 1px solid var(--line); margin-top: 4px; padding: 10px 8px 4px; font: 600 0.85rem var(--body); color: var(--sky-ink); text-decoration: none; }
+.who-manage:hover { text-decoration: underline; }
+.modal .panel.who-pick { max-width: 560px; gap: 20px; }
+.who-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+.who-card { display: flex; flex-direction: column; align-items: center; gap: 6px; background: var(--surface-low); border: 2px solid transparent; border-radius: 20px; padding: 16px 8px; cursor: pointer; color: var(--ink); font: inherit; }
+.who-card:hover, .who-card:focus-visible { border-color: var(--ring); outline: none; }
+.kidtabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.kidtab { display: flex; align-items: center; gap: 8px; background: var(--surface-low); border: 2px solid transparent; border-radius: 999px; padding: 4px 14px 4px 4px; font: 600 0.9rem var(--body); color: var(--ink); cursor: pointer; }
+.kidtab[aria-selected="true"] { border-color: var(--sky); background: var(--sky-soft); }
+.kidstats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+.kidstat { background: var(--surface-low); border-radius: 16px; padding: 12px 14px; }
+.kidstat span { display: block; color: var(--muted); font-size: 0.8rem; }
+.kidstat b { font: 700 1.3rem var(--display); }
+.kids { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.kid { display: flex; align-items: center; gap: 10px; background: var(--surface-low); border-radius: 16px; padding: 8px 12px; }
+.kid-name { flex: 1; min-width: 0; }
+.kid.editing { display: block; }
+.linkbtn.bad { color: var(--bad); }
+.addkid { display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
+.addkid h3 { margin: 0; }
+.addkid label, .gate label, .avpick legend { font: 600 0.85rem var(--body); color: var(--muted); }
+.avpick { border: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.avpick legend { margin-bottom: 6px; }
+.avpick button { width: 42px; height: 42px; border-radius: 50%; border: 2px solid transparent; background: var(--surface-low); font-size: 1.3rem; cursor: pointer; }
+.avpick button.on { border-color: var(--sky); background: var(--sky-soft); }
+.gate { display: flex; flex-direction: column; gap: 8px; max-width: 420px; }
+.gate-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.gate-row input { width: 120px; }
+.seats { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.seats button { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line-strong); background: var(--surface); color: var(--ink); font: 700 1.1rem var(--display); cursor: pointer; }
+.seats button:disabled { opacity: 0.4; cursor: default; }
+.seats output { font: 700 1.1rem var(--display); min-width: 1.5em; text-align: center; }
+@media (max-width: 760px) {
+  .who-name { display: none; }
+  .who-btn { padding-right: 3px; }
+}
