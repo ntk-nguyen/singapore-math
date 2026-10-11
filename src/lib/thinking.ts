@@ -561,7 +561,7 @@ export const THINKING_TOPICS: ThinkTopic[] = [
   },
   {
     id: "g4-line-plot", grade: 4, area: "data", level: "intermediate", std: "4.MD.B.4", mp: "MP4",
-    title: "Line plots", blurb: "Each dot is one person or thing. Count dots to answer questions about the data.",
+    title: "Dot plots", blurb: "Each dot is one person or thing. Count dots to answer questions about the data.",
     make: ({ ri, pick }) => {
       const s = pick([
         { title: "Books read last month", unit: "books", who: "students" },
@@ -603,7 +603,7 @@ export const THINKING_TOPICS: ThinkTopic[] = [
         }
         default:
           return {
-            text: `How many ${s.who} are shown on the line plot?`,
+            text: `How many ${s.who} are shown on the dot plot?`,
             answer: String(total), wrong: [String(used.length), String(sum(counts.map((c, i) => c * vals[i]))), String(total + 1), String(total - 1)],
             steps: [each, `Add the dots in every column: ${counts.join(" + ")} = ${total}.`], figure,
           };

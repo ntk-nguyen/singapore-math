@@ -8,7 +8,7 @@ export type Figure =
   | { t: "bar"; title: string; labels: string[]; values: number[]; step: number; min?: number; unit?: string }
   /** Picture graph: each symbol stands for `key` of `noun`. */
   | { t: "pict"; title: string; labels: string[]; counts: number[]; key: number; noun: string }
-  /** Line plot: `counts[i]` dots above the value `start + i`. */
+  /** Dot plot (Massachusetts calls a line plot a dot plot): `counts[i]` dots above the value `start + i`. */
   | { t: "dots"; title: string; start: number; counts: number[]; unit: string }
   | { t: "table"; head: string[]; rows: (string | number)[][] }
   /** Number line: evenly spaced ticks (blank labels allowed) with an arrow at tick `arrow`. */

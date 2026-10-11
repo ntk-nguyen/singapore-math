@@ -1,5 +1,5 @@
 import { BANK, nearGrade, type Item, type Strand } from "./bank";
-import { generatorCount, generatorTiers, makeQuestion, type Grade, type Question } from "./questions";
+import { generatorStds, generatorTiers, makeQuestion, type Grade, type Question } from "./questions";
 import { helpers, seeded, type Rng } from "./rng";
 import { formatOf, vary } from "./formats";
 import { NAMES, pickFresh, questionKey } from "./templates";
@@ -56,6 +56,9 @@ export const TESTS: TestInfo[] = [
   { id: "pre-alg", free: false, name: "Pre-algebra readiness", length: 20, seed: 808, grades: [6, 7, 8], desc: "Grades 6–8 expressions, equations and the number system.",
     pool: (i) => i.strand === "equations" || i.strand === "quick" || fracDec(i) },
 ];
+
+/** The domain of a standard ("G" in 3.G.A.1, "NF" in 4.NF.B.3), which is what state tests report on. */
+export const areaOf = (std: string) => std.split(".")[1];
 
 export function getTest(id: string): TestInfo | undefined {
   return TESTS.find((t) => t.id === id);
@@ -186,9 +189,14 @@ export function buildPaper(test: TestInfo, selected: Grade, attempt: number = at
     drawn.push({ q, score: 2 * rank + questionScore(q) });
   };
   if (!test.pool) {
-    // Every question type for the grade, in a new order each attempt.
+    // The grade's areas (geometry, fractions...) take turns, so a short paper still
+    // touches every area; within an area the question types come in a new order each attempt.
     const tiers = generatorTiers(grade);
-    const order = shuffle(Array.from({ length: generatorCount(grade) }, (_, i) => i));
+    const byArea = new Map<string, number[]>();
+    generatorStds(grade).forEach((std, i) => byArea.set(areaOf(std), [...(byArea.get(areaOf(std)) ?? []), i]));
+    const areas = shuffle([...byArea.values()].map((l) => shuffle(l)));
+    const longest = Math.max(...areas.map((l) => l.length));
+    const order = Array.from({ length: longest }, (_, k) => areas.map((l) => l[k])).flat().filter((t) => t !== undefined);
     for (let i = 0; i < test.length; i++) {
       const t = order[i % order.length];
       draw(tiers[t], () => makeQuestion(grade, r, t, shift));
