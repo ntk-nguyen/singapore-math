@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FORMAT_LABEL, formatOf, inputOf, isRight } from "@/lib/formats";
+import { FORMAT_LABEL, formatOf, inputOf, isRight, PICK_SEP } from "@/lib/formats";
 import type { Question } from "@/lib/questions";
 import { BarModel } from "./BarModel";
 import { FigureView } from "./Figure";
@@ -10,7 +10,8 @@ import { MethodView } from "./Method";
 const PRAISE = ["Brilliant!", "You got it!", "Super!", "Spot on!"];
 
 /**
- * One question, in any format: tap a choice, type the answer, or tap items in order.
+ * One question, in any format: tap a choice, type the answer, tap items in order, tap
+ * every right choice, or answer Part A and Part B.
  * In practice mode (`instant`) it marks the answer and shows the worked solution after
  * a miss; in test mode it just records the answer.
  */
@@ -65,6 +66,8 @@ export function QuestionCard({
       ))}
       {input === "type" && <TypeIn done={!!chosen} onSubmit={choose} />}
       {input === "order" && <OrderPicker items={q.items ?? []} done={!!chosen} onSubmit={choose} />}
+      {input === "multi" && <MultiPicker q={q} done={!!chosen} mark={instant} onSubmit={choose} />}
+      {input === "parts" && <PartsPicker q={q} done={!!chosen} mark={instant} onSubmit={choose} />}
       {input === "choose" && (
         /* Sentence answers ("No, it should be about 300") get one wide column. */
         <div className={`choices${q.choices.some((c) => c.length > 14) ? " wide" : ""}`}>
@@ -121,6 +124,59 @@ function OrderPicker({ items, done, onSubmit }: { items: string[]; done: boolean
         ))}
       </div>
       {!done && picked.length > 0 && <button className="btn ghost self-start" onClick={() => setPicked(picked.slice(0, -1))}>Undo</button>}
+    </div>
+  );
+}
+
+/** Tap every choice that is right, then check. Marked all-or-nothing. */
+function MultiPicker({ q, done, mark, onSubmit }: { q: Question; done: boolean; mark: boolean; onSubmit: (v: string) => void }) {
+  const [picked, setPicked] = useState<string[]>([]);
+  const toggle = (c: string) => setPicked(picked.includes(c) ? picked.filter((x) => x !== c) : [...picked, c]);
+  const cls = (c: string) => {
+    const on = picked.includes(c) ? " picked" : "";
+    if (!mark || !done) return `choice${on}`;
+    if (q.answers?.includes(c)) return `choice right${on}`;
+    return on ? "choice wrong picked" : "choice";
+  };
+  return (
+    <div className="multi">
+      <div className={`choices${q.choices.some((c) => c.length > 14) ? " wide" : ""}`}>
+        {q.choices.map((c) => (
+          <button key={c} className={cls(c)} aria-pressed={picked.includes(c)} disabled={done} onClick={() => toggle(c)}>
+            <span className="tick" aria-hidden="true">{picked.includes(c) ? "✓" : ""}</span>{c}
+          </button>
+        ))}
+      </div>
+      <button className="btn self-start" disabled={done || picked.length < 2} onClick={() => onSubmit(picked.join(PICK_SEP))}>Check</button>
+    </div>
+  );
+}
+
+/** Part A and Part B, one choice each, then check. Both parts must be right. */
+function PartsPicker({ q, done, mark, onSubmit }: { q: Question; done: boolean; mark: boolean; onSubmit: (v: string) => void }) {
+  const parts = q.parts ?? [];
+  const [picked, setPicked] = useState<(string | null)[]>(() => parts.map(() => null));
+  const cls = (i: number, c: string) => {
+    const on = picked[i] === c ? " picked" : "";
+    if (!mark || !done) return `choice${on}`;
+    if (c === parts[i].answer) return `choice right${on}`;
+    return on ? "choice wrong picked" : "choice";
+  };
+  return (
+    <div className="parts">
+      {parts.map((p, i) => (
+        <div key={i} className="part">
+          <p className="part-text"><b>Part {"AB"[i]}.</b> {p.text}</p>
+          <div className={`choices${p.choices.some((c) => c.length > 14) ? " wide" : ""}`}>
+            {p.choices.map((c) => (
+              <button key={c} className={cls(i, c)} aria-pressed={picked[i] === c} disabled={done} onClick={() => setPicked(picked.map((x, k) => (k === i ? c : x)))}>
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+      <button className="btn self-start" disabled={done || picked.some((x) => x == null)} onClick={() => onSubmit(picked.join(PICK_SEP))}>Check</button>
     </div>
   );
 }

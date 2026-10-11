@@ -6,6 +6,7 @@
  * from a released MCAS item.
  */
 import type { Grade } from "./questions";
+import { gcd } from "./rng";
 import { frac, type Ctx, type Draft, type Mistake, type Template, type Tier } from "./templates";
 
 const T = (id: string, grade: Grade, std: string, make: (c: Ctx) => Draft, tier: Tier = 1): Template => ({ id, grade, std, tier, make });
@@ -56,6 +57,22 @@ const G3: Template[] = [
     return { text: `${n} draws a shape on centimeter grid paper. It covers ${w} whole squares and ${h} half squares. What is its area in square centimeters?`, answer: w + h / 2,
       mistakes: [m(w + h, "counted each half square as a whole one"), m(w, "left out the half squares"), m(w + 2 * h, "counted each half square as two"), m(h / 2, "counted only the half squares")] };
   }),
+  T("q3-multi-equal", 3, "3.OA.B.5", (c) => {
+    const a = c.ri(2, c.by([5, 9, 9])), b = c.ri(3, c.by([6, 9, 12])), b1 = c.ri(1, b - 1), b2 = b - b1;
+    return { text: `Which expressions are equal to ${a} × ${b}?`, format: "multi", answer: "",
+      right: [`${b} × ${a}`, `${a} × ${b1} + ${a} × ${b2}`],
+      mistakes: [m(`${a} + ${b}`, "added instead of multiplying"), m(`${a} × ${b1} + ${b2}`, "multiplied only one part"), m(`${a} × ${b + 1}`, "used one group too many"), ...(b === a + 1 ? [] : [m(`${a + 1} × ${b - 1}`, "moved one from one factor to the other")])] };
+  }),
+  T("q3-two-stickers", 3, "3.OA.D.8", (c) => {
+    const n = c.name(), th = c.thing("collect"), k = c.ri(2, c.by([4, 6, 9])), p = c.ri(3, c.by([6, 9, 10])), g = c.ri(2, k * p - 2);
+    return { text: `${n} buys ${k} packs of ${th.many} with ${p} in each pack, then gives ${g} ${th.many} to a friend.`, format: "twopart", answer: "", mistakes: [],
+      parts: [
+        { text: `How many ${th.many} does ${n} have left?`, answer: k * p - g,
+          mistakes: [m(k + p - g, "added the packs and the number in each"), m(k * p + g, "added the ones given away"), m(k * p, "forgot the ones given away")] },
+        { text: `Which equation could ${n} use? Let s stand for the ${th.many} left.`, answer: `s = ${k} × ${p} − ${g}`,
+          mistakes: [m(`s = ${k} + ${p} − ${g}`, "added instead of multiplying"), m(`s = ${k} × ${p} + ${g}`, "added the ones given away"), m(`s = ${k} × (${p} − ${g})`, "took the gift from every pack")] },
+      ] };
+  }),
 ];
 
 const ANGLE_KINDS = ["acute", "right", "obtuse", "straight"] as const;
@@ -98,6 +115,25 @@ const G4: Template[] = [
         m("equilateral triangle", "thought the angles were all the same"),
       ] };
   }),
+  T("q4-multi-equiv", 4, "4.NF.A.1", (c) => {
+    let a = c.ri(1, 4), b = c.ri(a + 1, c.by([5, 6, 8]));
+    while (gcd(a, b) !== 1) { a = c.ri(1, 4); b = c.ri(a + 1, c.by([5, 6, 8])); }
+    const [k1, k2] = c.shuffle([2, 3, 4, 5]).slice(0, 2);
+    return { text: `Which fractions are equal to ${a}/${b}?`, format: "multi", answer: "",
+      right: [`${a * k1}/${b * k1}`, `${a * k2}/${b * k2}`],
+      mistakes: [m(`${a + k1}/${b + k1}`, "added the same number to the top and bottom"), m(`${a * k1}/${b}`, "multiplied only the top"), m(`${a}/${b * k2}`, "multiplied only the bottom"), m(`${b}/${a + b}`, "mixed up the parts")] };
+  }),
+  T("q4-two-buses", 4, "4.OA.A.3", (c) => {
+    const cap = c.pick(c.by([[10, 20], [12, 15, 20, 25], [24, 32, 36, 45]] as const)), full = c.ri(2, c.by([5, 8, 12])), r = c.ri(1, cap - 1), n = cap * full + r;
+    const who = c.pick(["students", "campers", "fans", "scouts"]);
+    return { text: `${n} ${who} are going on a trip. Each bus holds ${cap} ${who}.`, format: "twopart", answer: "", mistakes: [],
+      parts: [
+        { text: "How many buses are needed so everyone can go?", answer: full + 1,
+          mistakes: [m(full, "dropped the remainder"), m(r, "gave the remainder"), m(full + 2, "added one bus too many")] },
+        { text: "If every bus but the last is full, how many empty seats are on the last bus?", answer: cap - r,
+          mistakes: [m(r, "gave the riders on the last bus"), m(cap, "counted the whole bus as empty"), m(cap - r + 1, "counted one seat too many")] },
+      ] };
+  }),
 ];
 
 const G5: Template[] = [
@@ -135,6 +171,24 @@ const G5: Template[] = [
     const q = Math.floor(a / b), r = a % b;
     return { text: `${n} shares ${a} ${unit} of ${stuff} equally among ${b} ${who}. How many ${unit} does each get?`, answer: frac(a, b, true),
       mistakes: [m(frac(b, a), "divided the wrong way round"), m(String(q), "dropped the remainder"), m(`${q}.${r}`, "wrote the remainder after a decimal point"), m(frac(r, b), "gave only the leftover part")] };
+  }),
+  T("q5-multi-decimals", 5, "5.NBT.A.3b", (c) => {
+    const w = c.ri(0, c.by([0, 9, 99])), b = c.ri(2, 7), d = c.ri(2, 8), e = c.ri(1, 9), f = c.ri(1, 9);
+    const at = (x: string) => `${w}.${x}`;
+    return { text: `Which numbers are greater than ${at(`${b}${d}`)}?`, format: "multi", answer: "",
+      right: [at(`${b + 1}`), at(`${b}${d}${e}`), at(`${b + 1}0${f}`)].slice(0, c.ri(2, 3)),
+      mistakes: [m(at(`${b}0${e}`), "thought a number with more digits is bigger"), m(at(`${b}${d - 1}${f}`), "compared the last digits"), m(at(`${b - 1}${f}${e}`), "thought more digits make a bigger number"), m(at(`${b}`), "thought fewer digits make a bigger number")] };
+  }),
+  T("q5-two-box", 5, "5.MD.C.5b", (c) => {
+    const l = c.ri(2, c.by([6, 10, 15])), w = c.ri(2, c.by([5, 8, 12])), h = c.ri(2, c.by([5, 8, 10])), k = c.pick([2, 3]);
+    const what = c.pick(["toy box", "fish tank", "planter", "storage bin", "sandbox"]);
+    return { text: `A ${what} is a rectangular prism ${l} ft long, ${w} ft wide and ${h} ft tall.`, format: "twopart", answer: "", mistakes: [],
+      parts: [
+        { text: "What is its volume in cubic feet?", answer: l * w * h,
+          mistakes: [m(l + w + h, "added the edges"), m(l * w, "found the area of the base only"), m(2 * (l * w + l * h + w * h), "found the surface area")] },
+        { text: `A second ${what} is ${k} times as tall, with the same base. What is its volume in cubic feet?`, answer: k * l * w * h,
+          mistakes: [m(l * w * h + k, `added ${k}`), m(l * w * (h + k), `added ${k} to the height`), m(k ** 3 * l * w * h, "made every edge longer")] },
+      ] };
   }),
 ];
 
@@ -207,6 +261,25 @@ const G6: Template[] = [
     return { text: ask, answer: show(fs),
       mistakes: [m(show(merged), "used a factor that is not prime"), m(show(fs.slice(1)), "left out one of the factors"), m(show([2, ...fs]), "split one factor too many times"), m(show([1, ...fs]), "counted 1 as a prime")] };
   }),
+  T("q6-multi-ratio", 6, "6.RP.A.3a", (c) => {
+    let a = c.ri(1, 6), b = c.ri(2, 9);
+    while (gcd(a, b) !== 1 || a === b) { a = c.ri(1, 6); b = c.ri(2, 9); }
+    const [k1, k2] = c.shuffle(c.by([[2, 3, 4], [2, 3, 4, 5, 6], [3, 4, 5, 6, 7, 8]] as const).slice()).slice(0, 2);
+    const [x, y] = c.pick([["red", "blue"], ["cats", "dogs"], ["boys", "girls"], ["juice", "water"]] as const);
+    return { text: `The ratio of ${x} to ${y} is ${a} : ${b}. Which ratios are equivalent?`, format: "multi", answer: "",
+      right: [`${a * k1} : ${b * k1}`, `${a * k2} : ${b * k2}`],
+      mistakes: [m(`${a + k1} : ${b + k1}`, "added the same number to both"), m(`${b * k1} : ${a * k1}`, "flipped the ratio"), m(`${a * k2} : ${b}`, "scaled only the first number"), m(`${a + b} : ${b}`, "used the total as a part")] };
+  }),
+  T("q6-two-budget", 6, "6.RP.A.3b", (c) => {
+    const n = c.name(), th = c.thing("school"), k = c.pick([2, 3, 4, 5]), each = c.ri(2, c.by([5, 9, 15])), budget = each * c.ri(6, 20) + c.ri(1, each - 1);
+    return { text: `${k} ${th.many} cost $${k * each}. ${n} has $${budget} to spend on ${th.many} at the same price.`, format: "twopart", answer: "", mistakes: [],
+      parts: [
+        { text: `What is the price of one ${th.one}?`, answer: each, form: "money",
+          mistakes: [m(k * each, `gave the price of ${k}`), m(k * each - k, "subtracted instead of dividing"), m(k * each * k, "multiplied instead of dividing")] },
+        { text: `What is the greatest number of ${th.many} ${n} can buy?`, answer: Math.floor(budget / each),
+          mistakes: [m(Math.floor(budget / each) + 1, "rounded up past the budget"), m(Math.floor(budget / (k * each)), `counted groups of ${k}`), m(budget - each, "subtracted one price")] },
+      ] };
+  }),
 ];
 
 const G7: Template[] = [
@@ -232,6 +305,26 @@ const G7: Template[] = [
     const total = s * 6;
     return { text: `A spinner has ${s} equal sections colored ${colors.slice(0, -1).join(", ")} and ${colors[s - 1]}. ${c.name()} spins it once and rolls a number cube once. What is the probability of landing on ${col} and rolling ${event}?`, answer: frac(k, total),
       mistakes: [m(frac(6 + s * k, total), "added the two probabilities"), m(frac(k, 6), "ignored the spinner"), m(frac(1 + k, s + 6), "added the counts top and bottom"), m(frac(1, s), "ignored the number cube")] };
+  }),
+  T("q7-multi-sign", 7, "7.NS.A.2", (c) => {
+    const v = () => c.ri(2, c.by([9, 12, 15]));
+    const neg = [`(−${v()}) × ${v()}`, `${v()} × (−${v()})`, `(−${v()}) × (−${v()}) × (−${v()})`, `(−${v()}) ÷ ${v()}`];
+    const pos = [`(−${v()}) × (−${v()})`, `(−${v()}) ÷ (−${v()})`, `(−${v()}) × (−${v()}) × ${v()}`, `${v()} × ${v()}`];
+    const [want, other] = c.ri(0, 1) ? [neg, pos] : [pos, neg];
+    const right = c.shuffle(want).slice(0, c.ri(2, 3));
+    return { text: `Which of these have a ${want === neg ? "negative" : "positive"} value?`, format: "multi", answer: "", negatives: true, right,
+      mistakes: c.shuffle(other).map((e) => m(e, want === neg ? "thought every minus sign makes it negative" : "thought any minus sign makes it negative")) };
+  }),
+  T("q7-two-sale", 7, "7.RP.A.3", (c) => {
+    const p = c.pick([20, 40, 50, 60, 80, 120, 150, 200]), d = c.pick([10, 20, 25, 30, 40, 50]), t = c.pick([5, 6, 8, 10]), what = c.pick(["jacket", "backpack", "scooter", "board game", "pair of headphones"]);
+    const sale = (p * (100 - d)) / 100, total = +(sale * (1 + t / 100)).toFixed(2);
+    return { text: `A ${what} costs $${p}. It is on sale for ${d}% off, then ${t}% sales tax is added to the sale price.`, format: "twopart", answer: "", mistakes: [],
+      parts: [
+        { text: "What is the sale price before tax?", answer: sale, form: "cents",
+          mistakes: [m((p * d) / 100, "gave the discount, not the price"), m(p - d, "took off dollars, not percent"), m(p + (p * d) / 100, "added the discount")] },
+        { text: "What is the total with tax?", answer: total, form: "cents",
+          mistakes: [m(+(p * (1 + t / 100)).toFixed(2), "added tax to the full price"), m(+(sale + t).toFixed(2), "added the tax as dollars"), m(+(p * (1 + (t - d) / 100)).toFixed(2), "added and took off the percents together")] },
+      ] };
   }),
 ];
 
@@ -308,6 +401,24 @@ const G8: Template[] = [
     const q = c.ri(2, c.by([4, 6, 9])), p = q + c.ri(2, c.by([4, 6, 9]));
     return { text: `(${+(a * b).toFixed(1)} × 10^${p}) ÷ (${b} × 10^${q}) = ${a} × 10^n. What is n?`, answer: p - q,
       mistakes: [m(p + q, "added the exponents"), m(p, "kept the first exponent"), m(p * q, "multiplied the exponents"), m(Math.round(p / q), "divided the exponents")] };
+  }),
+  T("q8-multi-powers", 8, "8.EE.A.1", (c) => {
+    const b = c.pick([2, 3, 5, 10]), n = c.pick(c.by([[6, 8], [6, 8, 10, 12], [8, 10, 12, 15]] as const)), a = c.ri(2, n - 2);
+    const half = n % 2 === 0 ? `(${b}^2)^${n / 2}` : `(${b}^3)^${n / 3}`;
+    return { text: `Which expressions are equal to ${b}^${n}?`, format: "multi", answer: "",
+      right: [`${b}^${a} × ${b}^${n - a}`, half, `${b}^${n + 2} ÷ ${b}^2`],
+      mistakes: [m(`${b}^${a} × ${b}^${n}`, "multiplied by an extra power"), m(`(${b}^${a})^${n - a}`, "multiplied exponents that should be added"), m(`${b}^${n + 2} ÷ ${b}^${n - 2}`, "took away the wrong exponent"), m(`${b}^${a} + ${b}^${n - a}`, "added instead of multiplying")] };
+  }),
+  T("q8-two-plans", 8, "8.EE.C.8", (c) => {
+    const r2 = c.ri(2, c.by([6, 10, 15])), r1 = r2 + c.ri(1, c.by([4, 6, 9])), x = c.ri(2, c.by([6, 10, 15])), f1 = c.ri(5, 40), f2 = f1 + (r1 - r2) * x;
+    const what = c.pick([["gym", "month", "months"], ["streaming service", "month", "months"], ["art class", "week", "weeks"], ["bike rental", "day", "days"]] as const);
+    return { text: `Plan A for a ${what[0]} costs $${f1} to join plus $${r1} a ${what[1]}. Plan B costs $${f2} to join plus $${r2} a ${what[1]}.`, format: "twopart", answer: "", mistakes: [],
+      parts: [
+        { text: `After how many ${what[2]} do the two plans cost the same?`, answer: x,
+          mistakes: [m(Math.round((f1 + f2) / (r1 + r2)), "added the rates instead of subtracting"), m(f2 - f1, "found the difference in joining fees only"), m(x + 1, "counted one too many")] },
+        { text: "What is the cost of each plan then?", answer: f1 + r1 * x, form: "money",
+          mistakes: [m(f1 + r2 * x, "mixed up the plans"), m(r1 * x, "left out the joining fee"), m(f1 + f2 + (r1 + r2) * x, "added both plans together")] },
+      ] };
   }),
 ];
 
