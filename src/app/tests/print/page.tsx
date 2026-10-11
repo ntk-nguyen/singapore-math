@@ -150,26 +150,42 @@ function PrintPaper() {
 
 /** The answer as written in the key: the letter and the choice, or what to write. */
 function keyAnswer(q: Question): string {
-  if (inputOf(q) !== "choose") return q.answer;
-  const i = q.choices.indexOf(q.answer);
-  return i >= 0 ? `${LETTERS[i]}. ${q.answer}` : q.answer;
+  const input = inputOf(q);
+  const lettered = (choices: string[], a: string) => {
+    const i = choices.indexOf(a);
+    return i >= 0 ? `${LETTERS[i]}. ${a}` : a;
+  };
+  if (input === "multi") return (q.answers ?? []).map((a) => lettered(q.choices, a)).join(" and ");
+  if (input === "parts") return (q.parts ?? []).map((p, i) => `Part ${"AB"[i]}: ${lettered(p.choices, p.answer)}`).join("; ");
+  if (input !== "choose") return q.answer;
+  return lettered(q.choices, q.answer);
 }
 
-/** One question laid out for paper: circle a letter, write the answer, or number the items in order. */
+/** Lettered choices to circle. */
+function PaperChoices({ choices }: { choices: string[] }) {
+  return (
+    <ol className={`pq-choices${choices.some((c) => c.length > 14) ? " wide" : ""}`}>
+      {choices.map((c, i) => <li key={c}><span className="pq-letter">{LETTERS[i]}</span>{c}</li>)}
+    </ol>
+  );
+}
+
+/** One question laid out for paper: circle a letter (or every right letter), write the answer, or number the items in order. */
 function PaperQuestion({ q }: { q: Question }) {
   const format = formatOf(q), input = inputOf(q);
-  const wide = q.choices.some((c) => c.length > 14);
   return (
     <li className="pq">
       <p className="qtext">{q.text}</p>
       {q.ask && <p className="qask">{q.ask}</p>}
       {q.figure && <FigureView figure={q.figure} />}
       {format === "model" && q.model && <BarModel spec={q.model} />}
-      {input === "choose" && (
-        <ol className={`pq-choices${wide ? " wide" : ""}`}>
-          {q.choices.map((c, i) => <li key={c}><span className="pq-letter">{LETTERS[i]}</span>{c}</li>)}
-        </ol>
-      )}
+      {(input === "choose" || input === "multi") && <PaperChoices choices={q.choices} />}
+      {input === "parts" && (q.parts ?? []).map((p, i) => (
+        <div key={i} className="pq-part">
+          <p className="qtext"><b>Part {"AB"[i]}.</b> {p.text}</p>
+          <PaperChoices choices={p.choices} />
+        </div>
+      ))}
       {input === "type" && <p className="pq-line">Answer: <i /></p>}
       {input === "order" && (
         <>

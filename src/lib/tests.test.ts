@@ -73,7 +73,9 @@ describe("paid tests draw from their own topics", () => {
         const paper = buildPaper(t, g, g);
         expect(paper).toHaveLength(t.length);
         for (const q of paper) expect(q.format === "order" ? q.items : q.choices).toBeDefined();
-        for (const q of paper.filter((x) => x.format !== "order")) expect(q.choices).toContain(q.answer);
+        for (const q of paper.filter((x) => !x.format || !["order", "multi", "twopart"].includes(x.format))) expect(q.choices).toContain(q.answer);
+        for (const q of paper.filter((x) => x.format === "multi")) for (const a of q.answers!) expect(q.choices).toContain(a);
+        for (const q of paper.filter((x) => x.format === "twopart")) for (const p of q.parts!) expect(p.choices).toContain(p.answer);
       }
     }
   });

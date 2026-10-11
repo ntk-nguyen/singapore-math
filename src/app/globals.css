@@ -492,6 +492,15 @@ table.cmp th.cmp-pro { background: var(--accent-soft); }
 .typein { display: flex; gap: 12px; flex-wrap: wrap; }
 .typein-box { flex: 1 1 160px; min-width: 0; font: 600 1.5rem var(--body); font-variant-numeric: tabular-nums; padding: 12px 14px; border-radius: 16px; border: 1.5px solid var(--line-strong); background: var(--surface); color: var(--ink); }
 .typein-box:focus { outline: 2px solid var(--sky); outline-offset: 2px; }
+/* Choose all that apply, and two-part questions */
+.multi, .parts { display: grid; gap: 12px; }
+.choice.picked { border-color: var(--sky); background: var(--sky-soft); box-shadow: 0 0 0 2px var(--ring); }
+.choice.right.picked, .choice.wrong.picked { box-shadow: 0 0 0 2px var(--ring); }
+.choice.right.picked { background: var(--good-fill); }
+.choice.wrong.picked { background: var(--bad-fill); }
+.multi .tick { display: inline-block; width: 1.1em; }
+.part { display: grid; gap: 8px; }
+.part-text { margin: 0; }
 .order { display: grid; gap: 12px; }
 .order-line { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 8px; }
 .order-slot { min-height: 44px; display: grid; place-items: center; border-radius: 12px; border: 1.5px dashed var(--line-strong); color: var(--muted, inherit); font: 600 1.1rem var(--body); }
@@ -672,6 +681,7 @@ table.cmp th.cmp-pro { background: var(--accent-soft); }
 .pq-letter { flex: none; display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border: 1.5px solid #475569; border-radius: 50%; font-weight: 700; font-size: 0.85rem; }
 .pq-line { margin: 4px 0 0; font-weight: 600; display: flex; align-items: flex-end; gap: 8px; }
 .pq-line i { min-width: 220px; }
+.pq-part { display: grid; gap: 4px; margin-top: 6px; }
 .pq-items { margin: 0; font-weight: 600; white-space: pre-wrap; font-variant-numeric: tabular-nums; }
 .pq-work { height: 90px; border: 1px dashed #cbd5e1; border-radius: 8px; }
 .paper-key { margin-top: 40px; padding-top: 32px; border-top: 1px dashed #cbd5e1; break-before: page; page-break-before: always; }

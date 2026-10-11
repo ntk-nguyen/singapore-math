@@ -22,16 +22,21 @@ export const FORMAT_LABEL: Record<Format, string> = {
   oddone: "Odd one out",
   order: "Put in order",
   balance: "Balance it",
+  multi: "Choose all that apply",
+  twopart: "Two parts",
 };
+
+/** How picks are joined into one answer for "multi" (each pick) and "twopart" (Part A, then Part B). */
+export const PICK_SEP = "\n";
 
 export function formatOf(q: Question): Format {
   return q.format ?? (q.figure ? "graph" : "choice");
 }
 
-/** How the child answers: tap a choice, type it, or tap items in order. */
-export function inputOf(q: Question): "choose" | "type" | "order" {
+/** How the child answers: tap a choice, type it, tap items in order, tap every right choice, or tap one choice in each part. */
+export function inputOf(q: Question): "choose" | "type" | "order" | "multi" | "parts" {
   const f = formatOf(q);
-  return f === "typein" || f === "blank" ? "type" : f === "order" ? "order" : "choose";
+  return f === "typein" || f === "blank" ? "type" : f === "order" ? "order" : f === "multi" ? "multi" : f === "twopart" ? "parts" : "choose";
 }
 
 const REMAINDER = /^(\d+) ?R ?(\d+)$/i;
@@ -44,7 +49,11 @@ export function typeable(answer: string): boolean {
 
 /** Is `given` right? Typed answers are matched by value, so "$12", "12" and "12.00" all count. */
 export function isRight(q: Question, given: string): boolean {
-  if (inputOf(q) !== "type") return given === q.answer;
+  const input = inputOf(q);
+  // All-or-nothing, as on MCAS: every right choice and no wrong one, or both parts right.
+  if (input === "multi") return [...given.split(PICK_SEP)].sort().join(PICK_SEP) === [...(q.answers ?? [])].sort().join(PICK_SEP);
+  if (input === "parts") return given === (q.parts ?? []).map((p) => p.answer).join(PICK_SEP);
+  if (input !== "type") return given === q.answer;
   const a = tidy(q.answer), g = tidy(given);
   if (a === g) return true;
   const ra = a.match(REMAINDER), rg = g.match(REMAINDER);

@@ -2,7 +2,7 @@ import { writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { methodQuestion, TOPICS } from "./arithmetic";
 import { fractionQuestion, FRACTION_TOPICS } from "./fractions";
-import { FORMAT_LABEL, formatOf, inputOf, isRight, vary } from "./formats";
+import { FORMAT_LABEL, formatOf, inputOf, isRight, PICK_SEP, vary } from "./formats";
 import { generators, KINDS, LEVELS, practiceSet, type Kind } from "./problems";
 import { GRADES, makeQuestion, type Format, type Grade, type Question } from "./questions";
 import { seeded, type Rng } from "./rng";
@@ -132,5 +132,19 @@ describe("formats", () => {
       expect(isRight(q, q.answer)).toBe(true);
       expect(isRight(q, [...q.answer.split(", ")].reverse().join(", "))).toBe(false);
     }
+  });
+
+  it("choose-all and two-part questions are marked all-or-nothing", () => {
+    const multi: Question = { grade: 4, text: "x", std: "4.NF.A.1", answer: "2/4 and 3/6", answers: ["2/4", "3/6"], choices: ["2/4", "2/3", "3/6", "1/4"], format: "multi" };
+    expect(inputOf(multi)).toBe("multi");
+    expect(isRight(multi, ["3/6", "2/4"].join(PICK_SEP))).toBe(true);
+    expect(isRight(multi, "2/4")).toBe(false);
+    expect(isRight(multi, ["2/4", "3/6", "1/4"].join(PICK_SEP))).toBe(false);
+    const two: Question = { grade: 4, text: "x", std: "4.OA.A.3", answer: "Part A: 5; Part B: 3", choices: [], format: "twopart",
+      parts: [{ text: "a", choices: ["4", "5", "6", "7"], answer: "5" }, { text: "b", choices: ["1", "2", "3", "4"], answer: "3" }] };
+    expect(inputOf(two)).toBe("parts");
+    expect(isRight(two, ["5", "3"].join(PICK_SEP))).toBe(true);
+    expect(isRight(two, ["5", "2"].join(PICK_SEP))).toBe(false);
+    expect(isRight(two, ["3", "5"].join(PICK_SEP))).toBe(false);
   });
 });

@@ -12,11 +12,19 @@ export const GRADES: Grade[] = [1, 2, 3, 4, 5, 6, 7, 8];
 
 /**
  * How a question is asked. Plain multiple choice when omitted. The answer is typed for
- * "typein" and "blank", tapped in sequence for "order", and chosen for everything else.
+ * "typein" and "blank", tapped in sequence for "order", several choices are picked for
+ * "multi", one choice per part for "twopart", and one choice for everything else.
  */
 export type Format =
   | "choice" | "typein" | "blank" | "truefalse" | "mistake" | "estimate" | "model"
-  | "graph" | "numberline" | "oddone" | "order" | "balance";
+  | "graph" | "numberline" | "oddone" | "order" | "balance" | "multi" | "twopart";
+
+/** One part of a two-part question: its own question and choices. */
+export interface Part {
+  text: string;
+  choices: string[];
+  answer: string;
+}
 
 export interface Question {
   grade: Grade;
@@ -36,6 +44,10 @@ export interface Question {
   ask?: string;
   /** For "order": the items to put in order. The answer lists them in order, joined by ", ". */
   items?: string[];
+  /** For "multi": every right choice, in the order the choices are shown. `answer` lists them joined by " and ". */
+  answers?: string[];
+  /** For "twopart": Part A and Part B. `text` sets the scene and `answer` gives both parts' answers. */
+  parts?: Part[];
   /** Wrong answers and the mistake each comes from (for "find the mistake"). */
   mistakes?: { answer: string; why: string }[];
   /** Shown after answering, e.g. the real answer behind a true/false. */
