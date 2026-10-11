@@ -2,7 +2,7 @@ import { writeFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { methodQuestion, TOPICS } from "./arithmetic";
 import { fractionQuestion, FRACTION_TOPICS } from "./fractions";
-import { FORMAT_LABEL, formatOf, inputOf, isRight, PICK_SEP, vary } from "./formats";
+import { FORMAT_LABEL, formatOf, inputOf, isRight, PICK_SEP, pointsEarned, pointsFor, vary } from "./formats";
 import { generators, KINDS, LEVELS, practiceSet, type Kind } from "./problems";
 import { GRADES, makeQuestion, type Format, type Grade, type Question } from "./questions";
 import { seeded, type Rng } from "./rng";
@@ -159,5 +159,10 @@ describe("formats", () => {
     expect(isRight(cr, ["54", "2.25", "3"].join(PICK_SEP))).toBe(true);
     expect(isRight(cr, ["54", "2.25", "2"].join(PICK_SEP))).toBe(false);
     expect(isRight(cr, ["54", "2.25"].join(PICK_SEP))).toBe(false);
+    // On a state-test paper each part earns its own point, as MCAS scores them.
+    expect([pointsFor(multi), pointsFor(two), pointsFor(cr)]).toEqual([1, 2, 3]);
+    expect(pointsEarned(cr, ["54", "2.25", "3"].join(PICK_SEP))).toBe(3);
+    expect(pointsEarned(cr, ["54", "9", "2"].join(PICK_SEP))).toBe(1);
+    expect(pointsEarned(multi, "2/4")).toBe(0);
   });
 });

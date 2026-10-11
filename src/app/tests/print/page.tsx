@@ -6,9 +6,9 @@ import { Suspense, useEffect, useState } from "react";
 import { BarModel } from "@/components/BarModel";
 import { FigureView } from "@/components/Figure";
 import { LogoMark } from "@/components/Logo";
-import { formatOf, inputOf } from "@/lib/formats";
+import { formatOf, inputOf, pointsFor } from "@/lib/formats";
 import { type Grade, gradeName, type Question } from "@/lib/questions";
-import { sectionOf } from "@/lib/tests";
+import { calculatorAllowed, getTest, sectionOf, sessionOf, usesBlueprint } from "@/lib/tests";
 
 interface Paper {
   paper: { id: string; name: string; grade: Grade; code: string; level: string };
@@ -88,13 +88,21 @@ function PrintPaper() {
   if (!data || (seed && String(data.seed) !== seed)) return <div className="panel"><p className="muted">Making your paper…</p></div>;
 
   const { paper, questions } = data;
+  const n = questions.length;
+  // State-test papers come in two sessions and are scored in points; other papers in three sections.
+  const test = getTest(paper.id), blueprint = !!test && usesBlueprint(test, paper.grade);
+  const total = questions.reduce((s, q) => s + pointsFor(q), 0);
+  const groups = blueprint
+    ? ([1, 2] as const).map((s) => ({ key: s, title: `Session ${s} · ${calculatorAllowed(paper.grade, s) ? "Calculator allowed" : "No calculator"}`, at: (i: number) => sessionOf(i, n) === s }))
+    : SECTIONS.map(({ id, name }) => ({ key: id, title: `Section ${id} · ${name}`, at: (i: number) => sectionOf(i, n) === id }));
+  const count = blueprint ? `${n} questions · ${total} points` : `${n} questions`;
   return (
     <div className="stack">
       <div className="row no-print">
         <div className="spacer">
           <p className="eyebrow">Printable paper</p>
           <h2>{paper.name}</h2>
-          <p className="muted small">{gradeName(paper.grade)} · {paper.level} · {questions.length} questions · answer key on the last page. Every new paper has different questions, from easier to harder.</p>
+          <p className="muted small">{gradeName(paper.grade)} · {paper.level} · {count} · answer key on the last page. Every new paper has different questions, from easier to harder.</p>
         </div>
         <Link className="btn ghost" href="/tests">Back</Link>
         <button className="btn ghost" onClick={fresh}>New paper</button>
@@ -106,22 +114,22 @@ function PrintPaper() {
         <header className="paper-head">
           <div className="paper-brand"><LogoMark className="paper-mark" />MathBridge</div>
           <h1>{paper.name}</h1>
-          <p className="paper-meta">{gradeName(paper.grade)} · {paper.level} · {questions.length} questions · Paper {paper.code}</p>
+          <p className="paper-meta">{gradeName(paper.grade)} · {paper.level} · {count} · Paper {paper.code}</p>
           <div className="paper-fields">
             <span>Name <i /></span>
             <span>Date <i /></span>
-            <span>Score <i /> / {questions.length}</span>
+            <span>Score <i /> / {blueprint ? total : n}</span>
           </div>
         </header>
-        {SECTIONS.map(({ id, name }) => {
-          const start = questions.findIndex((_, n) => sectionOf(n, questions.length) === id);
-          const qs = questions.filter((_, n) => sectionOf(n, questions.length) === id);
+        {groups.map(({ key, title, at }) => {
+          const start = questions.findIndex((_, i) => at(i));
+          const qs = questions.filter((_, i) => at(i));
           if (!qs.length) return null;
           return (
-            <section key={id}>
-              <h2 className="paper-section">Section {id} · {name}</h2>
+            <section key={key}>
+              <h2 className="paper-section">{title}</h2>
               <ol className="paper-qs" start={start + 1}>
-                {qs.map((q, n) => <PaperQuestion key={n} q={q} />)}
+                {qs.map((q, i) => <PaperQuestion key={i} q={q} points={blueprint ? pointsFor(q) : 1} />)}
               </ol>
             </section>
           );
@@ -136,6 +144,7 @@ function PrintPaper() {
             {questions.map((q, n) => (
               <li key={n}>
                 <b>{keyAnswer(q)}</b>
+                {blueprint && pointsFor(q) > 1 && <span className="muted"> (1 point for each part)</span>}
                 {q.explain && <span className="muted"> {q.explain}</span>}
                 {q.steps && <span className="key-steps">{q.steps.join(" ")}</span>}
                 <span className="key-std">CCSS {q.std}</span>
@@ -171,11 +180,11 @@ function PaperChoices({ choices }: { choices: string[] }) {
 }
 
 /** One question laid out for paper: circle a letter (or every right letter), write the answer, or number the items in order. */
-function PaperQuestion({ q }: { q: Question }) {
+function PaperQuestion({ q, points }: { q: Question; points: number }) {
   const format = formatOf(q), input = inputOf(q);
   return (
     <li className="pq">
-      <p className="qtext">{q.text}</p>
+      <p className="qtext">{q.text}{points > 1 && <span className="pq-points"> ({points} points)</span>}</p>
       {q.ask && <p className="qask">{q.ask}</p>}
       {q.figure && <FigureView figure={q.figure} />}
       {format === "model" && q.model && <BarModel spec={q.model} />}

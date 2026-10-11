@@ -710,6 +710,7 @@ table.cmp th.cmp-pro { background: var(--accent-soft); }
 .pq-line { margin: 4px 0 0; font-weight: 600; display: flex; align-items: flex-end; gap: 8px; }
 .pq-line i { min-width: 220px; }
 .pq-part { display: grid; gap: 4px; margin-top: 6px; }
+.pq-points { color: var(--muted); font-size: 0.85em; white-space: nowrap; }
 .pq-items { margin: 0; font-weight: 600; white-space: pre-wrap; font-variant-numeric: tabular-nums; }
 .pq-work { height: 90px; border: 1px dashed #cbd5e1; border-radius: 8px; }
 .paper-key { margin-top: 40px; padding-top: 32px; border-top: 1px dashed #cbd5e1; break-before: page; page-break-before: always; }

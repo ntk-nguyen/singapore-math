@@ -6,12 +6,12 @@ import { Suspense, useEffect, useState } from "react";
 import { confetti } from "@/components/Confetti";
 import { useProgress, useRemember } from "@/components/Progress";
 import { QuestionCard } from "@/components/QuestionCard";
-import { Results, type Answered } from "@/components/Results";
+import { Results, scorePoints, type Answered } from "@/components/Results";
 import { placementResult, recordAnswer, startPlacement, type PlacementState } from "@/lib/placement";
 import { makeQuestion, type Grade, type Question } from "@/lib/questions";
 import { vary } from "@/lib/formats";
 import { pickFresh } from "@/lib/templates";
-import { DIFFICULTIES, getTest, isDifficulty, type TestInfo } from "@/lib/tests";
+import { calculatorAllowed, DIFFICULTIES, getTest, isDifficulty, sessionOf, usesBlueprint, type TestInfo } from "@/lib/tests";
 
 export default function TestPage() {
   const { id } = useParams<{ id: string }>();
@@ -42,11 +42,13 @@ export default function TestPage() {
   );
 }
 
-function useFinish(test: TestInfo) {
+/** Record the best score and add stars. A state-test paper (`points`) is scored in points. */
+function useFinish(test: TestInfo, points = false) {
   const { addStars, recordBest } = useProgress();
   return (log: Answered[]) => {
     const right = log.filter((l) => l.ok).length;
-    const pct = Math.round((right / log.length) * 100);
+    const pts = scorePoints(log);
+    const pct = Math.round((points ? pts.got / pts.max : right / log.length) * 100);
     recordBest(test.id, pct);
     addStars(right);
     if (pct >= 80) confetti();
@@ -108,11 +110,13 @@ function Placement({ test, grade }: { test: TestInfo; grade: Grade }) {
 function FixedTest({ test, grade }: { test: TestInfo; grade: Grade }) {
   const asked = useSearchParams().get("level");
   const level = isDifficulty(asked) ? asked : "standard";
-  const finish = useFinish(test);
+  const blueprint = usesBlueprint(test, grade);
+  const finish = useFinish(test, blueprint);
   const [questions, setQuestions] = useState<Question[] | null>(null);
   const [error, setError] = useState<{ status: number; message: string } | null>(null);
   const [log, setLog] = useState<Answered[]>([]);
   const [i, setI] = useState(0);
+  const [rested, setRested] = useState(false);
 
   useEffect(() => {
     let live = true;
@@ -138,10 +142,24 @@ function FixedTest({ test, grade }: { test: TestInfo; grade: Grade }) {
     );
   }
   if (!questions) return <div className="panel"><p className="muted">Loading…</p></div>;
-  if (i >= questions.length) return <Results log={log} />;
+  if (i >= questions.length) return <Results log={log} blueprint={blueprint ? grade : undefined} />;
 
-  const answer = (ok: boolean) => {
-    const nextLog = [...log, { q: questions[i], ok }];
+  const n = questions.length, session = sessionOf(i, n);
+  const tool = (s: 1 | 2) => (calculatorAllowed(grade, s) ? "calculator allowed" : "no calculator");
+  // A break between the two sessions, as on the real test.
+  if (blueprint && i === n / 2 && !rested) {
+    return (
+      <div className="panel">
+        <p className="eyebrow">Session 1 done</p>
+        <h3>Take a short break</h3>
+        <p className="muted">Session 2 has {n / 2} more questions and ends with another show-your-work question{calculatorAllowed(grade, 2) ? ". You may use a calculator in this session." : ", again with no calculator."}</p>
+        <button className="btn self-start" onClick={() => setRested(true)}>Start Session 2</button>
+      </div>
+    );
+  }
+
+  const answer = (ok: boolean, given: string) => {
+    const nextLog = [...log, { q: questions[i], ok, given }];
     setLog(nextLog);
     setTimeout(() => {
       setI(i + 1);
@@ -151,7 +169,9 @@ function FixedTest({ test, grade }: { test: TestInfo; grade: Grade }) {
 
   return (
     <>
-      <p className="muted small">{DIFFICULTIES.find((d) => d.id === level)!.label} · question {i + 1} of {questions.length} · starts easier and gets harder</p>
+      <p className="muted small">
+        {DIFFICULTIES.find((d) => d.id === level)!.label} · {blueprint ? `Session ${session} of 2 · ${tool(session)} · question ${i + 1} of ${n}` : `question ${i + 1} of ${n} · starts easier and gets harder`}
+      </p>
       <Bar value={i / questions.length} />
       <div className="panel">
         <QuestionCard key={i} q={questions[i]} instant={false} onAnswer={answer} />

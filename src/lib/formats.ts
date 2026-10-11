@@ -48,6 +48,18 @@ export function partRight(p: Part, given: string): boolean {
   return p.typed ? isRight({ grade: 3, text: "", std: "", answer: p.answer, choices: [], format: "typein" }, given) : given === p.answer;
 }
 
+/** Points a question is worth, as MCAS scores it: one per part on a multi-part question, otherwise one. */
+export function pointsFor(q: Question): number {
+  return inputOf(q) === "parts" ? (q.parts ?? []).length : 1;
+}
+
+/** Points earned for an answer: each right part of a multi-part question earns its point. */
+export function pointsEarned(q: Question, given: string): number {
+  if (inputOf(q) !== "parts") return isRight(q, given) ? 1 : 0;
+  const picks = given.split(PICK_SEP);
+  return (q.parts ?? []).filter((p, i) => partRight(p, picks[i] ?? "")).length;
+}
+
 const REMAINDER = /^(\d+) ?R ?(\d+)$/i;
 const tidy = (s: string) => s.trim().replace(/[$,]/g, "").replace(/\s+/g, " ").replace("−", "-").toLowerCase();
 

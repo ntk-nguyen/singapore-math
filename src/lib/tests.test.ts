@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { formatOf, pointsFor } from "./formats";
 import { QUICK } from "./quickfire";
 import { GRADES, type Grade } from "./questions";
 import { checkQuestion, questionKey } from "./templates";
-import { areaOf, buildPaper, DIFFICULTIES, getTest, questionScore, sectionOf, testGrade, testItems, testOffered, TESTS } from "./tests";
+import { areaOf, BLUEPRINT, buildPaper, categoryOf, DIFFICULTIES, getTest, questionScore, sectionOf, sessionOf, testGrade, testItems, testOffered, TESTS } from "./tests";
 
 describe("test catalog", () => {
   it("has exactly two free tests and six paid ones", () => {
@@ -170,5 +171,52 @@ describe("difficulty", () => {
   it("splits a paper into three sections", () => {
     expect(Array.from({ length: 15 }, (_, i) => sectionOf(i, 15)).join("")).toBe("AAAAABBBBBCCCCC");
     expect(Array.from({ length: 10 }, (_, i) => sectionOf(i, 10)).join("")).toBe("AAABBBBCCC");
+  });
+});
+
+describe("state test style follows the MCAS blueprint", () => {
+  const state = getTest("state")!;
+  const mcas = [3, 4, 5, 6, 7, 8] as Grade[];
+
+  it("has two sessions, each ending with a show-your-work question, and a two-part question in Session 2", () => {
+    for (const g of mcas) {
+      for (let s = 0; s < 5; s++) {
+        const paper = buildPaper(state, g, s), n = paper.length;
+        const formats = paper.map(formatOf);
+        expect(formats.filter((f) => f === "cr"), `grade ${g}`).toHaveLength(2);
+        expect(formats[n / 2 - 1]).toBe("cr");
+        expect(formats[n - 1]).toBe("cr");
+        // The two show-your-work questions are different kinds of problem.
+        expect(paper[n / 2 - 1].std).not.toBe(paper[n - 1].std);
+        expect(paper.filter((q, i) => formatOf(q) === "twopart" && sessionOf(i, n) === 2)).toHaveLength(1);
+        for (const q of paper) expect(q.grade).toBe(g);
+      }
+    }
+  });
+
+  it("gives each reporting category about its MCAS share of the points, and about 30% to show-your-work", () => {
+    for (const g of mcas) {
+      const got: Record<string, number> = {};
+      let total = 0, cr = 0;
+      for (let s = 0; s < 10; s++) {
+        for (const q of buildPaper(state, g, s)) {
+          const cat = categoryOf(g, q.std);
+          expect(cat, `grade ${g}: ${q.std}`).toBeDefined();
+          got[cat!] = (got[cat!] ?? 0) + pointsFor(q);
+          total += pointsFor(q);
+          if (formatOf(q) === "cr") cr += pointsFor(q);
+        }
+      }
+      for (const c of BLUEPRINT[g]!) expect(Math.abs((100 * (got[c.name] ?? 0)) / total - c.weight), `grade ${g} ${c.name}`).toBeLessThanOrEqual(6);
+      expect(cr / total, `grade ${g}`).toBeGreaterThanOrEqual(0.25);
+    }
+  });
+
+  it("every standard asked at a state-test grade belongs to a reporting category", () => {
+    for (const g of mcas) for (const std of new Set(QUICK[g]!.map((t) => t.std))) expect(categoryOf(g, std), std).toBeDefined();
+  });
+
+  it("stays a mixed paper below Grade 3, where there is no state test", () => {
+    for (const g of [0, 1, 2] as Grade[]) expect(buildPaper(state, g, 1).some((q) => formatOf(q) === "cr")).toBe(false);
   });
 });
