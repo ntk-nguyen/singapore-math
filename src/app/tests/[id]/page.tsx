@@ -93,7 +93,7 @@ function Placement({ test, grade }: { test: TestInfo; grade: Grade }) {
     }, 250);
   };
 
-  if (place) return <Results log={log} placement={place} />;
+  if (place != null) return <Results log={log} placement={place} />;
   return (
     <>
       <Bar value={state.asked / test.length} />

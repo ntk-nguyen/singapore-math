@@ -1021,6 +1021,18 @@ export function thinkingQuestion(topic: ThinkTopic, r: Rng): Question {
       }
     }
   }
+  // And fractions with nearby fractions over the same denominator, in simplest form (a two-way
+  // table with every cell equal makes most of the planned wrong answers 1/2).
+  const f = m.answer.match(/^(\d+)\/(\d+)$/);
+  if (choices.length < 4 && f) {
+    const [n, d] = [Number(f[1]), Number(f[2])];
+    for (let k = 1; choices.length < 4 && k < 2 * d; k++) {
+      for (const x of [n + k, n - k]) {
+        const c = frac(x, d);
+        if (choices.length < 4 && x > 0 && x !== d && !choices.includes(c)) choices.push(c);
+      }
+    }
+  }
   if (choices.length < 4) throw new Error(`${topic.id}: not enough choices for "${m.text}"`);
   return {
     grade: topic.grade,

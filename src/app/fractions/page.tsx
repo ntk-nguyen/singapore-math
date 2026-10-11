@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useProgress } from "@/components/Progress";
 import { FRACTION_TOPICS, type Strand } from "@/lib/fractions";
-import type { Grade } from "@/lib/questions";
+import { type Grade, gradeName } from "@/lib/questions";
 
 const STRANDS: { strand: Strand; label: string }[] = [
   { strand: "fractions", label: "Fractions" },
@@ -30,13 +30,13 @@ export default function FractionsPage() {
       <div className="row" role="group" aria-label="Grade">
         {FRAC_GRADES.map((g) => (
           <button key={g} className={`chip${g === shown ? " on" : ""}`} aria-pressed={g === shown} onClick={() => setPicked(g)}>
-            Grade {g}
+            {gradeName(g)}
           </button>
         ))}
       </div>
       {picked == null && (grade < 3 || grade > 6) && (
         <p className="notice">
-          Fractions and decimals are taught in Grades 3 to 6. Here is the Grade {shown} set{grade > 6 ? " for review" : " to look ahead"}.
+          Fractions and decimals are taught in Grades 3 to 6. Here is the {gradeName(shown)} set{grade > 6 ? " for review" : " to look ahead"}.
         </p>
       )}
       {STRANDS.map(({ strand, label }) => {

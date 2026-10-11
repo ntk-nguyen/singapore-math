@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { confetti } from "@/components/Confetti";
 import { useProgress } from "@/components/Progress";
 import { QuestionCard } from "@/components/QuestionCard";
-import { playDeck, type Grade, type Question } from "@/lib/questions";
+import { type Grade, gradeName, playDeck, type Question } from "@/lib/questions";
 import { vary } from "@/lib/formats";
 
 const ROUND = 10;
@@ -69,7 +69,7 @@ function Round({ grade }: { grade: Grade }) {
     <div className="stack">
       <div className="row">
         <div className="spacer">
-          <p className="eyebrow">Grade {grade} · quick fire</p>
+          <p className="eyebrow">{gradeName(grade)} · quick fire</p>
           <h2>Ten-question challenge</h2>
         </div>
         <span className="streak">{streak > 1 ? `${streak} in a row` : ""}</span>

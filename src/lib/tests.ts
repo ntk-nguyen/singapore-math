@@ -41,7 +41,7 @@ const SHIFT: Record<Difficulty, number> = { easy: -1, standard: 0, hard: 1 };
 const fracDec = (i: Item) => i.strand === "fractions" || i.strand === "decimals";
 
 export const TESTS: TestInfo[] = [
-  { id: "placement", free: true, name: "Placement check", length: 12, seed: 0, desc: "Adaptive, 12 questions across Grades 1–8. Finds the right starting grade and maps it to US grade standards." },
+  { id: "placement", free: true, name: "Placement check", length: 12, seed: 0, desc: "Adaptive, 12 questions from Kindergarten to Grade 8. Finds the right starting grade and maps it to US grade standards." },
   { id: "checkpoint", free: true, name: "Grade checkpoint", length: 15, seed: 101, desc: "15 questions at your selected grade, mixing word problems, computation and geometry. Scored by standard." },
   { id: "wp", free: false, name: "Word problem marathon", length: 20, seed: 303, desc: "20 multi-step word problems with bar model solutions.",
     pool: (i) => i.strand === "word" },
@@ -69,6 +69,19 @@ export function testGrade(test: TestInfo, selected: Grade): Grade {
   if (!test.grades) return selected;
   const atOrBelow = test.grades.filter((g) => g <= selected);
   return atOrBelow.length ? atOrBelow[atOrBelow.length - 1] : test.grades[0];
+}
+
+/**
+ * Whether a test is offered at a grade. Every test is, from Grade 1 up (a test with a grade
+ * range is set at its lowest grade, as a look ahead). Kindergarten only gets the tests it
+ * has its own questions for: the placement check, the grade checkpoint, and mixed tests
+ * made entirely of Kindergarten questions. No word problem marathon or fractions test.
+ */
+export function testOffered(test: TestInfo, selected: Grade): boolean {
+  if (selected > 0 || !test.pool) return true;
+  if (test.grades) return false;
+  const items = testItems(test, selected);
+  return items.length > 0 && items.every((i) => i.grade === 0);
 }
 
 /**

@@ -5,7 +5,7 @@
  */
 import type { Item, Strand } from "./bank";
 import type { Grade, Question } from "./questions";
-import { attemptSeed, buildPaper, testGrade, testItems, TESTS, type Difficulty, type TestInfo } from "./tests";
+import { attemptSeed, buildPaper, testGrade, testItems, testOffered, TESTS, type Difficulty, type TestInfo } from "./tests";
 
 export interface PaperKind {
   id: string;
@@ -40,12 +40,12 @@ export function getPaperKind(id: string): PaperKind | undefined {
 }
 
 /**
- * Whether a paper kind can be printed at a grade. Practice tests always can, as they
- * can be taken online. A topic paper is only offered when there are question types
+ * Whether a paper kind can be printed at a grade. Practice tests can wherever they can be
+ * taken online (all of them from Grade 1; see `testOffered` for Kindergarten). A topic paper is only offered when there are question types
  * for it at the grade or below, so a Grade 1 paper never borrows Grade 2 work.
  */
 export function paperAvailable(kind: PaperKind, grade: Grade): boolean {
-  if (kind.group === "test") return true;
+  if (kind.group === "test") return testOffered(kind.test, grade);
   const items = testItems(kind.test, grade);
   return items.length > 0 && items.every((i) => i.grade <= grade);
 }

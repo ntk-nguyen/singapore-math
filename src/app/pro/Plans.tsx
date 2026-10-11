@@ -19,7 +19,7 @@ export function PlanCards({ freeTests }: { freeTests: number }) {
         <p className="price">$0<small> / month</small></p>
         <p className="muted small">No card needed</p>
         <ul className="ticks">
-          <li>Bar model lessons for Grades 1–8</li>
+          <li>Bar model lessons for Grades K–8</li>
           <li>Number skills, fractions, Play and times tables</li>
           <li>Easy word problems and solve for x</li>
           <li>{freeTests} practice tests, including the placement check</li>
@@ -31,7 +31,7 @@ export function PlanCards({ freeTests }: { freeTests: number }) {
         <span className="plan-ribbon"><CrownIcon />Most popular for families</span>
         <div className="plan-head">
           <p className="eyebrow">Complete mastery</p>
-          <span className="tag best">Grades 1–8</span>
+          <span className="tag best">Grades K–8</span>
         </div>
         <h2>MathBridge Pro</h2>
         <p className="muted small">Everything in Free, plus the practice that builds exam confidence.</p>

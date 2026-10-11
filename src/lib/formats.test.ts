@@ -32,17 +32,24 @@ function mix(make: (r: Rng) => Question, seed: number) {
 const MIX = PRACTICE.map((p, i) => ({ ...p, counts: mix(p.make, i + 1) }));
 
 describe("format coverage", () => {
-  it.each(MIX.map((m) => [m.id, m] as const))("%s is asked in at least two formats, none more than 75% of the time", (_, m) => {
+  it.each(MIX.filter((m) => m.grade > 0).map((m) => [m.id, m] as const))("%s is asked in at least two formats, none more than 75% of the time", (_, m) => {
     const n = Object.values(m.counts);
     expect(n.length).toBeGreaterThanOrEqual(2);
     expect(Math.max(...n) / DRAWS).toBeLessThanOrEqual(0.75);
   });
 
-  it.each(GRADES)("Play at grade %i mixes at least eight formats", (g) => {
+  // Kindergarten is always tap-a-choice (see `ways`), so the format mix starts at Grade 1.
+  const SCHOOL = GRADES.filter((g) => g > 0);
+
+  it("asks Kindergarten questions only as choices to tap, with or without a picture", () => {
+    for (const m of MIX.filter((x) => x.grade === 0)) expect(Object.keys(m.counts).every((f) => f === "choice" || f === "graph"), m.id).toBe(true);
+  });
+
+  it.each(SCHOOL)("Play at grade %i mixes at least eight formats", (g) => {
     expect(Object.keys(MIX.find((m) => m.id === `play-grade-${g}`)!.counts).length).toBeGreaterThanOrEqual(8);
   });
 
-  it.each(GRADES)("grade %i uses at least ten formats across its topics", (g) => {
+  it.each(SCHOOL)("grade %i uses at least ten formats across its topics", (g) => {
     const all = new Set(MIX.filter((m) => m.grade === g).flatMap((m) => Object.keys(m.counts)));
     expect(all.size).toBeGreaterThanOrEqual(10);
   });

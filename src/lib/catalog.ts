@@ -8,6 +8,7 @@ import { FRACTION_TOPICS } from "./fractions";
 import { LESSONS } from "./lessons";
 import { KINDS, LEVELS, type Kind, type Level } from "./problems";
 import type { Grade } from "./questions";
+import { K_TOPICS } from "./quickfire-k";
 import { AREAS, isFreeTopic, THINKING_TOPICS } from "./thinking";
 
 export interface CatalogItem {
@@ -63,7 +64,22 @@ function practiceSet(kind: Kind, level: Level): CatalogItem {
   };
 }
 
+/** Kindergarten's own areas: the number bond lesson, then counting, adding and shapes. All free. */
+function kinderCatalog(): Domain[] {
+  const lesson = LESSONS.find((l) => l.grade === 0)!;
+  const items = (domain: string): CatalogItem[] => K_TOPICS.filter((t) => t.domain === domain).map((t) => ({
+    href: `/kindergarten/${t.id}`, title: t.title, blurb: t.blurb, bestKey: `k-${t.id}`, free: true,
+  }));
+  return [
+    { id: "bar-models", title: "Number bonds & stories", blurb: "Split a number into parts, then tell a story.", seeAll: { href: "/kindergarten", label: "All Kindergarten" },
+      items: [{ href: `/lessons#${lesson.id}`, title: lesson.title, blurb: "Slide to split 5 into two parts.", lessonId: lesson.id, free: true }, ...items("bar-models")] },
+    { id: "numbers", title: "Counting & numbers", blurb: "Count, compare, add and take away within 10.", seeAll: { href: "/kindergarten", label: "All Kindergarten" }, items: items("numbers") },
+    { id: "thinking", title: "Shapes & measuring", blurb: "Name shapes, compare lengths, sort and count.", seeAll: { href: "/kindergarten", label: "All Kindergarten" }, items: items("thinking") },
+  ];
+}
+
 export function gradeCatalog(grade: Grade): Domain[] {
+  if (grade === 0) return kinderCatalog();
   const lesson = LESSONS.find((l) => l.grade === grade);
   const word = WORD_LEVEL[grade];
   const eq = EQUATION_LEVEL[grade];
