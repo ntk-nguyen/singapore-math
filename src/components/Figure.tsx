@@ -87,7 +87,7 @@ function LinePlot({ f }: { f: Extract<Figure, { t: "dots" }> }) {
   return (
     <figure className="figure">
       <figcaption>{f.title}</figcaption>
-      <svg className="graph" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Line plot: ${f.counts.map((c, i) => `${c} at ${f.start + i}`).join(", ")}`}>
+      <svg className="graph" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Dot plot: ${f.counts.map((c, i) => `${c} at ${f.start + i}`).join(", ")}`}>
         <line className="axis" x1={L - 12} x2={W - L + 12} y1={top} y2={top} />
         {f.counts.map((c, i) => (
           <g key={i}>

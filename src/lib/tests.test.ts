@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { QUICK } from "./quickfire";
 import { GRADES, type Grade } from "./questions";
 import { checkQuestion, questionKey } from "./templates";
-import { buildPaper, DIFFICULTIES, getTest, questionScore, sectionOf, testGrade, testItems, TESTS } from "./tests";
+import { areaOf, buildPaper, DIFFICULTIES, getTest, questionScore, sectionOf, testGrade, testItems, TESTS } from "./tests";
 
 describe("test catalog", () => {
   it("has exactly two free tests and six paid ones", () => {
@@ -37,9 +37,12 @@ describe("test catalog", () => {
     }
   });
 
-  it("covers every quick-fire question type for the grade on the checkpoint", () => {
+  it("covers every area of the grade on the checkpoint", () => {
     for (const g of GRADES) {
-      expect(new Set(buildPaper(getTest("checkpoint")!, g, 7).map((q) => q.std))).toEqual(new Set(QUICK[g].map((x) => x.std)));
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        const paper = buildPaper(getTest("checkpoint")!, g, attempt);
+        expect(new Set(paper.map((q) => areaOf(q.std))), `grade ${g}`).toEqual(new Set(QUICK[g].map((x) => areaOf(x.std))));
+      }
     }
   });
 });
