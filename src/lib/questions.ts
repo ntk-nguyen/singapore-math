@@ -13,17 +13,20 @@ export const GRADES: Grade[] = [1, 2, 3, 4, 5, 6, 7, 8];
 /**
  * How a question is asked. Plain multiple choice when omitted. The answer is typed for
  * "typein" and "blank", tapped in sequence for "order", several choices are picked for
- * "multi", one choice per part for "twopart", and one choice for everything else.
+ * "multi", one answer per part for "twopart" and "cr" (show your work), and one choice
+ * for everything else.
  */
 export type Format =
   | "choice" | "typein" | "blank" | "truefalse" | "mistake" | "estimate" | "model"
-  | "graph" | "numberline" | "oddone" | "order" | "balance" | "multi" | "twopart";
+  | "graph" | "numberline" | "oddone" | "order" | "balance" | "multi" | "twopart" | "cr";
 
-/** One part of a two-part question: its own question and choices. */
+/** One part of a two-part or show-your-work question: its own question, and choices unless the answer is typed. */
 export interface Part {
   text: string;
   choices: string[];
   answer: string;
+  /** The answer is typed (a number) rather than chosen. */
+  typed?: boolean;
 }
 
 export interface Question {
@@ -46,7 +49,7 @@ export interface Question {
   items?: string[];
   /** For "multi": every right choice, in the order the choices are shown. `answer` lists them joined by " and ". */
   answers?: string[];
-  /** For "twopart": Part A and Part B. `text` sets the scene and `answer` gives both parts' answers. */
+  /** For "twopart" (Part A and Part B) and "cr" (three or four parts). `text` sets the scene and `answer` gives every part's answer. */
   parts?: Part[];
   /** Wrong answers and the mistake each comes from (for "find the mistake"). */
   mistakes?: { answer: string; why: string }[];

@@ -156,7 +156,7 @@ function keyAnswer(q: Question): string {
     return i >= 0 ? `${LETTERS[i]}. ${a}` : a;
   };
   if (input === "multi") return (q.answers ?? []).map((a) => lettered(q.choices, a)).join(" and ");
-  if (input === "parts") return (q.parts ?? []).map((p, i) => `Part ${"AB"[i]}: ${lettered(p.choices, p.answer)}`).join("; ");
+  if (input === "parts") return (q.parts ?? []).map((p, i) => `Part ${"ABCD"[i]}: ${p.typed ? p.answer : lettered(p.choices, p.answer)}`).join("; ");
   if (input !== "choose") return q.answer;
   return lettered(q.choices, q.answer);
 }
@@ -182,10 +182,12 @@ function PaperQuestion({ q }: { q: Question }) {
       {(input === "choose" || input === "multi") && <PaperChoices choices={q.choices} />}
       {input === "parts" && (q.parts ?? []).map((p, i) => (
         <div key={i} className="pq-part">
-          <p className="qtext"><b>Part {"AB"[i]}.</b> {p.text}</p>
-          <PaperChoices choices={p.choices} />
+          <p className="qtext"><b>Part {"ABCD"[i]}.</b> {p.text}</p>
+          {p.typed ? <p className="pq-line">Answer: <i /></p> : <PaperChoices choices={p.choices} />}
         </div>
       ))}
+      {/* Show-your-work questions get room for the working, as on MCAS. */}
+      {format === "cr" && <div className="pq-work" aria-hidden="true" />}
       {input === "type" && <p className="pq-line">Answer: <i /></p>}
       {input === "order" && (
         <>
@@ -194,7 +196,7 @@ function PaperQuestion({ q }: { q: Question }) {
         </>
       )}
       {/* Room to draw a bar model or work it out on word problems. */}
-      {q.model && format !== "model" && <div className="pq-work" aria-hidden="true" />}
+      {q.model && format !== "model" && format !== "cr" && <div className="pq-work" aria-hidden="true" />}
     </li>
   );
 }

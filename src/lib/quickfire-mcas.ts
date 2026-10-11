@@ -73,6 +73,24 @@ const G3: Template[] = [
           mistakes: [m(`s = ${k} + ${p} − ${g}`, "added instead of multiplying"), m(`s = ${k} × ${p} + ${g}`, "added the ones given away"), m(`s = ${k} × (${p} − ${g})`, "took the gift from every pack")] },
       ] };
   }),
+  T("q3-cr-garden", 3, "3.MD.D.8", (c) => {
+    const n = c.name(), a = c.ri(2, c.by([5, 8, 9])), b = c.ri(a + 1, c.by([7, 10, 12])), area = a * b;
+    // Another rectangle with the same area and a different perimeter.
+    const others = Array.from({ length: area }, (_, i) => i + 1).filter((x) => area % x === 0 && x <= area / x && x !== a);
+    const o = others.length ? c.pick(others) : 1, ob = area / o;
+    return { text: `${n} plans a rectangular garden ${a} feet wide and ${b} feet long.`, format: "cr", answer: "", mistakes: [],
+      steps: [`Area: ${a} × ${b} = ${area} square feet.`, `Perimeter: ${a} + ${b} + ${a} + ${b} = ${2 * (a + b)} feet.`, `${o} × ${ob} is also ${area}, so that garden has the same area.`, `Its perimeter is ${2 * (o + ob)} feet, so the same area can have a different perimeter.`],
+      parts: [
+        { text: "What is the area of the garden in square feet?", format: "typein", answer: area,
+          mistakes: [m(2 * (a + b), "found the perimeter"), m(a + b, "added the sides"), m(area + a, "counted an extra row")] },
+        { text: "How many feet of fence go all the way around it?", format: "typein", answer: 2 * (a + b),
+          mistakes: [m(a + b, "added only two sides"), m(area, "found the area"), m(2 * a + b, "missed one side")] },
+        { text: `Which garden has the same area as ${n}'s?`, answer: `${o} ft by ${ob} ft`,
+          mistakes: [m(`${a + 1} ft by ${b - 1} ft`, "kept the same perimeter, not the same area"), m(`${a} ft by ${b + 1} ft`, "made one side longer"), m(`${b} ft by ${b} ft`, "used the longer side twice")] },
+        { text: "Which sentence is true?", answer: "Two gardens can have the same area but different perimeters.",
+          mistakes: [m("Gardens with the same area always have the same perimeter.", "thought area decides perimeter"), m("Area and perimeter are always the same number.", "mixed up area and perimeter"), m("A longer garden always has a smaller area.", "thought length alone decides area")] },
+      ] };
+  }),
 ];
 
 const ANGLE_KINDS = ["acute", "right", "obtuse", "straight"] as const;
@@ -134,6 +152,26 @@ const G4: Template[] = [
           mistakes: [m(r, "gave the riders on the last bus"), m(cap, "counted the whole bus as empty"), m(cap - r + 1, "counted one seat too many")] },
       ] };
   }),
+  T("q4-cr-shopping", 4, "4.OA.A.3", (c) => {
+    const n = c.name(), [x, y] = c.pick([["notebooks", "pens"], ["paint sets", "brushes"], ["T-shirts", "caps"], ["books", "bookmarks"]] as const);
+    const k = c.ri(2, c.by([4, 6, 9])), p = c.ri(3, c.by([9, 15, 25])), j = c.ri(2, c.by([5, 8, 12])), q = c.ri(1, c.by([4, 6, 9]));
+    const cost = k * p + j * q, short = c.ri(0, 1) === 1;
+    let have = short ? cost - c.ri(1, Math.min(9, cost - 1)) : cost + c.ri(1, 20);
+    // Keep "what is left" and "what is short" different from the other amounts, so every choice is different.
+    if (2 * have === cost || have === 2 * cost) have++;
+    return { text: `${n} buys ${k} ${x} at $${p} each and ${j} ${y} at $${q} each. ${n} has $${have}.`, format: "cr", answer: "", mistakes: [],
+      steps: [`The ${x}: ${k} × $${p} = $${k * p}.`, `The ${y}: ${j} × $${q} = $${j * q}.`, `Total: $${k * p} + $${j * q} = $${cost}.`, short ? `$${have} is less than $${cost}, so ${n} needs $${cost - have} more.` : `$${have} − $${cost} = $${have - cost} left.`],
+      parts: [
+        { text: `How much do the ${x} cost?`, format: "typein", answer: k * p, form: "money",
+          mistakes: [m(k + p, "added instead of multiplying"), m(p, "gave the price of one"), m(k * p + p, "paid for one too many")] },
+        { text: "What is the total cost?", format: "typein", answer: cost, form: "money",
+          mistakes: [m(k * p + j + q, "added the pens' numbers instead of multiplying"), m(k * p, "left out the second item"), m((k + j) * (p + q), "multiplied the sums")] },
+        { text: `Does ${n} have enough money?`, answer: short ? `No, ${n} needs $${cost - have} more.` : `Yes, with $${have - cost} left.`,
+          mistakes: short
+            ? [m(`Yes, with $${cost - have} left.`, "subtracted the wrong way round"), m(`No, ${n} needs $${cost} more.`, "forgot the money already saved"), m(`Yes, with $${have} left.`, "did not take away the cost"), m("Yes, with $0 left.", "thought the money was just enough")]
+            : [m(`No, ${n} needs $${have - cost} more.`, "subtracted the wrong way round"), m(`Yes, with $${have} left.`, "did not take away the cost"), m(`Yes, with $${cost} left.`, "gave the cost, not what is left"), m(`No, ${n} needs $${cost} more.`, "forgot the money already saved")] },
+      ] };
+  }),
 ];
 
 const G5: Template[] = [
@@ -188,6 +226,22 @@ const G5: Template[] = [
           mistakes: [m(l + w + h, "added the edges"), m(l * w, "found the area of the base only"), m(2 * (l * w + l * h + w * h), "found the surface area")] },
         { text: `A second ${what} is ${k} times as tall, with the same base. What is its volume in cubic feet?`, answer: k * l * w * h,
           mistakes: [m(l * w * h + k, `added ${k}`), m(l * w * (h + k), `added ${k} to the height`), m(k ** 3 * l * w * h, "made every edge longer")] },
+      ] };
+  }),
+  T("q5-cr-recipe", 5, "5.NF.B.6", (c) => {
+    const n = c.name(), d = c.pick([2, 3, 4]), u = c.ri(1, d - 1) + d * c.ri(0, 1), k = c.ri(2, c.by([4, 6, 8]));
+    const each = frac(u, d, true), need = frac(u * k, d, true), have = c.ri(Math.ceil((u * k) / d) + 1, Math.ceil((u * k) / d) + 8);
+    const batches = Math.floor((have * d) / u);
+    const what = c.pick(["flour", "sugar", "oats", "milk"]);
+    return { text: `A muffin recipe uses ${each} cups of ${what} per batch. ${n} wants to make ${k} batches and has ${have} cups of ${what}.`, format: "cr", answer: "", mistakes: [],
+      steps: [`${k} × ${each} = ${need} cups for ${k} batches.`, `${have} ÷ ${each} = ${frac(have * d, u, true)}, so ${have} cups make ${batches} whole batches.`, `Multiplying by a whole number greater than 1 gives more than the fraction you started with.`],
+      parts: [
+        { text: `How many cups of ${what} do ${k} batches need?`, format: "typein", answer: need,
+          mistakes: [m(frac(u + k, d, true), "added the batches to the top number"), m(frac(u, d * k, true), "multiplied the bottom number"), m(frac(u * k, d * k, true), "multiplied the top and the bottom")] },
+        { text: `How many whole batches can ${n} make with ${have} cups?`, format: "typein", answer: batches,
+          mistakes: [m(batches + 1, "rounded up past what the cups allow"), m(Math.floor(have / u), "divided by the top number only"), m(have * u, "multiplied instead of dividing")] },
+        { text: `Why do ${k} batches need more than ${each} cups?`, answer: "Multiplying by a whole number greater than 1 makes the amount bigger.",
+          mistakes: [m("Multiplying a fraction always makes it smaller.", "thought fractions shrink when multiplied"), m("The bottom number gets bigger, so the amount gets bigger.", "changed the bottom number"), m(`${k} batches need ${k} cups.`, "counted one cup per batch")] },
       ] };
   }),
 ];
@@ -280,6 +334,24 @@ const G6: Template[] = [
           mistakes: [m(Math.floor(budget / each) + 1, "rounded up past the budget"), m(Math.floor(budget / (k * each)), `counted groups of ${k}`), m(budget - each, "subtracted one price")] },
       ] };
   }),
+  T("q6-cr-mix", 6, "6.RP.A.3a", (c) => {
+    let a = c.ri(1, 4), b = c.ri(2, 7);
+    while (gcd(a, b) !== 1 || a === b) { a = c.ri(1, 4); b = c.ri(2, 7); }
+    const k = c.ri(2, c.by([5, 8, 12])), t = c.ri(2, c.by([4, 6, 9])), n = c.name();
+    // A second mix with a different ratio, to compare.
+    const [a2, b2] = c.pick([[a + 1, b], [a, b + 1], [2 * a, 2 * b + 1], [2 * a + 1, 2 * b]]);
+    const stronger = a2 / b2 > a / b;
+    return { text: `${n} mixes juice and water in the ratio ${a} : ${b}.`, format: "cr", answer: "", mistakes: [],
+      steps: [`${a * k} cups of juice is ${k} times ${a}, so the water is ${k} × ${b} = ${b * k} cups.`, `One batch has ${a} + ${b} = ${a + b} cups; ${(a + b) * t} cups is ${t} batches, so the juice is ${t} × ${a} = ${a * t} cups.`, `Compare juice for each cup of water: ${a}/${b} and ${a2}/${b2}.`],
+      parts: [
+        { text: `${n} uses ${a * k} cups of juice. How many cups of water are needed?`, format: "typein", answer: b * k,
+          mistakes: [m(a * k + (b - a), "added the difference instead of scaling"), m(b * a * k, "multiplied by the juice"), m(k, "found the scale factor only")] },
+        { text: `${n} makes ${(a + b) * t} cups of the drink in all. How many cups are juice?`, format: "typein", answer: a * t,
+          mistakes: [m(b * t, "found the water"), m(t, "found the number of batches"), m(((a + b) * t) / 2, "split the drink in half")] },
+        { text: `A friend mixes juice and water ${a2} : ${b2}. Whose drink tastes more of juice?`, answer: stronger ? "The friend's" : `${n}'s`,
+          mistakes: [m(stronger ? `${n}'s` : "The friend's", "compared the numbers of cups, not the ratios"), m("They taste the same", "thought adding one to a ratio keeps it the same"), m("You can't tell", "did not compare juice per cup of water")] },
+      ] };
+  }),
 ];
 
 const G7: Template[] = [
@@ -324,6 +396,23 @@ const G7: Template[] = [
           mistakes: [m((p * d) / 100, "gave the discount, not the price"), m(p - d, "took off dollars, not percent"), m(p + (p * d) / 100, "added the discount")] },
         { text: "What is the total with tax?", answer: total, form: "cents",
           mistakes: [m(+(p * (1 + t / 100)).toFixed(2), "added tax to the full price"), m(+(sale + t).toFixed(2), "added the tax as dollars"), m(+(p * (1 + (t - d) / 100)).toFixed(2), "added and took off the percents together")] },
+      ] };
+  }),
+  T("q7-cr-rides", 7, "7.EE.B.4", (c) => {
+    const n = c.name(), r = c.ri(2, c.by([4, 6, 9])), x = c.ri(3, c.by([8, 12, 20]));
+    let f = c.ri(5, c.by([12, 20, 30]));
+    if (f === r) f++;
+    const T = f + r * x, budget = T + c.ri(1, r - 1) + r * c.ri(0, 3);
+    const most = Math.floor((budget - f) / r);
+    return { text: `A fair charges $${f} to get in plus $${r} for each ride.`, format: "cr", answer: "", mistakes: [],
+      steps: [`Cost for x rides: ${f} + ${r}x.`, `${f} + ${r}x = ${T}, so ${r}x = ${T - f} and x = ${x}.`, `${f} + ${r}x ≤ ${budget}, so ${r}x ≤ ${budget - f} and x ≤ ${+((budget - f) / r).toFixed(2)}. The greatest whole number is ${most}.`],
+      parts: [
+        { text: `Which equation shows ${n} spending $${T} on x rides?`, answer: `${f} + ${r}x = ${T}`,
+          mistakes: [m(`${r} + ${f}x = ${T}`, "swapped the entry fee and the ride price"), m(`${f + r}x = ${T}`, "added the fee to the ride price"), m(`${r}x = ${T}`, "left out the entry fee")] },
+        { text: `How many rides did ${n} go on?`, format: "typein", answer: x,
+          mistakes: [m((T + f) / r, "added the fee instead of subtracting"), m(Math.round(T / r), "forgot the entry fee"), m(T - f, "forgot to divide")] },
+        { text: `A friend has $${budget}. What is the greatest number of rides the friend can go on?`, format: "typein", answer: most,
+          mistakes: [m(most + 1, "rounded up past the budget"), m(Math.floor(budget / r), "forgot the entry fee"), m(budget - f, "forgot to divide")] },
       ] };
   }),
 ];
@@ -418,6 +507,26 @@ const G8: Template[] = [
           mistakes: [m(Math.round((f1 + f2) / (r1 + r2)), "added the rates instead of subtracting"), m(f2 - f1, "found the difference in joining fees only"), m(x + 1, "counted one too many")] },
         { text: "What is the cost of each plan then?", answer: f1 + r1 * x, form: "money",
           mistakes: [m(f1 + r2 * x, "mixed up the plans"), m(r1 * x, "left out the joining fee"), m(f1 + f2 + (r1 + r2) * x, "added both plans together")] },
+      ] };
+  }),
+  T("q8-cr-table", 8, "8.F.B.4", (c) => {
+    const rate = c.ri(2, c.by([5, 9, 15])), step = c.pick([1, 2]), xs = [1, 2, 3, 4].map((i) => i * step), big = c.ri(10, c.by([20, 40, 60]));
+    let start = c.ri(5, c.by([20, 40, 80]));
+    if (start === rate) start++;
+    const [what, unit] = c.pick([["A plant's height", "cm after x weeks"], ["A savings account", "dollars after x weeks"], ["A tank filling up", "liters after x minutes"], ["A stack of cups", "cm tall with x extra cups"]] as const);
+    const y = (x: number) => start + rate * x;
+    return { text: `${what} is shown in the table (y is the ${unit}).`, format: "cr", answer: "", mistakes: [],
+      figure: { t: "table", head: ["x", "y"], rows: xs.map((x) => [x, y(x)]) },
+      steps: [`Rate of change: (${y(xs[1])} − ${y(xs[0])}) ÷ (${xs[1]} − ${xs[0]}) = ${rate}.`, `Initial value: go back to x = 0: ${y(xs[0])} − ${rate} × ${xs[0]} = ${start}.`, `y = ${rate}x + ${start}.`, `At x = ${big}: y = ${rate} × ${big} + ${start} = ${y(big)}.`],
+      parts: [
+        { text: "What is the rate of change?", format: "typein", answer: rate, negatives: true,
+          mistakes: [m(-rate, "subtracted in the wrong order"), m(y(xs[1]) - y(xs[0]), "did not divide by the change in x"), m(y(xs[0]), "gave a y-value")] },
+        { text: "What is the initial value (y when x = 0)?", format: "typein", answer: start,
+          mistakes: [m(y(xs[0]), "gave the first y in the table"), m(start + rate, "went back one step too few"), m(start - rate, "went back one step too many")] },
+        { text: "Which equation fits the table?", answer: `y = ${rate}x + ${start}`,
+          mistakes: [m(`y = ${start}x + ${rate}`, "swapped the rate and the start"), m(`y = ${rate}x + ${y(xs[0])}`, "used the first y as the start"), m(`y = ${rate}x`, "left out the initial value"), m(`y = x + ${start}`, "left out the rate")] },
+        { text: `What is y when x = ${big}?`, format: "typein", answer: y(big),
+          mistakes: [m(start + rate, "forgot to multiply by x"), m(rate * big, "left out the start"), m(y(xs[0]) + rate * big, "started from the first row, not x = 0")] },
       ] };
   }),
 ];

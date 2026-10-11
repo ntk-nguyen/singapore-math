@@ -5,7 +5,7 @@
  * way through. Templates can also be written in a fixed format (odd one out, put in
  * order, number line, balance, fill in the blank), which `vary` leaves alone.
  */
-import type { Format, Question } from "./questions";
+import type { Format, Part, Question } from "./questions";
 import { helpers, type Rng } from "./rng";
 import { NAMES, valueOf } from "./templates";
 
@@ -24,9 +24,10 @@ export const FORMAT_LABEL: Record<Format, string> = {
   balance: "Balance it",
   multi: "Choose all that apply",
   twopart: "Two parts",
+  cr: "Show your work",
 };
 
-/** How picks are joined into one answer for "multi" (each pick) and "twopart" (Part A, then Part B). */
+/** How picks are joined into one answer for "multi" (each pick) and "twopart" or "cr" (each part in order). */
 export const PICK_SEP = "\n";
 
 export function formatOf(q: Question): Format {
@@ -36,7 +37,12 @@ export function formatOf(q: Question): Format {
 /** How the child answers: tap a choice, type it, tap items in order, tap every right choice, or tap one choice in each part. */
 export function inputOf(q: Question): "choose" | "type" | "order" | "multi" | "parts" {
   const f = formatOf(q);
-  return f === "typein" || f === "blank" ? "type" : f === "order" ? "order" : f === "multi" ? "multi" : f === "twopart" ? "parts" : "choose";
+  return f === "typein" || f === "blank" ? "type" : f === "order" ? "order" : f === "multi" ? "multi" : f === "twopart" || f === "cr" ? "parts" : "choose";
+}
+
+/** Is one part's answer right? Typed parts are matched by value, like a typed question. */
+export function partRight(p: Part, given: string): boolean {
+  return p.typed ? isRight({ grade: 3, text: "", std: "", answer: p.answer, choices: [], format: "typein" }, given) : given === p.answer;
 }
 
 const REMAINDER = /^(\d+) ?R ?(\d+)$/i;
@@ -52,7 +58,10 @@ export function isRight(q: Question, given: string): boolean {
   const input = inputOf(q);
   // All-or-nothing, as on MCAS: every right choice and no wrong one, or both parts right.
   if (input === "multi") return [...given.split(PICK_SEP)].sort().join(PICK_SEP) === [...(q.answers ?? [])].sort().join(PICK_SEP);
-  if (input === "parts") return given === (q.parts ?? []).map((p) => p.answer).join(PICK_SEP);
+  if (input === "parts") {
+    const picks = given.split(PICK_SEP), parts = q.parts ?? [];
+    return picks.length === parts.length && parts.every((p, i) => partRight(p, picks[i]));
+  }
   if (input !== "type") return given === q.answer;
   const a = tidy(q.answer), g = tidy(given);
   if (a === g) return true;

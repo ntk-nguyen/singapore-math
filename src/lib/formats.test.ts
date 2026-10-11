@@ -134,7 +134,7 @@ describe("formats", () => {
     }
   });
 
-  it("choose-all and two-part questions are marked all-or-nothing", () => {
+  it("choose-all, two-part and show-your-work questions are marked all-or-nothing", () => {
     const multi: Question = { grade: 4, text: "x", std: "4.NF.A.1", answer: "2/4 and 3/6", answers: ["2/4", "3/6"], choices: ["2/4", "2/3", "3/6", "1/4"], format: "multi" };
     expect(inputOf(multi)).toBe("multi");
     expect(isRight(multi, ["3/6", "2/4"].join(PICK_SEP))).toBe(true);
@@ -146,5 +146,11 @@ describe("formats", () => {
     expect(isRight(two, ["5", "3"].join(PICK_SEP))).toBe(true);
     expect(isRight(two, ["5", "2"].join(PICK_SEP))).toBe(false);
     expect(isRight(two, ["3", "5"].join(PICK_SEP))).toBe(false);
+    // Show-your-work parts can be typed, and typed parts are matched by value.
+    const cr: Question = { ...two, format: "cr", parts: [{ text: "a", choices: [], answer: "$54", typed: true }, { text: "b", choices: [], answer: "2 1/4", typed: true }, two.parts![1]] };
+    expect(inputOf(cr)).toBe("parts");
+    expect(isRight(cr, ["54", "2.25", "3"].join(PICK_SEP))).toBe(true);
+    expect(isRight(cr, ["54", "2.25", "2"].join(PICK_SEP))).toBe(false);
+    expect(isRight(cr, ["54", "2.25"].join(PICK_SEP))).toBe(false);
   });
 });

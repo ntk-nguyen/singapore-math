@@ -501,6 +501,9 @@ table.cmp th.cmp-pro { background: var(--accent-soft); }
 .multi .tick { display: inline-block; width: 1.1em; }
 .part { display: grid; gap: 8px; }
 .part-text { margin: 0; }
+.typein-box.right { border-color: var(--good-fill); box-shadow: 0 0 0 2px var(--good-fill); }
+.typein-box.wrong { border-color: var(--bad-fill); box-shadow: 0 0 0 2px var(--bad-fill); }
+.part-fix { flex-basis: 100%; font-weight: 700; color: var(--good); }
 .order { display: grid; gap: 12px; }
 .order-line { display: grid; grid-template-columns: repeat(auto-fit, minmax(72px, 1fr)); gap: 8px; }
 .order-slot { min-height: 44px; display: grid; place-items: center; border-radius: 12px; border: 1.5px dashed var(--line-strong); color: var(--muted, inherit); font: 600 1.1rem var(--body); }

@@ -139,7 +139,7 @@ export interface Draft {
   ask?: string;
   /** For "multi": every right answer. `mistakes` are the wrong choices; `answer` is not used. */
   right?: (number | string)[];
-  /** For "twopart": Part A and Part B, each a multiple-choice question. `answer` and `mistakes` are not used. */
+  /** For "twopart" (Part A and Part B) and "cr" (three or four parts): each part is multiple choice, or typed when its format is "typein". `answer` and `mistakes` are not used. */
   parts?: Draft[];
 }
 
@@ -247,10 +247,12 @@ export function render(tpl: Template, r: Rng, tier: Tier = tpl.tier): Rendered {
     const ask = d.ask ?? (answers.length === 2 ? "Choose the two correct answers." : answers.length === 3 ? "Choose the three correct answers." : "Choose all the correct answers.");
     return { real: wrong.length, negatives: !!d.negatives, question: { ...base, ask, choices, answers, answer: answers.join(" and ") } };
   }
-  if (d.format === "twopart") {
+  if (d.format === "twopart" || d.format === "cr") {
+    // A part asked as "typein" has its answer typed; its choices are still built, which checks its mistakes.
     const parts = d.parts!.map((p) => ({ p, ...choicesFor(tpl, p, c) }));
-    const out = parts.map(({ p, choices, answer: a }) => ({ text: tidy(p.text), choices, answer: a }));
-    return { real: Math.min(...parts.map((p) => p.real)), negatives: parts.some(({ p }) => p.negatives), question: { ...base, choices: [], parts: out, answer: out.map((p, i) => `Part ${"AB"[i]}: ${p.answer}`).join("; ") } };
+    const out = parts.map(({ p, choices, answer: a }) => (p.format === "typein" ? { text: tidy(p.text), choices: [], answer: a, typed: true } : { text: tidy(p.text), choices, answer: a }));
+    const ask = d.ask ?? (d.format === "cr" ? "Work it out on paper, then answer each part." : undefined);
+    return { real: Math.min(...parts.map((p) => p.real)), negatives: parts.some(({ p }) => p.negatives), question: { ...base, ask, choices: [], parts: out, answer: out.map((p, i) => `Part ${"ABCD"[i]}: ${p.answer}`).join("; ") } };
   }
   const { choices, real, sensible } = choicesFor(tpl, d, c);
   return { real, negatives: !!d.negatives, question: { ...base, choices, mistakes: d.format ? undefined : explained(d, answer, sensible) } };
@@ -322,7 +324,7 @@ function explained(d: Draft, answer: string, sensible: (v: number | string) => b
  * true/false needs True and False; "find the mistake" needs at least three explanations;
  * "put in order" needs distinct items whose order is the answer; "multi" needs 4 to 6
  * distinct choices with at least two right and at least one wrong; each part of a
- * "twopart" question is checked as multiple choice. Every format needs
+ * "twopart" or "cr" question is checked as multiple choice or as a typed answer. Every format needs
  * sensible numbers (no NaN, no float noise, no negatives unless the topic uses them).
  */
 export function checkQuestion(q: Question, opts: { negatives?: boolean } = {}): string[] {
@@ -343,9 +345,17 @@ export function checkQuestion(q: Question, opts: { negatives?: boolean } = {}): 
     const key = (x: string) => (Number.isNaN(valueOf(x)) ? x : valueOf(x).toFixed(6));
     const wrong = q.choices.filter((x) => !answers.includes(x));
     if (wrong.some((w) => q.choices.some((x) => x !== w && key(x) === key(w)))) out.push("a wrong choice has the same value as another choice");
-  } else if (f === "twopart") {
-    if (q.parts?.length !== 2) out.push("does not have two parts");
-    for (const p of q.parts ?? []) out.push(...checkQuestion({ ...q, ...p, format: undefined, parts: undefined, ask: undefined }, opts).map((x) => `part: ${x}`));
+  } else if (f === "twopart" || f === "cr") {
+    const parts = q.parts ?? [];
+    if (f === "twopart" && parts.length !== 2) out.push("does not have two parts");
+    if (f === "cr" && (parts.length < 3 || parts.length > 4)) out.push(`has ${parts.length} parts`);
+    if (f === "cr" && !parts.some((p) => p.typed)) out.push("has no typed part");
+    for (const p of parts) {
+      // The text of every part is checked with the question's text below.
+      if (p.typed) {
+        if (!Number.isFinite(valueOf(p.answer))) out.push(`part answer "${p.answer}" cannot be typed`);
+      } else out.push(...checkQuestion({ ...q, ...p, format: undefined, parts: undefined, ask: undefined }, opts).map((x) => `part: ${x}`));
+    }
   } else if (f === "truefalse") {
     if (q.choices.join() !== "True,False" || !["True", "False"].includes(q.answer)) out.push("true/false is malformed");
   } else {
@@ -357,13 +367,13 @@ export function checkQuestion(q: Question, opts: { negatives?: boolean } = {}): 
     const vals = q.choices.map(valueOf).filter((v) => !Number.isNaN(v));
     if (f !== "oddone" && new Set(vals.map((v) => v.toFixed(6))).size !== vals.length) out.push("two choices have the same value");
   }
-  const all = [q.text, q.ask ?? "", ...q.choices, ...(q.items ?? []), ...(q.steps ?? []), ...(q.parts ?? []).flatMap((p) => [p.text, ...p.choices])].join(" | ");
+  const all = [q.text, q.ask ?? "", ...q.choices, ...(q.items ?? []), ...(q.steps ?? []), ...(q.parts ?? []).flatMap((p) => [p.text, p.answer, ...p.choices])].join(" | ");
   if (/undefined|NaN|Infinity|\[object|\bnull\b/.test(all)) out.push("has a broken value");
   if (/\d\.\d{5,}/.test(all)) out.push("has float noise");
   if (!q.text.trim()) out.push("has no text");
   if (!opts.negatives) {
     if (/(^|[\s(:=$])[-−]\d/.test(q.text)) out.push("has a negative number in the text");
-    if ([...q.choices, ...(q.items ?? []), ...(q.parts ?? []).flatMap((p) => p.choices)].some((c) => valueOf(c) < 0)) out.push("has a negative choice");
+    if ([...q.choices, ...(q.items ?? []), ...(q.parts ?? []).flatMap((p) => [p.answer, ...p.choices])].some((c) => valueOf(c) < 0)) out.push("has a negative choice");
   }
   const a = valueOf(q.answer);
   if (!Number.isNaN(a) && !Number.isFinite(a)) out.push("answer is not finite");
@@ -381,6 +391,7 @@ export function questionKey(q: Question): string {
   const key = q.figure ? `${q.text}|${JSON.stringify(q.figure)}` : q.text;
   if (q.items) return `${key}|${[...q.items].sort().join(",")}`;
   if (q.answers) return `${key}|${[...q.choices].sort().join(",")}`;
+  if (q.parts) return `${key}|${q.parts.map((p) => p.text).join("|")}`;
   return /\d/.test(q.text) && q.format !== "oddone" ? key : `${key}|${[...q.choices].sort().join(",")}`;
 }
 
