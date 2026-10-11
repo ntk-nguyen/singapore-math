@@ -17,7 +17,7 @@ const inter = Inter({ subsets: ["latin"], weight: ["400", "500", "600", "700"], 
 
 export const metadata: Metadata = {
   title: { default: "MathBridge", template: "%s · MathBridge" },
-  description: "Singapore Math for Grades 1–8: bar model lessons, games and practice tests aligned to Common Core.",
+  description: "Singapore Math for Kindergarten to Grade 8: bar model lessons, games and practice tests aligned to Common Core.",
 };
 
 export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };

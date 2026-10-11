@@ -1,7 +1,7 @@
 import type { Grade } from "./questions";
 
 /**
- * Adaptive placement. Two correct answers in a row move up a grade, a miss moves
+ * Adaptive placement, Kindergarten to Grade 8. Two correct answers in a row move up a grade, a miss moves
  * down a grade. The placement is the highest grade answered at least twice with
  * 60% or better. (The production version should use an IRT/Rasch model instead.)
  */
@@ -30,14 +30,14 @@ export function recordAnswer(s: PlacementState, ok: boolean): PlacementState {
     }
   } else {
     run = 0;
-    if (grade > 1) grade = (grade - 1) as Grade;
+    if (grade > 0) grade = (grade - 1) as Grade;
   }
   return { grade, run, asked: s.asked + 1, tally };
 }
 
 export function placementResult(s: PlacementState): Grade {
-  let place: Grade = 1;
-  for (let g = 1 as Grade; g <= 8; g = (g + 1) as Grade) {
+  let place: Grade = 0;
+  for (let g = 0 as Grade; g <= 8; g = (g + 1) as Grade) {
     const t = s.tally[g];
     if (t && t[1] >= 2 && t[0] / t[1] >= 0.6) place = g;
   }

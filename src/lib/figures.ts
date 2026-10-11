@@ -14,4 +14,16 @@ export type Figure =
   /** Number line: evenly spaced ticks (blank labels allowed) with an arrow at tick `arrow`. */
   | { t: "line"; ticks: string[]; arrow: number }
   /** A short program in plain words, one line each. Indent with two spaces. */
-  | { t: "code"; lines: string[] };
+  | { t: "code"; lines: string[] }
+  /**
+   * Pictures to count (Kindergarten): one row per group, each picture a big emoji. The last
+   * `gone` pictures in a row are crossed out (taken away). `label` names the row.
+   */
+  | { t: "pics"; rows: { icons: string[]; label?: string; gone?: number }[] }
+  /** Ten frames (one, or two for 11 to 20) with `filled` counters, filled left to right, top row first. */
+  | { t: "frame"; filled: number; frames: 1 | 2 }
+  /** One flat shape, drawn big. */
+  | { t: "shape"; shape: Shape; color: ShapeColor; turn: number };
+
+export type Shape = "circle" | "square" | "triangle" | "rectangle" | "hexagon" | "pentagon";
+export type ShapeColor = "red" | "blue" | "green" | "yellow" | "purple" | "orange";

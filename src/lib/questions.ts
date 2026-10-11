@@ -7,8 +7,14 @@ import { noRepeats, render, shiftTier, type Tier } from "./templates";
 
 export { NAMES } from "./templates";
 
-export type Grade = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-export const GRADES: Grade[] = [1, 2, 3, 4, 5, 6, 7, 8];
+/** 0 is Kindergarten. */
+export type Grade = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export const GRADES: Grade[] = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+
+/** "Kindergarten" or "Grade 3". */
+export const gradeName = (g: Grade): string => (g === 0 ? "Kindergarten" : `Grade ${g}`);
+/** "K" or "3", as on a grade chip and at the start of a Common Core code (K.CC.A.1, 3.OA.A.3). */
+export const gradeCode = (g: Grade) => (g === 0 ? "K" : String(g));
 
 /**
  * How a question is asked. Plain multiple choice when omitted. The answer is typed for
@@ -80,7 +86,7 @@ export function makeQuestion(grade: Grade, r: Rng, index?: number, shift = 0): Q
 }
 
 export function isGrade(n: unknown): n is Grade {
-  return typeof n === "number" && Number.isInteger(n) && n >= 1 && n <= 8;
+  return typeof n === "number" && Number.isInteger(n) && n >= 0 && n <= 8;
 }
 
 /**

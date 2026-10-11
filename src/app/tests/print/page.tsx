@@ -7,11 +7,11 @@ import { BarModel } from "@/components/BarModel";
 import { FigureView } from "@/components/Figure";
 import { LogoMark } from "@/components/Logo";
 import { formatOf, inputOf } from "@/lib/formats";
-import type { Question } from "@/lib/questions";
+import { type Grade, gradeName, type Question } from "@/lib/questions";
 import { sectionOf } from "@/lib/tests";
 
 interface Paper {
-  paper: { id: string; name: string; grade: number; code: string; level: string };
+  paper: { id: string; name: string; grade: Grade; code: string; level: string };
   seed: number;
   questions: Question[];
 }
@@ -94,7 +94,7 @@ function PrintPaper() {
         <div className="spacer">
           <p className="eyebrow">Printable paper</p>
           <h2>{paper.name}</h2>
-          <p className="muted small">Grade {paper.grade} · {paper.level} · {questions.length} questions · answer key on the last page. Every new paper has different questions, from easier to harder.</p>
+          <p className="muted small">{gradeName(paper.grade)} · {paper.level} · {questions.length} questions · answer key on the last page. Every new paper has different questions, from easier to harder.</p>
         </div>
         <Link className="btn ghost" href="/tests">Back</Link>
         <button className="btn ghost" onClick={fresh}>New paper</button>
@@ -106,7 +106,7 @@ function PrintPaper() {
         <header className="paper-head">
           <div className="paper-brand"><LogoMark className="paper-mark" />MathBridge</div>
           <h1>{paper.name}</h1>
-          <p className="paper-meta">Grade {paper.grade} · {paper.level} · {questions.length} questions · Paper {paper.code}</p>
+          <p className="paper-meta">{gradeName(paper.grade)} · {paper.level} · {questions.length} questions · Paper {paper.code}</p>
           <div className="paper-fields">
             <span>Name <i /></span>
             <span>Date <i /></span>
@@ -130,7 +130,7 @@ function PrintPaper() {
         <section className="paper-key">
           <header className="paper-head">
             <h1>Answer key</h1>
-            <p className="paper-meta">{paper.name} · Grade {paper.grade} · Paper {paper.code}</p>
+            <p className="paper-meta">{paper.name} · {gradeName(paper.grade)} · Paper {paper.code}</p>
           </header>
           <ol className="key-list">
             {questions.map((q, n) => (

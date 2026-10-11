@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useProgress } from "@/components/Progress";
 import { SYMBOL, TOPICS, type Op } from "@/lib/arithmetic";
-import type { Grade } from "@/lib/questions";
+import { type Grade, gradeName } from "@/lib/questions";
 
 const OPS: { op: Op[]; label: string }[] = [
   { op: ["make10", "add"], label: "Addition" },
@@ -17,7 +17,7 @@ const SKILL_GRADES: Grade[] = [1, 2, 3, 4, 5, 6];
 export default function NumberSkillsPage() {
   const { grade, best } = useProgress();
   const [picked, setPicked] = useState<Grade | null>(null);
-  const shown = picked ?? (Math.min(grade, 6) as Grade);
+  const shown = picked ?? (Math.min(Math.max(grade, 1), 6) as Grade);
   const topics = TOPICS.filter((t) => t.grade === shown);
 
   return (
@@ -32,10 +32,13 @@ export default function NumberSkillsPage() {
       <div className="row" role="group" aria-label="Grade">
         {SKILL_GRADES.map((g) => (
           <button key={g} className={`chip${g === shown ? " on" : ""}`} aria-pressed={g === shown} onClick={() => setPicked(g)}>
-            Grade {g}
+            {gradeName(g)}
           </button>
         ))}
       </div>
+      {grade === 0 && picked == null && (
+        <p className="notice">Written methods start in Grade 1. Here is the Grade 1 set to look ahead, or practice counting and adding in <Link href="/kindergarten">Kindergarten</Link>.</p>
+      )}
       {grade > 6 && picked == null && (
         <p className="notice">Multi-digit arithmetic is complete by Grade 6 in Common Core. Here is the Grade 6 set for review.</p>
       )}

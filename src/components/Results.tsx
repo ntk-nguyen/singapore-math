@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { Grade, Question } from "@/lib/questions";
+import { type Grade, gradeCode, gradeName, type Question } from "@/lib/questions";
 import { Solution } from "./QuestionCard";
 
 export interface Answered {
@@ -25,9 +25,9 @@ export function Results({ log, placement }: { log: Answered[]; placement?: Grade
   return (
     <div className="panel">
       <p className="eyebrow">Results</p>
-      {placement ? (
+      {placement != null ? (
         <>
-          <p className="result-big">Grade {placement}</p>
+          <p className="result-big">{gradeName(placement)}</p>
           <p className="muted">
             Recommended starting level. Score {right}/{log.length}. The grade selector has been set for you.
           </p>
@@ -52,7 +52,7 @@ export function Results({ log, placement }: { log: Answered[]; placement?: Grade
               return (
                 <tr key={std}>
                   <td className="mono">{std}</td>
-                  <td>{v.grade}</td>
+                  <td>{gradeCode(v.grade)}</td>
                   <td>{v.right}/{v.n}</td>
                   <td><span className={`pill ${secure ? "g" : "r"}`}>{secure ? "Secure" : "Practice"}</span></td>
                 </tr>

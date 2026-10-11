@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AVATARS, MAX_CHILDREN, type Avatar } from "@/lib/profiles";
-import { GRADES, type Grade } from "@/lib/questions";
+import { type Grade, gradeName, GRADES } from "@/lib/questions";
 import { useProgress, type Profile } from "./Progress";
 
 /** The current child's avatar in the header; opens a menu to switch child. */
@@ -49,7 +49,7 @@ export function ProfileSwitcher() {
               <span className="who-av" aria-hidden="true">{p.avatar}</span>
               <span>
                 <b>{p.name}</b>
-                <small>Grade {p.progress.grade}</small>
+                <small>{gradeName(p.progress.grade)}</small>
               </span>
             </button>
           ))}
@@ -75,7 +75,7 @@ export function WhoIsPracticing() {
             <button key={p.id} className="who-card" onClick={() => switchProfile(p.id)}>
               <span className="who-av big" aria-hidden="true">{p.avatar}</span>
               <b>{p.name}</b>
-              <small>Grade {p.progress.grade}</small>
+              <small>{gradeName(p.progress.grade)}</small>
             </button>
           ))}
         </div>
@@ -165,7 +165,7 @@ export function ManageChildren() {
           <AvatarPick value={avatar} onChange={setAvatar} />
           <label htmlFor="kid-grade">Grade</label>
           <select id="kid-grade" value={grade} onChange={(e) => setGrade(Number(e.target.value) as Grade)}>
-            {GRADES.map((g) => <option key={g} value={g}>Grade {g}</option>)}
+            {GRADES.map((g) => <option key={g} value={g}>{gradeName(g)}</option>)}
           </select>
           <button className="btn self-start" type="submit" disabled={!name.trim()}>Add child</button>
         </form>
@@ -187,7 +187,7 @@ function ChildRow({ p, canRemove, onSave, onRemove }: {
     return (
       <li className="kid">
         <span className="who-av" aria-hidden="true">{p.avatar}</span>
-        <span className="kid-name"><b>{p.name}</b><small>Grade {p.progress.grade}</small></span>
+        <span className="kid-name"><b>{p.name}</b><small>{gradeName(p.progress.grade)}</small></span>
         <button className="linkbtn" onClick={() => setEditing(true)}>Edit</button>
         {canRemove && (
           <button

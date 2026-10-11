@@ -20,8 +20,9 @@ describe("data and thinking topics", () => {
     });
   }
 
-  it("covers every grade with a free topic and every area", () => {
-    for (const g of GRADES) {
+  it("covers every grade from Grade 1 with a free topic and every area", () => {
+    // Kindergarten's shapes, measuring and sorting live in its own topics (K_TOPICS).
+    for (const g of GRADES.filter((x) => x > 0)) {
       const list = THINKING_TOPICS.filter((t) => t.grade === g);
       expect(list.length).toBeGreaterThanOrEqual(2);
       expect(list.some(isFreeTopic)).toBe(true);

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { QUICK } from "./quickfire";
 import { GRADES, type Grade } from "./questions";
 import { checkQuestion, questionKey } from "./templates";
-import { areaOf, buildPaper, DIFFICULTIES, getTest, questionScore, sectionOf, testGrade, testItems, TESTS } from "./tests";
+import { areaOf, buildPaper, DIFFICULTIES, getTest, questionScore, sectionOf, testGrade, testItems, testOffered, TESTS } from "./tests";
 
 describe("test catalog", () => {
   it("has exactly two free tests and six paid ones", () => {
@@ -50,15 +50,21 @@ describe("test catalog", () => {
 describe("tests fit the grade", () => {
   it("never borrows questions from a grade above the one the test is set at", () => {
     for (const t of TESTS.filter((x) => x.pool)) {
-      for (const g of GRADES) {
+      for (const g of GRADES.filter((x) => testOffered(t, x))) {
         const at = testGrade(t, g);
         for (const item of testItems(t, g)) expect(item.grade, `${t.id} grade ${g}: ${item.id}`).toBeLessThanOrEqual(at);
       }
     }
   });
 
-  it("the word problem marathon has word problems written for every grade", () => {
-    for (const g of GRADES) {
+  it("offers Kindergarten only the tests it has its own questions for", () => {
+    expect(TESTS.filter((t) => testOffered(t, 0)).map((t) => t.id)).toEqual(["placement", "checkpoint", "state", "eoy"]);
+    for (const g of GRADES.filter((x) => x > 0)) expect(TESTS.every((t) => testOffered(t, g))).toBe(true);
+  });
+
+  it("the word problem marathon has word problems written for every grade from Grade 1", () => {
+    expect(testOffered(getTest("wp")!, 0)).toBe(false);
+    for (const g of GRADES.filter((x) => x > 0)) {
       expect(testItems(getTest("wp")!, g).some((i) => i.grade === g), `grade ${g}`).toBe(true);
     }
   });
@@ -109,7 +115,7 @@ describe("difficulty", () => {
 
   it("makes sound papers at every difficulty, with no question twice and nothing above the grade", () => {
     for (const t of papers) {
-      for (const g of GRADES) {
+      for (const g of GRADES.filter((x) => testOffered(t, x))) {
         for (const { id } of DIFFICULTIES) {
           const paper = buildPaper(t, g, 11, id);
           expect(paper, `${t.id} grade ${g} ${id}`).toHaveLength(t.length);

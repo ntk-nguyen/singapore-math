@@ -12,13 +12,21 @@ export interface Lesson {
   title: string;
   std: string;
   problem: string;
-  /** Grade 1's number bond lesson is an interactive slider instead of steps. */
+  /** The number bond lessons (Kindergarten and Grade 1) are an interactive slider instead of steps. */
   kind: "steps" | "bond-slider";
+  /** The whole the bond slider splits. 10 when omitted. */
+  whole?: number;
   steps: LessonStep[];
 }
 
 /** One worked bar-model lesson per grade, Concrete → Pictorial → Abstract. */
 export const LESSONS: Lesson[] = [
+  {
+    id: "k-bonds", grade: 0, kind: "bond-slider", whole: 5, std: "K.OA.A.3",
+    title: "Number bonds: ways to make 5",
+    problem: "Slide to split 5 into two parts. 5 is 1 and 4, 2 and 3, and more. Can you find them all?",
+    steps: [],
+  },
   {
     id: "g1-bonds", grade: 1, kind: "bond-slider", std: "1.OA.C.6",
     title: "Number bonds: split a whole",

@@ -8,8 +8,10 @@ import { Paywall } from "@/components/Paywall";
 import { useProgress } from "@/components/Progress";
 import { usePlan } from "@/components/usePlan";
 import { PAPER_KINDS, paperAvailable } from "@/lib/papers";
-import { GRADES, type Grade } from "@/lib/questions";
-import { DIFFICULTIES, TESTS, type Difficulty } from "@/lib/tests";
+import { type Grade, gradeName, GRADES } from "@/lib/questions";
+import { DIFFICULTIES, TESTS, testOffered, type Difficulty } from "@/lib/tests";
+
+const COUNT = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight"];
 
 function LockIcon() {
   return (
@@ -27,22 +29,24 @@ function CheckoutNotice() {
 }
 
 export default function TestsPage() {
-  const { best, placement } = useProgress();
+  const { best, placement, grade } = useProgress();
   const [plan] = usePlan();
   const [paywall, setPaywall] = useState(false);
   const [level, setLevel] = useState<Difficulty>("standard");
   const pro = !!plan?.pro;
   // Standard is the default, so it stays out of the address.
   const levelQuery = level === "standard" ? "" : `level=${level}`;
+  // Kindergarten only gets the tests it has its own questions for.
+  const tests = TESTS.filter((t) => testOffered(t, grade));
 
   return (
     <div className="stack">
       <div className="intro">
-        <p className="eyebrow">Two free · six more with the Pro plan</p>
+        <p className="eyebrow">Two free · {COUNT[tests.filter((t) => !t.free).length]} more with the Pro plan</p>
         <h2>Practice tests</h2>
-        {placement && (
+        {placement != null && (
           <p className="muted">
-            Last placement: <b>Grade {placement}</b>.
+            Last placement: <b>{gradeName(placement)}</b>.
           </p>
         )}
       </div>
@@ -51,7 +55,7 @@ export default function TestsPage() {
       </Suspense>
       <DifficultyPicker value={level} onChange={setLevel} />
       <div className="tests">
-        {TESTS.map((t) => {
+        {tests.map((t) => {
           const open = t.free || pro;
           return (
             <div key={t.id} className={`test${open ? "" : " locked"}`}>
@@ -129,7 +133,7 @@ function PrintPanel({ pro, planLoaded, levelQuery, onLocked }: { pro: boolean; p
         <label>
           Grade
           <select value={g} onChange={(e) => setGrade(Number(e.target.value) as Grade)}>
-            {GRADES.map((x) => <option key={x} value={x}>Grade {x}</option>)}
+            {GRADES.map((x) => <option key={x} value={x}>{gradeName(x)}</option>)}
           </select>
         </label>
         <label>

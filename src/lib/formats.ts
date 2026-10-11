@@ -29,8 +29,11 @@ export const FORMAT_LABEL: Record<Format, string> = {
 /** How picks are joined into one answer for "multi" (each pick) and "twopart" (Part A, then Part B). */
 export const PICK_SEP = "\n";
 
+/** Kindergarten pictures to count, ten frames and shapes are not graphs to read. */
+const PICTURES = new Set(["pics", "frame", "shape"]);
+
 export function formatOf(q: Question): Format {
-  return q.format ?? (q.figure ? "graph" : "choice");
+  return q.format ?? (q.figure && !PICTURES.has(q.figure.t) ? "graph" : "choice");
 }
 
 /** How the child answers: tap a choice, type it, tap items in order, tap every right choice, or tap one choice in each part. */
@@ -93,6 +96,8 @@ function orderable(q: Question): boolean {
 export function ways(q: Question): [Way, number][] {
   const base = formatOf(q);
   if (base !== "choice" && base !== "graph") return [["choice", 1]];
+  // Kindergarten answers are always tapped: no typing, and nothing more to read.
+  if (q.grade === 0) return [["choice", 1]];
   // When the choices are the question ("Which is greatest?"), it is asked with them, or as putting them in order.
   if (!/\d/.test(q.text) && !q.figure) return orderable(q) ? [["choice", 1], ["order", 1]] : [["choice", 1]];
   const out: [Way, number][] = [["choice", 2.5]];

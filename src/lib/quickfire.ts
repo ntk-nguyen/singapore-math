@@ -5,6 +5,7 @@
  * are the original quick-fire set, kept in the same order.
  */
 import type { Grade } from "./questions";
+import { K } from "./quickfire-k";
 import { MCAS_QUICK } from "./quickfire-mcas";
 import { gcd } from "./rng";
 import { frac, noCarry, smallFromLarge, type Ctx, type Draft, type Mistake, type Template, type Tier } from "./templates";
@@ -710,7 +711,7 @@ const G8: Template[] = [
   }),
 ];
 
-const BASE: Record<Grade, Template[]> = { 1: G1, 2: G2, 3: G3, 4: G4, 5: G5, 6: G6, 7: G7, 8: G8 };
+const BASE: Record<Grade, Template[]> = { 0: K, 1: G1, 2: G2, 3: G3, 4: G4, 5: G5, 6: G6, 7: G7, 8: G8 };
 
 /** Each grade's quick-fire set: the original templates, then those added to cover what MCAS tests. */
 export const QUICK = Object.fromEntries(Object.entries(BASE).map(([g, list]) => [g, [...list, ...(MCAS_QUICK[Number(g) as Grade] ?? [])]])) as Record<Grade, Template[]>;
