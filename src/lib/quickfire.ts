@@ -190,13 +190,14 @@ const G3: Template[] = [
     return { text: `A rectangle is ${l} cm long and ${w} cm wide. What is its perimeter in cm?`, answer: 2 * (l + w),
       mistakes: [m(l * w, "found the area"), m(l + w, "added only two sides"), m(2 * l + w, "missed a side")] };
   }),
-  T("q3-equiv", 3, "3.NF.A.3", ({ ri, pick }) => {
-    // Grade 3 keeps denominators small (2, 3, 4, 6, 8 in the standard; up to 12 here).
-    const d = pick([2, 3, 4, 5, 6]), k = pick([2, 3, 4, 5, 6].filter((x) => d * x <= 12)), n = pick(Array.from({ length: d - 1 }, (_, i) => i + 1).filter((x) => gcd(x, d) === 1));
-    return ri(0, 1)
-      ? { text: `${n}/${d} = ?/${d * k}. What is the missing numerator?`, answer: n * k,
+  T("q3-equiv", 3, "3.NF.A.3", (c) => {
+    // Massachusetts limits Grade 3 fractions to halves, thirds, fourths, sixths and eighths.
+    const [d, k] = c.pick([[2, 2], [2, 3], [2, 4], [3, 2], [4, 2]] as const), n = c.pick(Array.from({ length: d - 1 }, (_, i) => i + 1).filter((x) => gcd(x, d) === 1));
+    const name = c.name(), what = c.pick(["pan of cornbread", "garden bed", "chocolate bar", "strip of paper", "pizza", "rug"]);
+    return c.ri(0, 1)
+      ? { text: `${name} shades ${n}/${d} of a ${what}, then cuts every part into ${k} equal pieces. The shaded part is now ?/${d * k}. What is the missing numerator?`, answer: n * k,
           mistakes: [m(n, "kept the numerator the same"), m(n + k, "added instead of multiplying"), m(n + d * k - d, "added what was added to the bottom")] }
-      : { text: `${n * k}/${d * k} = ?/${d}. What is the missing numerator?`, answer: n,
+      : { text: `${name} shades ${n * k}/${d * k} of a ${what}. The same amount is ?/${d}. What is the missing numerator?`, answer: n,
           mistakes: [m(n * k, "kept the numerator the same"), m(n * k - k, "subtracted instead of dividing"), m(n * k - (d * k - d), "took away what was taken from the bottom")] };
   }),
   T("q3-area", 3, "3.MD.C.7", (c) => {
@@ -342,9 +343,11 @@ const G4: Template[] = [
     return { text: "Put these decimals in order from least to greatest.", answer: items.join(", "), items, format: "order", mistakes: [] };
   }),
   T("q4-oddone", 4, "4.NF.A.1", ({ ri, pick, shuffle }) => {
-    const d = pick([2, 3, 4, 5]), n = ri(1, d - 1), ks = shuffle([1, 2, 3, 4, 5]).slice(0, 3), j = pick([2, 3, 4].filter((x) => !ks.includes(x)).concat([6]));
-    const odd = ri(0, 1) ? `${n * j + 1}/${d * j}` : `${n * j}/${d * j + 1}`;
-    return { text: "Which fraction is not equal to the others?", answer: odd, format: "oddone",
+    // Massachusetts Grade 4 denominators: 2, 3, 4, 5, 6, 8, 10, 12 and 100.
+    const d = pick([2, 3, 4]), n = pick(Array.from({ length: d - 1 }, (_, i) => i + 1).filter((x) => gcd(x, d) === 1));
+    const times = [2, 3, 4, 5, 6, 8, 10, 12].filter((x) => x % d === 0).map((x) => x / d), ks = shuffle(times).slice(0, 3), j = pick(times);
+    const top = ri(0, 1) && n * j + 1 < d * j ? n * j + 1 : n * j - 1 || n * j + 1;
+    return { text: "Which fraction is not equal to the others?", answer: `${top}/${d * j}`, format: "oddone",
       mistakes: ks.map((k) => m(`${n * k}/${d * k}`, `equal to ${n}/${d}`)) };
   }),
   T("q4-blank", 4, "4.NBT.A.1", ({ shuffle, ri }) => {

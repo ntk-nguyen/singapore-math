@@ -147,9 +147,9 @@ const G4: Template[] = [
       ] };
   }),
   T("q4-multi-equiv", 4, "4.NF.A.1", (c) => {
-    let a = c.ri(1, 4), b = c.ri(a + 1, c.by([5, 6, 8]));
-    while (gcd(a, b) !== 1) { a = c.ri(1, 4); b = c.ri(a + 1, c.by([5, 6, 8])); }
-    const [k1, k2] = c.shuffle([2, 3, 4, 5]).slice(0, 2);
+    // Equal fractions whose denominators stay in the Massachusetts Grade 4 list (2, 3, 4, 5, 6, 8, 10, 12, 100).
+    const b = c.pick(c.by([[2, 3, 4], [2, 3, 4, 5], [3, 4, 5]] as const)), a = c.pick(Array.from({ length: b - 1 }, (_, i) => i + 1).filter((x) => gcd(x, b) === 1));
+    const [k1, k2] = c.shuffle([2, 3, 4, 5, 6, 8, 10, 12, 100].filter((x) => x > b && x % b === 0).map((x) => x / b)).slice(0, 2);
     return { text: `Which fractions are equal to ${a}/${b}?`, format: "multi", answer: "",
       right: [`${a * k1}/${b * k1}`, `${a * k2}/${b * k2}`],
       mistakes: [m(`${a + k1}/${b + k1}`, "added the same number to the top and bottom"), m(`${a * k1}/${b}`, "multiplied only the top"), m(`${a}/${b * k2}`, "multiplied only the bottom"), m(`${b}/${a + b}`, "mixed up the parts")] };
