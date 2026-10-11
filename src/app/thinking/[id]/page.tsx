@@ -7,7 +7,7 @@ import { FigureView } from "@/components/Figure";
 import { PracticeRound } from "@/components/PracticeRound";
 import { useRemember } from "@/components/Progress";
 import { Solution } from "@/components/QuestionCard";
-import type { Question } from "@/lib/questions";
+import { gradeName, type Question } from "@/lib/questions";
 import { AREAS, getThinkTopic, isFreeTopic } from "@/lib/thinking";
 
 interface Served {
@@ -31,7 +31,7 @@ export default function ThinkingTopicPage() {
     <div className="stack">
       <div className="row">
         <div className="spacer">
-          <p className="eyebrow">Grade {topic.grade} · {AREAS.find((a) => a.id === topic.area)!.title} · {isFreeTopic(topic) ? "Free" : "Pro plan"}</p>
+          <p className="eyebrow">{gradeName(topic.grade)} · {AREAS.find((a) => a.id === topic.area)!.title} · {isFreeTopic(topic) ? "Free" : "Pro plan"}</p>
           <h2>{topic.title}</h2>
         </div>
         <Link className="btn ghost" href="/thinking">All topics</Link>

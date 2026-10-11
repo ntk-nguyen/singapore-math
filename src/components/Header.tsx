@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { GRADES, type Grade } from "@/lib/questions";
+import { type Grade, gradeName, GRADES } from "@/lib/questions";
 import { CrownIcon, FlameIcon, StarIcon } from "./Icons";
 import { Logo } from "./Logo";
 import { ProfileSwitcher } from "./Profiles";
@@ -42,7 +42,7 @@ export function Header() {
             <span className="sr-only">Grade</span>
             <select id="gradeSel" value={grade} onChange={(e) => setGrade(Number(e.target.value) as Grade)}>
               {GRADES.map((g) => (
-                <option key={g} value={g}>Grade {g}</option>
+                <option key={g} value={g}>{gradeName(g)}</option>
               ))}
             </select>
           </label>

@@ -6,7 +6,7 @@ import { CrownIcon } from "@/components/Icons";
 import { Paywall } from "@/components/Paywall";
 import { useProgress } from "@/components/Progress";
 import { usePlan } from "@/components/usePlan";
-import { GRADES, type Grade } from "@/lib/questions";
+import { type Grade, gradeName, GRADES } from "@/lib/questions";
 import { AREAS, isFreeTopic, MP, THINKING_TOPICS } from "@/lib/thinking";
 
 export default function ThinkingPage() {
@@ -14,7 +14,7 @@ export default function ThinkingPage() {
   const [plan] = usePlan();
   const [picked, setPicked] = useState<Grade | null>(null);
   const [paywall, setPaywall] = useState(false);
-  const shown = picked ?? grade;
+  const shown = picked ?? (Math.max(grade, 1) as Grade);
   const topics = THINKING_TOPICS.filter((t) => t.grade === shown);
 
   return (
@@ -27,12 +27,15 @@ export default function ThinkingPage() {
         </p>
       </div>
       <div className="row" role="group" aria-label="Grade">
-        {GRADES.map((g) => (
+        {GRADES.filter((g) => g > 0).map((g) => (
           <button key={g} className={`chip${g === shown ? " on" : ""}`} aria-pressed={g === shown} onClick={() => setPicked(g)}>
-            Grade {g}
+            {gradeName(g)}
           </button>
         ))}
       </div>
+      {grade === 0 && picked == null && (
+        <p className="notice">Data & thinking starts in Grade 1. Kindergarten shapes, measuring and sorting are in <Link href="/kindergarten">Kindergarten</Link>.</p>
+      )}
       {AREAS.map((area) => {
         const list = topics.filter((t) => t.area === area.id);
         if (!list.length) return null;

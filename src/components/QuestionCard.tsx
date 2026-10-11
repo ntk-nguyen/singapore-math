@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { FORMAT_LABEL, formatOf, inputOf, isRight, partRight, PICK_SEP } from "@/lib/formats";
-import type { Question } from "@/lib/questions";
+import { gradeName, type Question } from "@/lib/questions";
+import { readsAloud, spokenText } from "@/lib/speech";
 import { BarModel } from "./BarModel";
 import { FigureView } from "./Figure";
 import { MethodView } from "./Method";
@@ -48,13 +49,14 @@ export function QuestionCard({
   };
 
   return (
-    <div className="qcard">
+    <div className={q.grade === 0 ? "qcard k" : "qcard"}>
       <span className="std">
-        Grade {q.grade} · CCSS {q.std}
+        {gradeName(q.grade)} · CCSS {q.std}
         {format !== "choice" && <span className="fmt">{FORMAT_LABEL[format]}</span>}
       </span>
       <p className="qtext">{q.text}</p>
       {q.ask && <p className="qask">{q.ask}</p>}
+      {readsAloud(q) && <ReadAloud text={spokenText(q)} />}
       {q.figure && <FigureView figure={q.figure} />}
       {format === "model" && q.model && <BarModel spec={q.model} />}
       {(q.model || q.method || q.steps) && (showModel ? (
@@ -93,6 +95,34 @@ function miss(q: Question, given: string): string {
     return `Not quite: ${parts.filter((p, i) => partRight(p, picks[i] ?? "")).length} of ${parts.length} parts right.`;
   }
   return `Not quite. The answer is ${q.answer}.${q.explain ? ` ${q.explain}` : ""}`;
+}
+
+const noSubscribe = () => () => {};
+
+/** "Read it to me": says the question and its choices out loud, for children still learning to read. */
+function ReadAloud({ text }: { text: string }) {
+  const [speaking, setSpeaking] = useState(false);
+  // Speech is only in the browser (never on the server render), and stops when the question changes.
+  const can = useSyncExternalStore(noSubscribe, () => "speechSynthesis" in window, () => false);
+  useEffect(() => () => {
+    if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  }, [text]);
+  if (!can) return null;
+  const say = () => {
+    const synth = window.speechSynthesis;
+    synth.cancel();
+    if (speaking) return setSpeaking(false);
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.9;
+    u.onend = u.onerror = () => setSpeaking(false);
+    setSpeaking(true);
+    synth.speak(u);
+  };
+  return (
+    <button type="button" className="readaloud" aria-pressed={speaking} onClick={say}>
+      <span aria-hidden="true">🔊</span>{speaking ? "Stop" : "Read it to me"}
+    </button>
+  );
 }
 
 function TypeIn({ done, onSubmit }: { done: boolean; onSubmit: (v: string) => void }) {

@@ -10,13 +10,13 @@ const PRO_TESTS = TESTS.length - FREE_TESTS;
 
 const HIGHLIGHTS = [
   ["Bar models", "Concrete, pictorial, abstract"],
-  ["Placement check", "Adaptive across Grades 1–8"],
+  ["Placement check", "Adaptive from Kindergarten to Grade 8"],
   ["Common Core", "Every question is tagged"],
   ["Worked solutions", "Step by step, every time"],
 ];
 
 const ROWS: [string, string, string][] = [
-  ["Bar model lessons, Grades 1–8", "yes", "yes"],
+  ["Bar model lessons, K–8", "yes", "yes"],
   ["Number skills, fractions and decimals", "yes", "yes"],
   ["Play and times tables", "yes", "yes"],
   ["Word problems and solve for x", "Easy level", "Easy, intermediate, advanced"],
@@ -30,7 +30,7 @@ const FAQ = [
   ["Can I cancel any time?", "Yes. Cancel from the Parents page before the 7-day trial ends and nothing is charged. After that the plan runs month to month."],
   ["Who should check out?", "A grown-up. Children never see a card form, and payment happens on Stripe’s own page. We never see card details."],
   ["Is this charging real money?", "Not yet. Payments run in Stripe test mode while MathBridge is in preview, so no real card is charged."],
-  ["What grades does MathBridge cover?", "Grades 1 to 8, with every question mapped to a Common Core standard so results line up with US grade levels."],
+  ["What grades does MathBridge cover?", "Kindergarten to Grade 8, with every question mapped to a Common Core standard so results line up with US grade levels."],
 ];
 
 function Cell({ v }: { v: string }) {
@@ -42,7 +42,7 @@ export default function ProPage() {
   return (
     <div className="stack pro-page">
       <section className="pro-hero">
-        <p className="pill-note">Singapore method · Common Core aligned · Grades 1–8</p>
+        <p className="pill-note">Singapore method · Common Core aligned · Grades K–8</p>
         <h1>
           Unlock the full power of <span>Singapore Math</span>
         </h1>

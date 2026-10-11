@@ -2,23 +2,25 @@
 
 import { useState } from "react";
 import type { Lesson } from "@/lib/lessons";
+import { gradeName } from "@/lib/questions";
 import { BarModel } from "./BarModel";
 import { confetti } from "./Confetti";
 import { useProgress } from "./Progress";
 
 function BondSlider({ lesson }: { lesson: Lesson }) {
-  const [a, setA] = useState(3);
+  const w = lesson.whole ?? 10;
+  const [a, setA] = useState(Math.min(3, w - 1));
   const { setRecent } = useProgress();
-  const b = 10 - a;
+  const b = w - a;
   return (
     <>
-      <BarModel spec={{ t: "bond", w: 10, p: [a, b] }} />
-      <input type="range" min={0} max={10} value={a} aria-label="First part" onChange={(e) => {
+      <BarModel spec={{ t: "bond", w, p: [a, b] }} />
+      <input type="range" min={0} max={w} value={a} aria-label="First part" onChange={(e) => {
           setA(Number(e.target.value));
           setRecent({ href: `/lessons#${lesson.id}`, title: lesson.title });
         }} />
       <p className="mono">
-        {a} + {b} = 10 · 10 − {a} = {b}
+        {a} + {b} = {w} · {w} − {a} = {b}
       </p>
     </>
   );
@@ -53,7 +55,7 @@ export function LessonCard({ lesson, current }: { lesson: Lesson; current: boole
     <section id={lesson.id} className={`panel anchor${current ? " current" : ""}`} aria-labelledby={`${lesson.id}-title`}>
       <div className="row">
         <p className="eyebrow spacer">
-          Grade {lesson.grade}
+          {gradeName(lesson.grade)}
           {current ? " · Your grade" : ""}
         </p>
         <span className="std" title="Common Core standard">{lesson.std}</span>

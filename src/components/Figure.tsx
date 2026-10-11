@@ -47,7 +47,80 @@ export function FigureView({ figure }: { figure: Figure }) {
           <pre className="code">{figure.lines.join("\n")}</pre>
         </figure>
       );
+    case "pics":
+      return <Pictures f={figure} />;
+    case "frame":
+      return <TenFrames f={figure} />;
+    case "shape":
+      return <ShapeView f={figure} />;
   }
+}
+
+/** Big pictures to count, in groups of five so they are easy to keep track of. Crossed-out ones are taken away. */
+function Pictures({ f }: { f: Extract<Figure, { t: "pics" }> }) {
+  return (
+    <figure className="figure pics">
+      {f.rows.map((r, i) => {
+        const gone = r.gone ?? 0, keep = r.icons.length - gone;
+        const fives = Array.from({ length: Math.ceil(r.icons.length / 5) }, (_, k) => r.icons.slice(5 * k, 5 * k + 5));
+        return (
+          <div key={i} className="pics-row" aria-label={`${r.label ? `${r.label}: ` : ""}${r.icons.length} pictures${gone ? `, ${gone} crossed out` : ""}`}>
+            {r.label && <span className="pics-label">{r.label}</span>}
+            <span className="pics-icons" aria-hidden="true">
+              {fives.map((five, k) => (
+                <span key={k} className="pics-five">
+                  {five.map((icon, j) => <span key={j} className={5 * k + j >= keep ? "pic gone" : "pic"}>{icon}</span>)}
+                </span>
+              ))}
+            </span>
+          </div>
+        );
+      })}
+    </figure>
+  );
+}
+
+/** One or two ten frames: 2 rows of 5 boxes, filled left to right, top row first. */
+function TenFrames({ f }: { f: Extract<Figure, { t: "frame" }> }) {
+  return (
+    <figure className="figure frames" aria-label={`${f.frames === 1 ? "A ten frame" : "Two ten frames"} with ${f.filled} dots`}>
+      {Array.from({ length: f.frames }, (_, k) => (
+        <div key={k} className="tenframe" aria-hidden="true">
+          {Array.from({ length: 10 }, (_, i) => <span key={i} className={10 * k + i < f.filled ? "cell on" : "cell"} />)}
+        </div>
+      ))}
+    </figure>
+  );
+}
+
+const SHAPE_FILL: Record<string, string> = { red: "#ef5350", blue: "#42a5f5", green: "#66bb6a", yellow: "#ffca28", purple: "#ab47bc", orange: "#ffa726" };
+
+/** Corner points of a regular polygon with `n` sides, flat side down, centred at (60, 60). */
+function polygon(n: number, r: number): string {
+  return Array.from({ length: n }, (_, i) => {
+    const a = Math.PI / 2 + Math.PI / n + (2 * Math.PI * i) / n;
+    return `${(60 + r * Math.cos(a)).toFixed(1)},${(60 + r * Math.sin(a)).toFixed(1)}`;
+  }).join(" ");
+}
+
+/** A flat shape, big, in a bright color, sometimes turned so a child learns a turned square is still a square. */
+function ShapeView({ f }: { f: Extract<Figure, { t: "shape" }> }) {
+  const props = { fill: SHAPE_FILL[f.color], className: "shape-fill" };
+  const body = {
+    circle: <circle cx={60} cy={60} r={46} {...props} />,
+    square: <rect x={18} y={18} width={84} height={84} rx={3} {...props} />,
+    rectangle: <rect x={8} y={32} width={104} height={56} rx={3} {...props} />,
+    triangle: <polygon points={polygon(3, 52)} transform="translate(0 8)" {...props} />,
+    pentagon: <polygon points={polygon(5, 50)} {...props} />,
+    hexagon: <polygon points={polygon(6, 50)} {...props} />,
+  }[f.shape];
+  return (
+    <figure className="figure shape">
+      <svg viewBox="0 0 120 120" role="img" aria-label={`A ${f.color} shape`}>
+        <g transform={`rotate(${f.turn} 60 60)`}>{body}</g>
+      </svg>
+    </figure>
+  );
 }
 
 function BarGraph({ f }: { f: Extract<Figure, { t: "bar" }> }) {

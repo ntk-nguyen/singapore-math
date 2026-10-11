@@ -7,6 +7,7 @@ import { MethodView } from "@/components/Method";
 import { useProgress, useRemember } from "@/components/Progress";
 import { PracticeRound } from "@/components/PracticeRound";
 import { getTopic, methodQuestion, SYMBOL, type Topic } from "@/lib/arithmetic";
+import { gradeName } from "@/lib/questions";
 
 export default function TopicPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +26,7 @@ export default function TopicPage() {
     <div className="stack">
       <div className="row">
         <div className="spacer">
-          <p className="eyebrow">Grade {topic.grade} · Number skills</p>
+          <p className="eyebrow">{gradeName(topic.grade)} · Number skills</p>
           <h2>{topic.title}</h2>
         </div>
         <Link className="btn ghost" href="/number-skills">All skills</Link>

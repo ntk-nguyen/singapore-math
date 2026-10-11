@@ -4,6 +4,9 @@ import { gradeCatalog } from "./catalog";
 import { FRACTION_TOPICS } from "./fractions";
 import { LESSONS } from "./lessons";
 import { GRADES } from "./questions";
+import { getKTopic, K, kTopicQuestion, K_TOPICS } from "./quickfire-k";
+import { seeded } from "./rng";
+import { checkQuestion } from "./templates";
 import { THINKING_TOPICS } from "./thinking";
 
 describe("grade catalog", () => {
@@ -34,6 +37,25 @@ describe("grade catalog", () => {
     const paid = GRADES.flatMap((g) => gradeCatalog(g).flatMap((d) => d.items)).filter((i) => !i.free);
     expect(paid.length).toBeGreaterThan(0);
     for (const i of paid) expect(["/problem-solving", "/thinking"]).toContain(i.href);
+  });
+
+  it("gives Kindergarten its own free topics, with every Kindergarten question type in exactly one", () => {
+    const items = gradeCatalog(0).flatMap((d) => d.items);
+    expect(items.every((i) => i.free)).toBe(true);
+    for (const i of items.filter((x) => !x.lessonId)) expect(getKTopic(i.href.replace("/kindergarten/", "")), i.href).toBeDefined();
+    expect(items.filter((x) => !x.lessonId)).toHaveLength(K_TOPICS.length);
+    for (const t of K) expect(K_TOPICS.filter((k) => k.templates.includes(t.id)), t.id).toHaveLength(1);
+  });
+
+  it("makes sound practice questions for every Kindergarten topic", () => {
+    const r = seeded(5);
+    for (const t of K_TOPICS) {
+      for (let i = 0; i < 50; i++) {
+        const q = kTopicQuestion(t, r);
+        expect(q.grade).toBe(0);
+        expect(checkQuestion(q), `${t.id}: ${q.text}`).toEqual([]);
+      }
+    }
   });
 
   it("skips empty areas", () => {

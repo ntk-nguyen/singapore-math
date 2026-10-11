@@ -3,7 +3,7 @@ import { methodQuestion, TOPICS } from "./arithmetic";
 import { fractionQuestion, FRACTION_TOPICS } from "./fractions";
 import { generators, KINDS, LEVELS, MIDDLE_WORD, practiceSet, type Kind } from "./problems";
 import { QUICK } from "./quickfire";
-import { GRADES, makeQuestion, playDeck, type Question } from "./questions";
+import { gradeCode, GRADES, makeQuestion, playDeck, type Question } from "./questions";
 import { deck, seeded } from "./rng";
 import { checkQuestion, drawFresh, noRepeats, questionKey, render, valueOf, type Template, type Tier } from "./templates";
 import { buildPaper, TESTS } from "./tests";
@@ -27,7 +27,7 @@ describe("template library", () => {
   });
 
   it("tags every template with a Common Core code for its grade", () => {
-    for (const t of ALL) expect(t.std, t.id).toMatch(new RegExp(`^${t.grade}\\.[A-Z]{1,3}\\.[A-D]\\.\\d+[a-z]?$`));
+    for (const t of ALL) expect(t.std, t.id).toMatch(new RegExp(`^${gradeCode(t.grade)}\\.[A-Z]{1,3}\\.[A-D]\\.\\d+[a-z]?$`));
   });
 
   // A large batch per template at every difficulty tier.

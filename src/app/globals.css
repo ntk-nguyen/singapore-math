@@ -195,6 +195,31 @@ p { margin: 0; }
 .pict-row { display: grid; grid-template-columns: 80px 1fr; gap: 10px; align-items: center; }
 .pict-label { font-weight: 600; font-size: 0.9rem; }
 .pict-dots { color: var(--bar-b); font-size: 1.35rem; letter-spacing: 0.2em; line-height: 1; }
+
+/* Kindergarten: big pictures to count, ten frames and shapes. */
+.pics { gap: 10px; }
+.pics-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.pics-label { font-weight: 700; font-size: 1rem; min-width: 84px; }
+.pics-icons { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.pics-five { display: inline-flex; gap: 4px; }
+.pic { font-size: 2.1rem; line-height: 1.1; position: relative; }
+.pic.gone { opacity: 0.45; }
+.pic.gone::after { content: ""; position: absolute; left: -2px; right: -2px; top: 50%; border-top: 4px solid var(--bad-fill); transform: rotate(-35deg); border-radius: 2px; }
+.frames { flex-direction: row; flex-wrap: wrap; gap: 14px; }
+.tenframe { display: grid; grid-template-columns: repeat(5, 40px); grid-template-rows: repeat(2, 40px); border: 3px solid var(--ink); border-radius: 6px; background: var(--surface); }
+.tenframe .cell { border: 1.5px solid var(--line-strong); display: grid; place-items: center; }
+.tenframe .cell.on::after { content: ""; width: 26px; height: 26px; border-radius: 50%; background: var(--bar-b); }
+.shape svg { width: 150px; height: 150px; display: block; margin: 0 auto; }
+.shape-fill { stroke: var(--ink); stroke-width: 2.5; stroke-linejoin: round; }
+
+/* Kindergarten question cards: bigger buttons to tap and a read-aloud button. */
+.qcard.k .qtext { font-size: 1.35rem; }
+.qcard.k .choices { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.qcard.k .choice { min-height: 76px; font-size: 1.9rem; border-radius: 20px; }
+.qcard.k .choices.wide .choice { font-size: 1.3rem; text-align: center; }
+.readaloud { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; font: 700 1rem var(--body); padding: 10px 16px; min-height: 48px; border-radius: 999px; border: 1.5px solid var(--line-strong); background: var(--surface); color: var(--ink); cursor: pointer; }
+.readaloud[aria-pressed="true"] { border-color: var(--sky); }
+@media print { .readaloud { display: none; } }
 .ftable { border-collapse: collapse; font-variant-numeric: tabular-nums; }
 .ftable th, .ftable td { border: 1px solid var(--line-strong); padding: 6px 12px; text-align: center; }
 .ftable thead th { background: var(--surface-mid); font-size: 0.85rem; }

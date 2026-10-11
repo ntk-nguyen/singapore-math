@@ -7,6 +7,7 @@ import { PracticeRound } from "@/components/PracticeRound";
 import { useProgress, useRemember } from "@/components/Progress";
 import { Solution } from "@/components/QuestionCard";
 import { fractionQuestion, getFracTopic, type FracTopic } from "@/lib/fractions";
+import { gradeName } from "@/lib/questions";
 
 export default function FractionTopicPage() {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +26,7 @@ export default function FractionTopicPage() {
     <div className="stack">
       <div className="row">
         <div className="spacer">
-          <p className="eyebrow">Grade {topic.grade} · Fractions & decimals</p>
+          <p className="eyebrow">{gradeName(topic.grade)} · Fractions & decimals</p>
           <h2>{topic.title}</h2>
         </div>
         <Link className="btn ghost" href="/fractions">All topics</Link>

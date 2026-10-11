@@ -5,6 +5,7 @@ import { ManageChildren, ParentGate } from "@/components/Profiles";
 import { useProgress, type Profile } from "@/components/Progress";
 import { usePlan } from "@/components/usePlan";
 import { lastWeek, streak, XP_PER_STAR } from "@/lib/activity";
+import { gradeName } from "@/lib/questions";
 
 interface TestName {
   id: string;
@@ -57,7 +58,7 @@ export function Children({ tests }: { tests: TestName[] }) {
                   <tr key={p.id}>
                     <td>{p.avatar} {p.name}{p.id === active.id ? " (now)" : ""}</td>
                     <td>{p.progress.grade}</td>
-                    <td>{p.progress.placement ? `Grade ${p.progress.placement}` : "Not taken"}</td>
+                    <td>{p.progress.placement != null ? gradeName(p.progress.placement) : "Not taken"}</td>
                     <td>{streak(p.progress.days, now)}</td>
                     <td>{w.xp}</td>
                     <td>{w.active} of 7</td>
@@ -90,8 +91,8 @@ function ChildDetail({ p, tests, now }: { p: Profile; tests: TestName[]; now: Da
   const w = weekOf(p, now);
   const scores = tests.filter((t) => p.progress.best[t.id] !== undefined);
   const stats: [string, string][] = [
-    ["Grade", `Grade ${p.progress.grade}`],
-    ["Placement", p.progress.placement ? `Grade ${p.progress.placement}` : "Not taken"],
+    ["Grade", gradeName(p.progress.grade)],
+    ["Placement", p.progress.placement != null ? gradeName(p.progress.placement) : "Not taken"],
     ["Streak", `${streak(p.progress.days, now)} days`],
     ["XP this week", String(w.xp)],
     ["Days active", `${w.active} of 7`],

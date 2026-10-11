@@ -9,8 +9,8 @@ import { lastWeek, QUEST_GOAL } from "@/lib/activity";
 import { gradeCatalog, type Domain, type DomainId } from "@/lib/catalog";
 import { LESSONS } from "@/lib/lessons";
 import { pathway, skill, type PathItem, type Unit } from "@/lib/pathway";
-import { GRADES } from "@/lib/questions";
-import { TESTS } from "@/lib/tests";
+import { gradeCode, gradeName, GRADES } from "@/lib/questions";
+import { TESTS, testOffered } from "@/lib/tests";
 import { MASTERED } from "@/lib/timesTables";
 import {
   AlgebraIcon, ArrowIcon, BarsIcon, BoltIcon, ChartIcon, CheckIcon, CrownIcon, FlameIcon, FractionIcon, GridIcon, LockIcon,
@@ -61,22 +61,22 @@ function Hero({ units }: { units: Unit[] }) {
   const lesson = LESSONS.find((l) => l.grade === grade)!;
   const current = units.find((u) => u.state === "current");
   // Saved progress is read after the first render; until then, and for a brand-new child, ask for the grade.
-  const firstVisit = !ready || (!recent && !placement && stars === 0);
+  const firstVisit = !ready || (!recent && placement == null && stars === 0);
   const quest = Math.min(today.done, QUEST_GOAL);
   const left = QUEST_GOAL - quest;
 
   return (
     <section className="banner" aria-labelledby="hero-title">
       <div>
-        <p className="badge"><SparkIcon />Singapore Math · Grade {grade}</p>
+        <p className="badge"><SparkIcon />Singapore Math · {gradeName(grade)}</p>
         {firstVisit ? (
           <>
             <h1 id="hero-title">What grade are you in?</h1>
             <div className="gradepick" role="group" aria-label="Grade">
               {GRADES.map((g) => (
                 <button key={g} className={`gchip${g === grade ? " on" : ""}`} aria-pressed={g === grade} onClick={() => setGrade(g)}>
-                  <small>Grade</small>
-                  {g}
+                  <small>{g === 0 ? "Kinder" : "Grade"}</small>
+                  {gradeCode(g)}
                 </button>
               ))}
             </div>
@@ -146,7 +146,7 @@ function Pathway({ units }: { units: Unit[] }) {
         <span className="ic" aria-hidden="true"><PathIcon /></span>
         <div className="spacer">
           <h2 id="path-title">Curriculum pathway</h2>
-          <p className="muted small">Grade {grade} · Concrete · Pictorial · Abstract</p>
+          <p className="muted small">{gradeName(grade)} · Concrete · Pictorial · Abstract</p>
         </div>
         {currentIdx >= 0 ? (
           <span className="pill sky"><i className="dot" />Unit {currentIdx + 1} of {units.length} active</span>
@@ -272,7 +272,7 @@ function Skills({ units, domains }: { units: Unit[]; domains: Domain[] }) {
     <section className="sidecard" aria-labelledby="skills-title">
       <div className="ch">
         <h3 id="skills-title" className="spacer">Skill diagnostics</h3>
-        <span className="pill sky">Grade {grade}</span>
+        <span className="pill sky">{gradeName(grade)}</span>
       </div>
       {rows.length >= 3 && (
         <svg className="radar" viewBox="0 0 220 220" role="img" aria-label={rows.map((r) => `${r.title}: ${r.v ?? 0}%`).join(", ")}>
@@ -328,14 +328,17 @@ function MorePractice() {
   const { grade, facts, placement, ready } = useProgress();
   const [plan] = usePlan();
   const mastered = Object.values(facts).filter((m) => m >= MASTERED).length;
-  const freeTests = TESTS.filter((t) => t.free).length;
-  const paidTests = TESTS.length - freeTests;
+  const offered = TESTS.filter((t) => testOffered(t, grade));
+  const freeTests = offered.filter((t) => t.free).length;
+  const paidTests = offered.length - freeTests;
   const rows = [
-    { href: "/play", icon: <BoltIcon />, tone: "amber", title: "Play", sub: `Ten quick Grade ${grade} questions · 10 XP each` },
-    { href: "/times-tables", icon: <GridIcon />, tone: "", title: "Times tables", sub: ready ? `${mastered} of 78 facts mastered` : "Tricks and a sprint for 2 to 12" },
+    { href: "/play", icon: <BoltIcon />, tone: "amber", title: "Play", sub: `Ten quick ${gradeName(grade)} questions · 10 XP each` },
+    grade === 0
+      ? { href: "/kindergarten", icon: <GridIcon />, tone: "", title: "Kindergarten", sub: "Count, add, take away and shapes" }
+      : { href: "/times-tables", icon: <GridIcon />, tone: "", title: "Times tables", sub: ready ? `${mastered} of 78 facts mastered` : "Tricks and a sprint for 2 to 12" },
     {
       href: "/tests", icon: <TargetIcon />, tone: "", title: "Practice tests",
-      sub: placement ? `Placement: Grade ${placement} · ${plan?.pro ? "all unlocked" : `${freeTests} free, ${paidTests} with Pro`}` : `${freeTests} free, ${paidTests} more with Pro`,
+      sub: placement != null ? `Placement: ${gradeName(placement)} · ${plan?.pro ? "all unlocked" : `${freeTests} free, ${paidTests} with Pro`}` : `${freeTests} free, ${paidTests} more with Pro`,
     },
   ];
   return (

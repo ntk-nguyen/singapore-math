@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { hasProPlan } from "@/lib/entitlement";
-import { isGrade } from "@/lib/questions";
-import { attemptSeed, buildPaper, getTest, isDifficulty } from "@/lib/tests";
+import { gradeName, isGrade } from "@/lib/questions";
+import { attemptSeed, buildPaper, getTest, isDifficulty, testOffered } from "@/lib/tests";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,8 @@ export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }
   if (!test || id === "placement") return NextResponse.json({ error: "Unknown test." }, { status: 404 });
   const params = new URL(req.url).searchParams;
   const grade = Number(params.get("grade") ?? 3);
-  if (!isGrade(grade)) return NextResponse.json({ error: "Grade must be 1 to 8." }, { status: 400 });
+  if (!isGrade(grade)) return NextResponse.json({ error: "Grade must be 0 (Kindergarten) to 8." }, { status: 400 });
+  if (!testOffered(test, grade)) return NextResponse.json({ error: `There is no ${test.name.toLowerCase()} for ${gradeName(grade)}.` }, { status: 404 });
   if (!test.free && !(await hasProPlan())) {
     return NextResponse.json({ error: "This test needs the Pro plan." }, { status: 402 });
   }
