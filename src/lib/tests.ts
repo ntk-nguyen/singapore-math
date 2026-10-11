@@ -1,7 +1,7 @@
 import { BANK, nearGrade, type Item, type Strand } from "./bank";
-import { generatorStds, generatorTiers, makeQuestion, type Grade, type Question } from "./questions";
+import { generatorStds, generatorTiers, makeQuestion, type Format, type Grade, type Question } from "./questions";
 import { helpers, seeded, type Rng } from "./rng";
-import { formatOf, vary } from "./formats";
+import { formatOf, pointsFor, vary } from "./formats";
 import { NAMES, pickFresh, questionKey } from "./templates";
 
 export interface TestInfo {
@@ -20,6 +20,12 @@ export interface TestInfo {
    * the grade, as the free tests and Play use.
    */
   pool?: (item: Item) => boolean;
+  /**
+   * Built like the Massachusetts MCAS from Grade 3 up (see `BLUEPRINT`): two sessions,
+   * points shared out by reporting category, and two show-your-work questions. Below
+   * Grade 3, where there is no state test, the paper is drawn from `pool` as usual.
+   */
+  blueprint?: boolean;
 }
 
 /** How hard a paper is. Standard is the usual mix; easy and hard lean that way. */
@@ -47,7 +53,8 @@ export const TESTS: TestInfo[] = [
     pool: (i) => i.strand === "word" },
   { id: "frac", free: false, name: "Fractions & ratio focus", length: 20, seed: 404, grades: [3, 4, 5, 6], desc: "Grades 3–6 fractions, decimals, ratio and percent, the core of Singapore Primary 4–6.",
     pool: (i) => fracDec(i) || (i.strand !== "computation" && /\.(NF|RP)\./.test(i.std)) },
-  { id: "state", free: false, name: "State test style (SBAC/PARCC mix)", length: 20, seed: 505, desc: "Mixed-strand practice in the style of end-of-year state tests: word problems, fractions, decimals, equations and quick-fire items.",
+  { id: "state", free: false, name: "State test style (MCAS blueprint)", length: 20, seed: 505, blueprint: true,
+    desc: "Grades 3–8: built like the Massachusetts MCAS, one of the most rigorous state tests. Two sessions, points weighted by reporting category, two show-your-work questions, and results by reporting category. Grades 7–8 may use a calculator in Session 2.",
     pool: (i) => i.strand !== "computation" },
   { id: "eoy", free: false, name: "End-of-year review", length: 25, seed: 606, desc: "25 questions covering every topic for the grade, including written computation.",
     pool: () => true },
@@ -59,6 +66,45 @@ export const TESTS: TestInfo[] = [
 
 /** The domain of a standard ("G" in 3.G.A.1, "NF" in 4.NF.B.3), which is what state tests report on. */
 export const areaOf = (std: string) => std.split(".")[1];
+
+export interface Category {
+  name: string;
+  /** The domains it covers ("OA" in 3.OA.A.1). */
+  areas: string[];
+  /** Share of the points, in percent. */
+  weight: number;
+}
+
+const C = (name: string, weight: number, ...areas: string[]): Category => ({ name, areas, weight });
+const OA = "Operations and algebraic thinking", NBT = "Number and operations in base ten", NF = "Fractions", MD = "Measurement and data", G = "Geometry";
+const RP = "Ratios and proportional relationships", NS = "The number system", EE = "Expressions and equations", SP = "Statistics and probability";
+
+/**
+ * MCAS reporting categories and their share of the points, Grades 3–8 (RICAS/MCAS test
+ * design; see docs in project files, mcas-alignment.md).
+ */
+export const BLUEPRINT: Partial<Record<Grade, Category[]>> = {
+  3: [C(OA, 30, "OA"), C(NBT, 15, "NBT"), C(NF, 20, "NF"), C(MD, 25, "MD"), C(G, 10, "G")],
+  4: [C(OA, 20, "OA"), C(NBT, 20, "NBT"), C(NF, 30, "NF"), C(MD, 20, "MD"), C(G, 10, "G")],
+  5: [C(OA, 15, "OA"), C(NBT, 30, "NBT"), C(NF, 25, "NF"), C(MD, 20, "MD"), C(G, 10, "G")],
+  6: [C(RP, 20, "RP"), C(NS, 20, "NS"), C(EE, 30, "EE"), C(G, 15, "G"), C(SP, 15, "SP")],
+  7: [C(RP, 20, "RP"), C(NS, 20, "NS"), C(EE, 25, "EE"), C(G, 15, "G"), C(SP, 20, "SP")],
+  8: [C("Number system, expressions and equations", 40, "NS", "EE"), C("Functions", 20, "F"), C(G, 30, "G"), C(SP, 10, "SP")],
+};
+
+/** The MCAS reporting category a standard is reported under at a grade, if the grade has a state test. */
+export function categoryOf(grade: Grade, std: string): string | undefined {
+  return BLUEPRINT[grade]?.find((c) => c.areas.includes(areaOf(std)))?.name;
+}
+
+/** Whether a test is built on the MCAS blueprint at this grade. */
+export const usesBlueprint = (test: TestInfo, grade: Grade) => !!test.blueprint && !!BLUEPRINT[grade];
+
+/** Blueprint papers come in two sessions of equal length, as MCAS does. */
+export const sessionOf = (i: number, n: number): 1 | 2 => (i < n / 2 ? 1 : 2);
+
+/** MCAS allows a calculator only in Session 2, and only in Grades 7 and 8. */
+export const calculatorAllowed = (grade: Grade, session: 1 | 2) => grade >= 7 && session === 2;
 
 export function getTest(id: string): TestInfo | undefined {
   return TESTS.find((t) => t.id === id);
@@ -191,6 +237,7 @@ function varyAfter(q: Question, prev: Question | undefined, r: Rng): Question {
  */
 export function buildPaper(test: TestInfo, selected: Grade, attempt: number = attemptSeed(), difficulty: Difficulty = "standard"): Question[] {
   const grade = testGrade(test, selected);
+  if (usesBlueprint(test, grade)) return buildBlueprint(test, grade, attempt, difficulty);
   const r = seeded(paperSeed(test, grade, attempt));
   const seen = new Set<string>(), shapes = new Set<string>();
   const { shuffle } = helpers(r);
@@ -245,5 +292,72 @@ export function buildPaper(test: TestInfo, selected: Grade, attempt: number = at
   }
   const out: Question[] = [];
   for (const q of ordered) out.push(varyAfter(q, out[out.length - 1], r));
+  return out;
+}
+
+/** The format a question type is always asked in (show-your-work, two-part...), from one sample. */
+const FORMAT_OF = new Map<string, Format>();
+function itemFormat(item: Item): Format {
+  if (!FORMAT_OF.has(item.id)) FORMAT_OF.set(item.id, formatOf(item.make(seeded(1))));
+  return FORMAT_OF.get(item.id)!;
+}
+
+/**
+ * A paper built like MCAS: two sessions of equal length, each ending with a show-your-work
+ * question, and a two-part question in Session 2. Every other question is worth one point,
+ * and they are shared out so each reporting category gets about its MCAS share of all the
+ * points. Within a session the questions run from easier to harder.
+ */
+function buildBlueprint(test: TestInfo, grade: Grade, attempt: number, difficulty: Difficulty): Question[] {
+  const r = seeded(paperSeed(test, grade, attempt));
+  const { shuffle } = helpers(r);
+  const seen = new Set<string>(), shapes = new Set<string>();
+  const shift = SHIFT[difficulty];
+  const cost = difficulty === "easy" ? questionScore : difficulty === "hard" ? (q: Question) => -questionScore(q) : undefined;
+  const cats = BLUEPRINT[grade]!;
+  const items = BANK.filter((i) => i.grade === grade && categoryOf(grade, i.std));
+  const draw = (list: Item[]) => {
+    let tries = 0;
+    const from = new Map<Question, Item>();
+    const q = pickVaried(seen, shapes, () => {
+      const it = list[Math.floor(tries++ / 5) % list.length], made = it.make(r, shift);
+      from.set(made, it);
+      return made;
+    }, cost);
+    return { q, score: 2 * from.get(q)!.rank + questionScore(q) };
+  };
+
+  // The big questions first: a show-your-work question to end each session, and a two-part one.
+  const crs = shuffle(items.filter((i) => itemFormat(i) === "cr"));
+  const twos = items.filter((i) => itemFormat(i) === "twopart");
+  const cr1 = draw([crs[0]]), cr2 = draw([crs[1 % crs.length]]);
+  const two = twos.length ? [draw(shuffle(twos))] : [];
+  const big = [cr1, cr2, ...two];
+
+  // Share the one-point questions out so each category's points come near its weight.
+  const singles = items.filter((i) => !["cr", "twopart"].includes(itemFormat(i)));
+  const slots = test.length - big.length;
+  const total = slots + big.reduce((s, b) => s + pointsFor(b.q), 0);
+  const open = cats.filter((c) => singles.some((i) => c.areas.includes(areaOf(i.std))));
+  const want = open.map((c) => Math.max(0, (c.weight / 100) * total - big.filter((b) => categoryOf(grade, b.q.std) === c.name).reduce((s, b) => s + pointsFor(b.q), 0)));
+  const sum = want.reduce((a, b) => a + b, 0) || 1;
+  const exact = want.map((w) => (w / sum) * slots);
+  const count = exact.map(Math.floor);
+  // Largest remainders take the slots left over.
+  exact.map((e, k) => [e - count[k], k]).sort((a, b) => b[0] - a[0]).slice(0, slots - count.reduce((a, b) => a + b, 0)).forEach(([, k]) => count[k]++);
+
+  // Categories take turns, so the two sessions get a similar mix.
+  const lists = open.map((c) => shuffle(singles.filter((i) => c.areas.includes(areaOf(i.std)))));
+  const turns: Item[][] = [];
+  for (let round = 0; turns.length < slots; round++) {
+    open.forEach((_, k) => {
+      if (round < count[k]) turns.push([...lists[k].slice(round % lists[k].length), ...lists[k].slice(0, round % lists[k].length)]);
+    });
+  }
+  const ones = turns.map(draw);
+  const s1 = ones.filter((_, k) => k % 2 === 0), s2 = [...ones.filter((_, k) => k % 2 === 1), ...two];
+  const inOrder = (l: { q: Question; score: number }[]) => l.map((d, i) => ({ ...d, i })).sort((a, b) => a.score - b.score || a.i - b.i).map((d) => d.q);
+  const out: Question[] = [];
+  for (const q of [...inOrder(s1), cr1.q, ...inOrder(s2), cr2.q]) out.push(varyAfter(q, out[out.length - 1], r));
   return out;
 }

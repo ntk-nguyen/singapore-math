@@ -91,6 +91,19 @@ const G3: Template[] = [
           mistakes: [m("Gardens with the same area always have the same perimeter.", "thought area decides perimeter"), m("Area and perimeter are always the same number.", "mixed up area and perimeter"), m("A longer garden always has a smaller area.", "thought length alone decides area")] },
       ] };
   }),
+  T("q3-cr-reading", 3, "3.OA.D.8", (c) => {
+    const n = c.name(), p = c.ri(2, c.by([5, 9, 10])), d = c.ri(2, c.by([5, 7, 9])), read = p * d, left = c.ri(3, c.by([20, 50, 90])), book = read + left;
+    return { text: `${n}'s book has ${book} pages. ${n} reads ${p} pages every day for ${d} days.`, format: "cr", answer: "", mistakes: [],
+      steps: [`Pages read: ${d} × ${p} = ${read}.`, `Pages left: ${book} − ${read} = ${left}.`, `Check: ${read} + ${left} = ${book}.`],
+      parts: [
+        { text: "Which equation shows L, the number of pages left to read?", answer: `L = ${book} − ${d} × ${p}`,
+          mistakes: [m(`L = ${book} − ${d} − ${p}`, "subtracted the days and the pages instead of multiplying"), m(`L = ${book} + ${d} × ${p}`, "added the pages read"), m(`L = (${book} − ${d}) × ${p}`, "subtracted before multiplying")] },
+        { text: `How many pages has ${n} read so far?`, format: "typein", answer: read,
+          mistakes: [m(p + d, "added instead of multiplying"), m(read + p, "counted one extra day"), m(read - p, "counted one day too few")] },
+        { text: "How many pages are left to read?", format: "typein", answer: left,
+          mistakes: [m(book - p, "took away only one day of reading"), m(book + read, "added the pages read"), m(book - p - d, "took away the days and the pages")] },
+      ] };
+  }),
 ];
 
 const ANGLE_KINDS = ["acute", "right", "obtuse", "straight"] as const;
@@ -172,6 +185,29 @@ const G4: Template[] = [
             : [m(`No, ${n} needs $${have - cost} more.`, "subtracted the wrong way round"), m(`Yes, with $${have} left.`, "did not take away the cost"), m(`Yes, with $${cost} left.`, "gave the cost, not what is left"), m(`No, ${n} needs $${cost} more.`, "forgot the money already saved")] },
       ] };
   }),
+  T("q4-cr-brownies", 4, "4.NF.A.2", (c) => {
+    // Two fractions with different denominators from the Grade 4 list, whose common denominator is at most 12.
+    const pairs = [[2, 4], [2, 8], [4, 8], [3, 6], [3, 12], [4, 12], [6, 12], [2, 6], [2, 10], [5, 10], [2, 3], [3, 4], [2, 12], [4, 6]] as const;
+    const [b, d] = c.shuffle([...c.pick(pairs)]), L = (b * d) / gcd(b, d);
+    const a = c.ri(1, b - 1);
+    let k = c.ri(1, d - 1);
+    if (a * d === k * b) k = k === d - 1 ? k - 1 : k + 1;
+    if (k < 1) k = 1;
+    const A = (a * L) / b, C = (k * L) / d, n1 = c.name(), n2 = c.name(), more = A > C ? n1 : n2;
+    const what = c.pick(["pan of brownies", "pizza", "tray of lasagna", "pan of cornbread"]);
+    return { text: `${n1} eats ${a}/${b} of a ${what}. ${n2} eats ${k}/${d} of another ${what} the same size.`, format: "cr", answer: "", mistakes: [],
+      steps: [`Write both with ${L} as the bottom number: ${a}/${b} = ${A}/${L} and ${k}/${d} = ${C}/${L}.`, `${Math.max(A, C)}/${L} > ${Math.min(A, C)}/${L}, so ${more} ate more, by ${Math.abs(A - C)} pieces of size 1/${L}.`, `Together: ${A}/${L} + ${C}/${L} = ${frac(A + C, L, true)}.`],
+      parts: [
+        { text: "Who ate more?", answer: more,
+          mistakes: [m(more === n1 ? n2 : n1, "compared the bottom numbers or the top numbers alone"), m("They ate the same amount.", "thought different fractions can't be compared"), m("You can't tell without cutting the pieces the same size.", "did not find a common denominator")] },
+        { text: "Which reason is correct?", answer: `With ${L} as the bottom number, ${n1} ate ${A}/${L} and ${n2} ate ${C}/${L}.`,
+          mistakes: [m(`${b > d ? n1 : n2}'s piece is bigger because ${Math.max(b, d)} is more than ${Math.min(b, d)}.`, "thought a bigger bottom number means more"), m(a === k ? `They ate the same, because both top numbers are ${a}.` : `${a > k ? n1 : n2} ate more because ${Math.max(a, k)} is more than ${Math.min(a, k)}.`, "compared only the top numbers"), m("Both are less than 1 whole, so they are the same.", "thought all fractions less than 1 are equal")] },
+        { text: `Cut each ${what} into ${L} equal pieces. How many more pieces did ${more} eat?`, format: "typein", answer: Math.abs(A - C),
+          mistakes: [m(Math.abs(a - k), "subtracted the top numbers before making the bottoms match"), m(A + C, "added instead of subtracting"), m(Math.abs(b - d), "subtracted the bottom numbers")] },
+        { text: `How much of a ${what} did they eat together?`, answer: frac(A + C, L, true),
+          mistakes: [m(`${a + k}/${b + d}`, "added the tops and added the bottoms"), m(frac(A + C, 2 * L, true), "added the bottom numbers too"), m(frac(Math.abs(A - C), L, true), "subtracted instead of adding")] },
+      ] };
+  }),
 ];
 
 const G5: Template[] = [
@@ -242,6 +278,26 @@ const G5: Template[] = [
           mistakes: [m(batches + 1, "rounded up past what the cups allow"), m(Math.floor(have / u), "divided by the top number only"), m(have * u, "multiplied instead of dividing")] },
         { text: `Why do ${k} batches need more than ${each} cups?`, answer: "Multiplying by a whole number greater than 1 makes the amount bigger.",
           mistakes: [m("Multiplying a fraction always makes it smaller.", "thought fractions shrink when multiplied"), m("The bottom number gets bigger, so the amount gets bigger.", "changed the bottom number"), m(`${k} batches need ${k} cups.`, "counted one cup per batch")] },
+      ] };
+  }),
+  T("q5-cr-trip", 5, "5.NBT.B.6", (c) => {
+    const cap = c.pick(c.by([[20, 24, 25, 30], [24, 30, 36, 40], [36, 40, 44, 48]] as const)), t = c.ri(3, 9);
+    let s = c.ri(50, c.by([90, 150, 250]));
+    if ((s + t) % cap === 0) s++;
+    const people = s + t, q = Math.floor(people / cap), r = people % cap, buses = q + 1, empty = buses * cap - people;
+    const price = c.ri(4, 12) + c.pick([0.25, 0.5, 0.75]), tp = price + c.pick([1, 2, 2.5]);
+    const cost = (x: number) => +x.toFixed(2);
+    return { text: `${s} students and ${t} teachers go on a field trip. Each bus holds ${cap} people. A ticket costs $${price.toFixed(2)} for a student and $${tp.toFixed(2)} for a teacher.`, format: "cr", answer: "", mistakes: [],
+      steps: [`${people} ÷ ${cap} = ${q} R ${r}.`, `${q} buses are full, and ${r} people still need a seat, so ${buses} buses are needed.`, `Seats: ${buses} × ${cap} = ${buses * cap}, so ${buses * cap} − ${people} = ${empty} seats are empty.`, `Tickets: ${s} × $${price.toFixed(2)} + ${t} × $${tp.toFixed(2)} = $${cost(s * price + t * tp).toFixed(2)}.`],
+      parts: [
+        { text: "How many buses are needed?", format: "typein", answer: buses,
+          mistakes: [m(q, "dropped the remainder"), m(Math.ceil(s / cap) === buses ? q + 2 : Math.ceil(s / cap), "left out the teachers"), m(r, "gave the remainder")] },
+        { text: "Which sentence explains the number of buses?", answer: `${people} ÷ ${cap} = ${q} R ${r}, so ${q} buses are full and 1 more bus carries the other ${r} people.`,
+          mistakes: [m(`${people} ÷ ${cap} = ${q} R ${r}, so ${q} buses are enough.`, "dropped the remainder"), m(`${people} ÷ ${cap} = ${q} R ${r}, so ${q + r} buses are needed.`, "added the remainder as buses"), m(`Only the students ride, so ${s} ÷ ${cap} buses are needed.`, "left out the teachers")] },
+        { text: "How many seats on the buses are empty?", format: "typein", answer: empty,
+          mistakes: [m(r, "gave the remainder, not the empty seats"), m(buses * cap, "gave all the seats"), m(empty + cap, "counted one bus too many")] },
+        { text: "What do all the tickets cost?", answer: cost(s * price + t * tp), form: "cents",
+          mistakes: [m(cost((s + t) * price), "charged everyone the student price"), m(cost(s * price + tp), "paid for only one teacher"), m(cost(s * tp + t * price), "swapped the two prices")] },
       ] };
   }),
 ];
@@ -352,6 +408,24 @@ const G6: Template[] = [
           mistakes: [m(stronger ? `${n}'s` : "The friend's", "compared the numbers of cups, not the ratios"), m("They taste the same", "thought adding one to a ratio keeps it the same"), m("You can't tell", "did not compare juice per cup of water")] },
       ] };
   }),
+  T("q6-cr-savings", 6, "6.EE.C.9", (c) => {
+    const n = c.name(), r = c.ri(2, c.by([6, 12, 25])), k = c.ri(3, c.by([8, 12, 20])), x = c.ri(3, c.by([8, 12, 20]));
+    let s = c.ri(5, c.by([20, 40, 80]));
+    if (s === r) s++;
+    const goal = s + r * (x - 1) + c.ri(1, r - 1);
+    return { text: `${n} has $${s} saved and adds $${r} every week.`, format: "cr", answer: "", mistakes: [],
+      steps: [`After w weeks: t = ${r}w + ${s}.`, `The total depends on the number of weeks, so w is the independent variable and t is the dependent one.`, `After ${k} weeks: ${r} × ${k} + ${s} = ${s + r * k}.`, `${r}w + ${s} ≥ ${goal} means ${r}w ≥ ${goal - s}, and ${goal - s} ÷ ${r} = ${+((goal - s) / r).toFixed(2)}, so ${n} needs ${x} weeks.`],
+      parts: [
+        { text: "Which equation gives t, the total saved after w weeks?", answer: `t = ${r}w + ${s}`,
+          mistakes: [m(`t = ${s}w + ${r}`, "swapped the starting amount and the weekly amount"), m(`t = ${r + s}w`, "added the two amounts"), m(`t = ${r}w`, "left out the starting amount")] },
+        { text: "Which is the independent variable?", answer: "w, the number of weeks",
+          mistakes: [m("t, the total saved", "mixed up independent and dependent"), m(`${r}, the amount added each week`, "picked a number that stays the same"), m(`${s}, the starting amount`, "picked a number that stays the same")] },
+        { text: `How much will ${n} have after ${k} weeks?`, format: "typein", answer: s + r * k,
+          mistakes: [m(r * k, "left out the starting amount"), m((r + s) * k, "added the starting amount every week"), m(s + r * (k - 1), "counted one week too few")] },
+        { text: `${n} wants $${goal}. After how many weeks will ${n} first have enough?`, format: "typein", answer: x,
+          mistakes: [m(x - 1, "dropped the remainder"), m(Math.ceil(goal / r), "forgot the starting amount"), m(goal - s, "forgot to divide")] },
+      ] };
+  }),
 ];
 
 const G7: Template[] = [
@@ -413,6 +487,22 @@ const G7: Template[] = [
           mistakes: [m((T + f) / r, "added the fee instead of subtracting"), m(Math.round(T / r), "forgot the entry fee"), m(T - f, "forgot to divide")] },
         { text: `A friend has $${budget}. What is the greatest number of rides the friend can go on?`, format: "typein", answer: most,
           mistakes: [m(most + 1, "rounded up past the budget"), m(Math.floor(budget / r), "forgot the entry fee"), m(budget - f, "forgot to divide")] },
+      ] };
+  }),
+  T("q7-cr-bag", 7, "7.SP.C.7a", (c) => {
+    const hi = c.by([5, 8, 12]), red = c.ri(1, hi), blue = c.ri(1, hi), green = c.ri(1, hi), all = red + blue + green, k = c.ri(2, c.by([4, 6, 10]));
+    const n = c.name(), picks = all * k, expect = red * k, got = Math.max(0, expect + c.pick([-3, -2, -1, 1, 2, 3]));
+    return { text: `A bag has ${red} red, ${blue} blue and ${green} green marbles. ${n} picks one without looking.`, format: "cr", answer: "", mistakes: [],
+      steps: [`There are ${red} + ${blue} + ${green} = ${all} marbles, so P(red) = ${frac(red, all)}.`, `In ${picks} picks (putting the marble back each time): ${frac(red, all)} × ${picks} = ${expect} red.`, "Chance results are usually close to the prediction, not exactly on it.", `P(not green) = (${red} + ${blue}) ÷ ${all} = ${frac(red + blue, all)}.`],
+      parts: [
+        { text: "What is the probability of picking a red marble?", answer: frac(red, all),
+          mistakes: [m(frac(red, all - red), "compared red with the other marbles"), m(frac(all - red, all), "found the chance of not red"), m("1/3", "thought each color is equally likely")] },
+        { text: `${n} picks a marble and puts it back, ${picks} times in all. About how many times should a red marble come up?`, format: "typein", answer: expect,
+          mistakes: [m(red, "gave the number of red marbles"), m(picks - expect, "counted the other colors"), m(Math.round(picks / 3), "thought each color is equally likely")] },
+        { text: `Red actually came up ${got} times. Which sentence is true?`, answer: "Chance results are usually close to the prediction, but not exactly on it.",
+          mistakes: [m("The probability must be wrong, since the results did not match.", "expected chance to match exactly"), m(`${n} must have counted wrong; it should be exactly ${expect}.`, "expected chance to match exactly"), m("Each color should come up the same number of times.", "thought each color is equally likely")] },
+        { text: "What is the probability of picking a marble that is not green?", answer: frac(red + blue, all),
+          mistakes: [m(frac(green, all), "found the chance of green"), m(frac(red * blue, all * all), "multiplied the chances"), m(frac(red + blue, all + green), "added the green marbles to the bottom")] },
       ] };
   }),
 ];
@@ -527,6 +617,24 @@ const G8: Template[] = [
           mistakes: [m(`y = ${start}x + ${rate}`, "swapped the rate and the start"), m(`y = ${rate}x + ${y(xs[0])}`, "used the first y as the start"), m(`y = ${rate}x`, "left out the initial value"), m(`y = x + ${start}`, "left out the rate")] },
         { text: `What is y when x = ${big}?`, format: "typein", answer: y(big),
           mistakes: [m(start + rate, "forgot to multiply by x"), m(rate * big, "left out the start"), m(y(xs[0]) + rate * big, "started from the first row, not x = 0")] },
+      ] };
+  }),
+  T("q8-cr-ramp", 8, "8.G.B.7", (c) => {
+    const triples = [[3, 4, 5], [5, 12, 13], [8, 15, 17], [7, 24, 25], [20, 21, 29], [9, 40, 41]] as const;
+    const s = c.ri(1, c.by([2, 3, 4])), [p, q, hyp] = c.pick(triples).map((x) => x * s), [a, b] = c.shuffle([p, q]);
+    const [x, y, z] = c.pick(triples), yes = c.ri(0, 1) === 1, z2 = yes ? z : z + 1;
+    const right = yes ? `Yes, because ${x}² + ${y}² = ${z2}².` : `No, because ${x}² + ${y}² ≠ ${z2}².`;
+    return { text: `A ramp rises ${a} feet over a flat distance of ${b} feet.`, format: "cr", answer: "", mistakes: [],
+      steps: [`The ramp is the hypotenuse: ${a}² + ${b}² = c².`, `${a * a} + ${b * b} = ${hyp * hyp}, so c = ${hyp} feet.`, `For the second ramp: ${b}² = ${hyp}² − ${a}², so it rises ${b} feet.`, `${x}² + ${y}² = ${x * x + y * y} and ${z2}² = ${z2 * z2}, so ${yes ? "it is" : "it is not"} a right triangle.`],
+      parts: [
+        { text: "Which equation finds c, the length of the ramp?", answer: `${a}² + ${b}² = c²`,
+          mistakes: [m(`${a} + ${b} = c`, "added the sides without squaring"), m(`${a}² + c² = ${b}²`, "treated the ramp as a leg"), m(`${Math.max(a, b)}² − ${Math.min(a, b)}² = c²`, "subtracted the squares")] },
+        { text: "How long is the ramp, in feet?", format: "typein", answer: hyp,
+          mistakes: [m(a + b, "added the sides"), m(a * a + b * b, "forgot the square root"), m(Math.round(Math.sqrt(Math.abs(a * a - b * b))), "subtracted the squares")] },
+        { text: `A second ramp is also ${hyp} feet long but covers a flat distance of ${a} feet. How high does it rise?`, format: "typein", answer: b,
+          mistakes: [m(hyp - a, "subtracted the sides without squaring"), m(hyp * hyp - a * a, "forgot the square root"), m(Math.round(Math.sqrt(hyp * hyp + a * a)), "added the squares")] },
+        { text: `Is a triangle with sides ${x}, ${y} and ${z2} feet a right triangle?`, answer: right,
+          mistakes: [m(yes ? `No, because ${x}² + ${y}² ≠ ${z2}².` : `Yes, because ${x}² + ${y}² = ${z2}².`, "squared and added wrong"), m(`Yes, because ${x} + ${y} > ${z2}.`, "checked that it is a triangle, not that it is right"), m("No, because its sides are not 3, 4 and 5.", "thought 3, 4, 5 is the only right triangle")] },
       ] };
   }),
 ];

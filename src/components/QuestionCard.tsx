@@ -24,7 +24,8 @@ export function QuestionCard({
 }: {
   q: Question;
   instant?: boolean;
-  onAnswer: (ok: boolean) => void;
+  /** Whether the answer is right, and the answer given (parts joined by `PICK_SEP`). */
+  onAnswer: (ok: boolean, given: string) => void;
   children?: React.ReactNode;
 }) {
   const [chosen, setChosen] = useState<string | null>(null);
@@ -38,7 +39,7 @@ export function QuestionCard({
     setChosen(c);
     const right = isRight(q, c);
     if (instant && !right) setShowModel(true);
-    onAnswer(right);
+    onAnswer(right, c);
   };
 
   const cls = (c: string) => {
