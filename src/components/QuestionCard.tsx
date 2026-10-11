@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { FORMAT_LABEL, formatOf, inputOf, isRight, PICK_SEP } from "@/lib/formats";
+import { FORMAT_LABEL, formatOf, inputOf, isRight, partRight, PICK_SEP } from "@/lib/formats";
 import { gradeName, type Question } from "@/lib/questions";
 import { readsAloud, spokenText } from "@/lib/speech";
 import { BarModel } from "./BarModel";
@@ -81,11 +81,20 @@ export function QuestionCard({
         </div>
       )}
       <p className={`feedback ${instant && chosen ? (ok ? "good" : "bad") : ""}`} aria-live="polite">
-        {instant && chosen ? (ok ? `${praise}${q.explain && format === "estimate" ? ` ${q.explain}` : ""}` : `Not quite. The answer is ${q.answer}.${q.explain ? ` ${q.explain}` : ""}`) : ""}
+        {instant && chosen ? (ok ? `${praise}${q.explain && format === "estimate" ? ` ${q.explain}` : ""}` : miss(q, chosen)) : ""}
       </p>
       {chosen && children}
     </div>
   );
+}
+
+/** What to say after a miss. Each part of a multi-part question is marked where it is, so only the count is given. */
+function miss(q: Question, given: string): string {
+  if (inputOf(q) === "parts") {
+    const picks = given.split(PICK_SEP), parts = q.parts ?? [];
+    return `Not quite: ${parts.filter((p, i) => partRight(p, picks[i] ?? "")).length} of ${parts.length} parts right.`;
+  }
+  return `Not quite. The answer is ${q.answer}.${q.explain ? ` ${q.explain}` : ""}`;
 }
 
 const noSubscribe = () => () => {};
@@ -182,10 +191,11 @@ function MultiPicker({ q, done, mark, onSubmit }: { q: Question; done: boolean; 
   );
 }
 
-/** Part A and Part B, one choice each, then check. Both parts must be right. */
+/** Part A, Part B (and C, D): choose or type each part's answer, then check. Every part must be right. */
 function PartsPicker({ q, done, mark, onSubmit }: { q: Question; done: boolean; mark: boolean; onSubmit: (v: string) => void }) {
   const parts = q.parts ?? [];
-  const [picked, setPicked] = useState<(string | null)[]>(() => parts.map(() => null));
+  const [picked, setPicked] = useState<string[]>(() => parts.map(() => ""));
+  const set = (i: number, v: string) => setPicked(picked.map((x, k) => (k === i ? v : x)));
   const cls = (i: number, c: string) => {
     const on = picked[i] === c ? " picked" : "";
     if (!mark || !done) return `choice${on}`;
@@ -196,17 +206,33 @@ function PartsPicker({ q, done, mark, onSubmit }: { q: Question; done: boolean; 
     <div className="parts">
       {parts.map((p, i) => (
         <div key={i} className="part">
-          <p className="part-text"><b>Part {"AB"[i]}.</b> {p.text}</p>
-          <div className={`choices${p.choices.some((c) => c.length > 14) ? " wide" : ""}`}>
-            {p.choices.map((c) => (
-              <button key={c} className={cls(i, c)} aria-pressed={picked[i] === c} disabled={done} onClick={() => setPicked(picked.map((x, k) => (k === i ? c : x)))}>
-                {c}
-              </button>
-            ))}
-          </div>
+          <p className="part-text"><b>Part {"ABCD"[i]}.</b> {p.text}</p>
+          {p.typed ? (
+            <div className="typein">
+              <input
+                className={`typein-box${mark && done ? (partRight(p, picked[i]) ? " right" : " wrong") : ""}`}
+                value={picked[i]}
+                onChange={(e) => set(i, e.target.value)}
+                disabled={done}
+                inputMode="text"
+                autoComplete="off"
+                aria-label={`Part ${"ABCD"[i]} answer`}
+                placeholder="Your answer"
+              />
+              {mark && done && !partRight(p, picked[i]) && <span className="part-fix">Answer: {p.answer}</span>}
+            </div>
+          ) : (
+            <div className={`choices${p.choices.some((c) => c.length > 14) ? " wide" : ""}`}>
+              {p.choices.map((c) => (
+                <button key={c} className={cls(i, c)} aria-pressed={picked[i] === c} disabled={done} onClick={() => set(i, c)}>
+                  {c}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       ))}
-      <button className="btn self-start" disabled={done || picked.some((x) => x == null)} onClick={() => onSubmit(picked.join(PICK_SEP))}>Check</button>
+      <button className="btn self-start" disabled={done || picked.some((x) => !x.trim())} onClick={() => onSubmit(picked.join(PICK_SEP))}>Check</button>
     </div>
   );
 }
