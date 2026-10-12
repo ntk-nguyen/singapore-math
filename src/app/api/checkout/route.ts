@@ -28,7 +28,7 @@ export async function POST(req: Request) {
           adjustable_quantity: { enabled: true, minimum: 1, maximum: MAX_CHILDREN },
         },
       ],
-      subscription_data: { trial_period_days: 7 },
+      subscription_data: { trial_period_days: 30 },
       success_url: `${base}/api/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${base}/pro`,
     });
