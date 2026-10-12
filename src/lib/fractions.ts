@@ -100,7 +100,8 @@ export const FRACTION_TOPICS: FracTopic[] = [
     id: "g3-frac-name", grade: 3, strand: "fractions", std: "3.NF.A.1",
     title: "Fractions of a whole", blurb: "Cut a bar into equal parts. 3 of 4 equal parts is 3/4.",
     make: ({ ri, pick }) => {
-      const d = pick([2, 3, 4, 5, 6, 8]), n = ri(1, d - 1);
+      // Massachusetts limits Grade 3 to halves, thirds, fourths, sixths and eighths.
+      const d = pick([2, 3, 4, 6, 8]), n = ri(1, d - 1);
       return {
         text: `A bar is cut into ${d} equal parts and ${n} ${n === 1 ? "part is" : "parts are"} shaded. What fraction of the bar is shaded?`,
         answer: `${n}/${d}`,
@@ -133,12 +134,13 @@ export const FRACTION_TOPICS: FracTopic[] = [
       const most = ri(0, 1) === 1;
       const sameDen = ri(0, 1) === 1;
       let fr: F[];
+      // Massachusetts limits Grade 3 to halves, thirds, fourths, sixths and eighths.
       if (sameDen) {
-        const d = pick([6, 8, 10, 12]);
+        const d = pick([6, 8]);
         fr = shuffle(Array.from({ length: d - 1 }, (_, i) => i + 1)).slice(0, 4).map((n) => [n, d] as F);
       } else {
-        const n = pick([1, 2, 3]);
-        fr = shuffle(Array.from({ length: 12 - n }, (_, i) => i + n + 1)).slice(0, 4).map((d) => [n, d] as F);
+        const n = pick([1, 2]);
+        fr = shuffle([2, 3, 4, 6, 8].filter((d) => d > n)).slice(0, 4).map((d) => [n, d] as F);
       }
       const val = (f: F) => f[0] / f[1];
       const target = fr.reduce((best, f) => ((most ? val(f) > val(best) : val(f) < val(best)) ? f : best));

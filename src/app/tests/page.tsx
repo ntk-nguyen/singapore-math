@@ -83,10 +83,12 @@ export default function TestsPage() {
 }
 
 /**
- * Easy, standard or hard, for every fixed test and printed paper. The placement check
+ * Easy, standard or hard, for every fixed test and printed paper, each named by the MCAS
+ * level it practises for. The placement check
  * adapts on its own, so it ignores this. Every paper runs from easier to harder.
  */
 function DifficultyPicker({ value, onChange }: { value: Difficulty; onChange: (d: Difficulty) => void }) {
+  const chosen = DIFFICULTIES.find((d) => d.id === value)!;
   return (
     <div className="difficulty" role="group" aria-label="Difficulty">
       <span className="difficulty-label">Difficulty</span>
@@ -95,7 +97,7 @@ function DifficultyPicker({ value, onChange }: { value: Difficulty; onChange: (d
           {d.label}
         </button>
       ))}
-      <span className="muted small">{DIFFICULTIES.find((d) => d.id === value)!.blurb} Every test starts easier and gets harder.</span>
+      <span className="muted small">{chosen.blurb} <b>{chosen.mcas}</b> on the MCAS scale. Every test starts easier and gets harder.</span>
     </div>
   );
 }

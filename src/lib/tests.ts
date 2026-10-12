@@ -31,10 +31,15 @@ export interface TestInfo {
 /** How hard a paper is. Standard is the usual mix; easy and hard lean that way. */
 export type Difficulty = "easy" | "standard" | "hard";
 
-export const DIFFICULTIES: { id: Difficulty; label: string; blurb: string }[] = [
-  { id: "easy", label: "Easy", blurb: "Smaller numbers and fewer of the hardest problem types." },
-  { id: "standard", label: "Standard", blurb: "The usual mix for the grade." },
-  { id: "hard", label: "Hard", blurb: "Bigger numbers and more multi-step problems." },
+/**
+ * Each difficulty names the MCAS achievement level it practises for (Massachusetts levels:
+ * Partially Meeting, Meeting, Exceeding Expectations). It is practice aimed at a level, not
+ * a prediction: no score here is calibrated against MCAS.
+ */
+export const DIFFICULTIES: { id: Difficulty; label: string; blurb: string; mcas: string }[] = [
+  { id: "easy", label: "Easy", blurb: "Smaller numbers and fewer of the hardest problem types.", mcas: "From Partially Meeting up to Meeting Expectations" },
+  { id: "standard", label: "Standard", blurb: "The usual mix for the grade.", mcas: "Practice at Meeting Expectations" },
+  { id: "hard", label: "Hard", blurb: "Bigger numbers and more multi-step problems.", mcas: "Practice for Exceeding Expectations" },
 ];
 
 export function isDifficulty(x: unknown): x is Difficulty {

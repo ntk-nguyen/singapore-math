@@ -52,7 +52,7 @@ export default function ParentsPage() {
         <ul className="ticks">
           <li><b>Placement check</b> estimates a grade level by adapting up and down from Kindergarten to Grade 8, like a short computer-adaptive test.</li>
           <li><b>MAP Growth (NWEA):</b> if your child has a recent RIT score, compare our placement grade with NWEA’s grade-level norms. A big gap tells you which result to trust less.</li>
-          <li><b>State tests (SBAC, PARCC/NJSLA, STAAR and others):</b> they test the same Common Core-style standards. The Grade checkpoint’s per-standard table shows which reporting areas need work. The Pro plan’s State test style paper follows the Massachusetts MCAS design for Grades 3–8 (two sessions, show-your-work questions, points by reporting category). It does not predict an MCAS scaled score.</li>
+          <li><b>State tests (SBAC, PARCC/NJSLA, STAAR and others):</b> they test the same Common Core-style standards. The Grade checkpoint’s per-standard table shows which reporting areas need work. The Pro plan’s State test style paper follows the Massachusetts MCAS design for Grades 3–8 (two sessions, show-your-work questions, points by reporting category). Easy, Standard and Hard papers practise toward the MCAS levels Partially Meeting, Meeting and Exceeding Expectations. None of them predicts an MCAS score.</li>
           <li><b>Not normed yet:</b> these scores are estimates. Items will be calibrated on real students (Item Response Theory) before the app reports percentiles.</li>
         </ul>
       </section>
