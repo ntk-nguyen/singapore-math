@@ -10,7 +10,7 @@ import { usePlan } from "./usePlan";
 
 /** What the Pro plan unlocks today. Keep this list to things the app really serves. */
 export const PRO_PERKS = [
-  "Six more full practice tests, from a word problem marathon to PSLE-style challenges",
+  "Six more full practice tests, from a word problem marathon to challenge problems",
   "Intermediate and advanced word problems and solve-for-x sets, with worked bar model solutions",
   "Unlimited printable practice papers for every test and topic, each a new paper with its answer key",
   "Every new test and topic as it is added",
