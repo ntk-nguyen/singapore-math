@@ -3,7 +3,7 @@
  * browser (profiles kept on the device) and the server (the copy a signed-in parent's
  * account keeps, so the same profiles show up on every device).
  */
-import { parseDays, type Days } from "./activity";
+import { mergeDay, parseDays, type Days } from "./activity";
 import { AVATARS, cleanName, isAvatar, MAX_CHILDREN, type Avatar } from "./profiles";
 import { isGrade, type Grade } from "./questions";
 
@@ -108,7 +108,7 @@ function mergeProgress(newer: Progress, older: Progress): Progress {
   const days = { ...older.days };
   for (const [k, d] of Object.entries(newer.days)) {
     const o = days[k];
-    days[k] = o ? { xp: Math.max(o.xp, d.xp), done: Math.max(o.done, d.done) } : d;
+    days[k] = o ? mergeDay(o, d) : d;
   }
   return {
     // Settings follow whichever device changed this child most recently...

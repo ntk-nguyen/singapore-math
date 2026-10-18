@@ -197,7 +197,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // Every finished practice set, round or test also counts toward today's quest.
   const recordBest = useCallback(
     (id: string, pct: number) =>
-      setProgress((s) => ({ ...s, best: { ...s.best, [id]: Math.max(s.best[id] ?? 0, pct) }, days: logDay(s.days, new Date(), { done: 1 }) })),
+      setProgress((s) => ({ ...s, best: { ...s.best, [id]: Math.max(s.best[id] ?? 0, pct) }, days: logDay(s.days, new Date(), { done: 1, score: [id, pct] }) })),
     [setProgress],
   );
   const setPlacement = useCallback((g: Grade) => setProgress((s) => ({ ...s, placement: g, grade: g })), [setProgress]);
