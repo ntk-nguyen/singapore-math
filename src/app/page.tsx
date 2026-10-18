@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { AudienceSplit, GrownUpHero, useAudience } from "@/components/Audience";
 import { useProgress } from "@/components/Progress";
 import { ProCard } from "@/components/Paywall";
+import { FirstVisitTryIt } from "@/components/TryIt";
 import { usePlan } from "@/components/usePlan";
 import { lastWeek, QUEST_GOAL } from "@/lib/activity";
 import { gradeCatalog, type Domain, type DomainId } from "@/lib/catalog";
@@ -26,15 +28,20 @@ const DOMAIN_ICON: Record<DomainId, () => React.ReactNode> = {
 };
 
 export default function LearnPage() {
-  const { grade, best, lessons, ready } = useProgress();
+  const { grade, best, lessons, ready, recent, placement, stars } = useProgress();
   const [plan] = usePlan();
+  const [who, setWho, whoLoaded] = useAudience();
   const pro = !!plan?.pro;
   const domains = gradeCatalog(grade);
   const units = pathway(domains, { best, lessons, pro });
+  // A brand-new visitor is asked who they are first; anyone with saved progress goes straight to practice.
+  const isNew = !ready || (!recent && placement == null && stars === 0);
+  if (isNew && (!whoLoaded || who == null)) return <div className="stack"><AudienceSplit onPick={setWho} /><FirstVisitTryIt /></div>;
 
   return (
     <div className="stack">
-      <Hero units={units} />
+      {who === "grownup" ? <GrownUpHero onLearner={() => setWho("learner")} /> : <Hero units={units} onGrownUp={() => setWho("grownup")} />}
+      <FirstVisitTryIt />
       <div className="home">
         <div className="stack" style={{ gap: 20 }}>
           <Pathway key={`${grade}-${ready}`} units={units} />
@@ -56,7 +63,7 @@ export default function LearnPage() {
   );
 }
 
-function Hero({ units }: { units: Unit[] }) {
+function Hero({ units, onGrownUp }: { units: Unit[]; onGrownUp: () => void }) {
   const { grade, setGrade, recent, placement, stars, today, streak, ready } = useProgress();
   const lesson = LESSONS.find((l) => l.grade === grade)!;
   const current = units.find((u) => u.state === "current");
@@ -80,6 +87,7 @@ function Hero({ units }: { units: Unit[] }) {
                 </button>
               ))}
             </div>
+            <button type="button" className="linkbtn on-dark" onClick={onGrownUp}>I’m a parent or teacher</button>
           </>
         ) : (
           <>
