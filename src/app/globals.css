@@ -790,3 +790,41 @@ table.cmp th.cmp-pro { background: var(--accent-soft); }
 /* Parent account */
 .google-btn { display: inline-flex; align-items: center; gap: 10px; }
 .google-btn svg { background: #fff; border-radius: 50%; padding: 2px; width: 22px; height: 22px; }
+
+/* Home: "Who's here today?" split for new visitors, and the parent/teacher hero */
+.banner.split { grid-template-columns: minmax(0, 1fr) minmax(0, 420px); padding: 48px 40px; }
+.split-intro h1 { font-size: clamp(2rem, 4.2vw, 3rem); line-height: 1.12; max-width: 16ch; }
+.split-pick { display: flex; flex-direction: column; gap: 14px; }
+.split-card { display: flex; align-items: center; gap: 16px; width: 100%; text-align: left; min-height: 88px; padding: 18px 20px; border-radius: 22px; border: none; cursor: pointer; font: inherit; box-shadow: var(--sh2), var(--bevel); transition: transform 0.08s, background 0.15s; }
+.split-card:active { transform: translateY(1px); }
+.split-card:focus-visible { outline: 3px solid var(--ring); outline-offset: 3px; }
+.split-card.learner { background: var(--amber-mid); color: #2a1700; }
+.split-card.learner:hover { background: #ffb95f; }
+.split-card.grownup { background: #fff; color: #1a146b; }
+.split-card.grownup:hover { background: #eff4ff; }
+.split-ic { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; flex: none; background: rgba(255, 255, 255, 0.6); }
+.split-card.grownup .split-ic { background: #e0f2fe; color: #006398; }
+.split-ic svg { width: 26px; height: 26px; }
+.split-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.split-text b { font: 800 1.3rem var(--display); }
+.split-text span { font-size: 0.95rem; opacity: 0.8; }
+.split-card > svg { width: 22px; height: 22px; flex: none; }
+.linkbtn.on-dark { color: rgba(255, 255, 255, 0.8); margin-top: 14px; padding: 4px 0; }
+.linkbtn.on-dark:hover { color: #fff; }
+.banner .cta .linkbtn.on-dark { margin-top: 0; }
+.gu-links { grid-column: 1 / -1; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.gu-links a { display: flex; align-items: center; gap: 12px; height: 100%; padding: 14px 16px; border-radius: 18px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.14); color: #fff; text-decoration: none; transition: background 0.15s; }
+.gu-links a:hover { background: rgba(255, 255, 255, 0.18); }
+.gu-links .qi { width: 40px; height: 40px; border-radius: 50%; background: var(--amber-mid); color: #2a1700; display: grid; place-items: center; flex: none; }
+.gu-links .qi svg { width: 20px; height: 20px; }
+.gu-links b { display: block; font: 700 1rem var(--display); }
+.gu-links small { display: block; font-size: 0.85rem; color: rgba(255, 255, 255, 0.78); }
+@media (max-width: 900px) {
+  .banner.split { grid-template-columns: 1fr; padding: 32px 24px; }
+  .gu-links { grid-template-columns: 1fr; }
+}
+@media (max-width: 767px) {
+  .banner.split { padding: 28px 20px; border-radius: 22px; }
+  .split-card { min-height: 80px; padding: 16px; }
+  .split-text b { font-size: 1.15rem; }
+}
