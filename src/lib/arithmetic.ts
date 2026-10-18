@@ -229,10 +229,11 @@ function num(r: Rng, n: number) {
   return helpers(r).ri(lo, hi);
 }
 
-/** a + b where at least one column regroups. */
-function regroupingAdd(r: Rng, na: number, nb: number) {
-  for (let t = 0; t < 50; t++) {
+/** a + b where at least one column regroups, with the sum at most `max` (the grade's "within" limit). */
+function regroupingAdd(r: Rng, na: number, nb: number, max = Infinity) {
+  for (let t = 0; t < 200; t++) {
     const a = num(r, na), b = num(r, nb);
+    if (a + b > max) continue;
     const A = digits(a, na), B = digits(b, na);
     if (A.some((x, i) => x + (B[i] ?? 0) >= 10)) return { a, b };
   }
@@ -271,19 +272,19 @@ export const TOPICS: Topic[] = [
   { id: "g1-make10", grade: 1, op: "make10", std: "1.OA.C.6", title: "Add within 20 by making 10", blurb: "8 + 5: split 5 into 2 and 3, make 10, then add 3.",
     gen: (r) => { const { ri } = helpers(r); const a = ri(6, 9); return { a, b: ri(11 - a, 9) }; } },
   { id: "g1-add-2d1d", grade: 1, op: "add", std: "1.NBT.C.4", title: "Add a 2-digit and a 1-digit number", blurb: "Trade 10 ones for 1 ten when the ones overflow.",
-    gen: (r) => regroupingAdd(r, 2, 1) },
+    gen: (r) => regroupingAdd(r, 2, 1, 100) },
   // Grade 2
   { id: "g2-add-2d", grade: 2, op: "add", std: "2.NBT.B.5", title: "2-digit addition with regrouping", blurb: "47 + 38 with place-value discs, then the column method.",
-    gen: (r) => regroupingAdd(r, 2, 2) },
+    gen: (r) => regroupingAdd(r, 2, 2, 100) },
   { id: "g2-sub-2d", grade: 2, op: "sub", std: "2.NBT.B.5", title: "2-digit subtraction with renaming", blurb: "Not enough ones? Rename 1 ten as 10 ones.",
     gen: (r) => renamingSub(r, 2, 2) },
   { id: "g2-add-3d", grade: 2, op: "add", std: "2.NBT.B.7", title: "3-digit addition", blurb: "Add hundreds, tens and ones, regrouping as needed.",
-    gen: (r) => regroupingAdd(r, 3, 3) },
+    gen: (r) => regroupingAdd(r, 3, 3, 1000) },
   { id: "g2-sub-3d", grade: 2, op: "sub", std: "2.NBT.B.7", title: "3-digit subtraction", blurb: "Rename tens and hundreds within 1000.",
     gen: (r) => renamingSub(r, 3, 3) },
   // Grade 3
   { id: "g3-add-3d", grade: 3, op: "add", std: "3.NBT.A.2", title: "3-digit addition, fluently", blurb: "Regrouping in more than one column.",
-    gen: (r) => regroupingAdd(r, 3, 3) },
+    gen: (r) => regroupingAdd(r, 3, 3, 1000) },
   { id: "g3-sub-3d-zeros", grade: 3, op: "sub", std: "3.NBT.A.2", title: "3-digit subtraction across zeros", blurb: "Like 500 − 168: rename across the zero.",
     gen: (r) => renamingSub(r, 3, 3, true) },
   { id: "g3-mul-tens", grade: 3, op: "mul", std: "3.NBT.A.3", title: "Multiply by multiples of 10", blurb: "7 × 60 is 7 × 6 tens = 42 tens.",

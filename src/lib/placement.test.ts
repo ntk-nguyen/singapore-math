@@ -17,10 +17,10 @@ describe("placement", () => {
     expect(s.grade).toBe(3);
   });
 
-  it("never leaves grades 1 to 8", () => {
+  it("never leaves Kindergarten to Grade 8", () => {
     let s = startPlacement(1);
     for (let i = 0; i < 5; i++) s = recordAnswer(s, false);
-    expect(s.grade).toBe(1);
+    expect(s.grade).toBe(0);
     for (let i = 0; i < 30; i++) s = recordAnswer(s, true);
     expect(s.grade).toBe(8);
   });
@@ -31,9 +31,16 @@ describe("placement", () => {
     expect(placementResult(s)).toBe(8);
   });
 
-  it("places a child who gets everything wrong at grade 1", () => {
+  it("places a child who gets everything wrong in Kindergarten", () => {
     let s = startPlacement(4);
     for (let i = 0; i < 12; i++) s = recordAnswer(s, false);
-    expect(placementResult(s)).toBe(1);
+    expect(placementResult(s)).toBe(0);
+  });
+
+  it("starts a Kindergartner in Kindergarten and moves up to Grade 1", () => {
+    let s = startPlacement(0);
+    expect(s.grade).toBe(0);
+    s = recordAnswer(recordAnswer(s, true), true);
+    expect(s.grade).toBe(1);
   });
 });

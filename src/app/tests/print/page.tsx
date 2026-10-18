@@ -1,0 +1,211 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { BarModel } from "@/components/BarModel";
+import { FigureView } from "@/components/Figure";
+import { LogoMark } from "@/components/Logo";
+import { formatOf, inputOf, pointsFor } from "@/lib/formats";
+import { type Grade, gradeName, type Question } from "@/lib/questions";
+import { calculatorAllowed, getTest, sectionOf, sessionOf, usesBlueprint } from "@/lib/tests";
+
+interface Paper {
+  paper: { id: string; name: string; grade: Grade; code: string; level: string };
+  seed: number;
+  questions: Question[];
+}
+
+const LETTERS = "ABCDEFGH";
+
+/** Papers run from easier to harder in three sections, like a real exam. */
+const SECTIONS = [
+  { id: "A", name: "Warm-up" },
+  { id: "B", name: "Core" },
+  { id: "C", name: "Challenge" },
+] as const;
+
+export default function PrintPage() {
+  return (
+    <Suspense fallback={<div className="panel"><p className="muted">Loading…</p></div>}>
+      <PrintPaper />
+    </Suspense>
+  );
+}
+
+/**
+ * A printable practice paper with its answer key on a separate page. "Download PDF"
+ * opens the browser's print dialog, where "Save as PDF" saves it as a file. The seed
+ * is kept in the address, so a reload shows the same paper and "New paper" draws
+ * another one.
+ */
+function PrintPaper() {
+  const params = useSearchParams();
+  const router = useRouter();
+  const kind = params.get("kind") ?? "checkpoint";
+  const grade = params.get("grade") ?? "3";
+  const seed = params.get("seed");
+  const level = params.get("level");
+  // Standard papers leave the level out of the address.
+  const levelQuery = level && level !== "standard" ? `&level=${encodeURIComponent(level)}` : "";
+  const [data, setData] = useState<Paper | null>(null);
+  const [error, setError] = useState<{ status: number; message: string } | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    const q = new URLSearchParams({ grade });
+    if (seed) q.set("seed", seed);
+    if (level) q.set("level", level);
+    fetch(`/api/papers/${encodeURIComponent(kind)}?${q}`, { cache: "no-store" })
+      .then(async (r) => {
+        const body = await r.json();
+        if (!live) return;
+        if (!r.ok) return setError({ status: r.status, message: body.error ?? "Could not make this paper." });
+        setError(null);
+        setData(body);
+        // Keep the seed in the address, so reloading or sharing the link gives this same paper.
+        if (!seed) router.replace(`/tests/print?kind=${encodeURIComponent(kind)}&grade=${grade}${levelQuery}&seed=${body.seed}`);
+      })
+      .catch(() => live && setError({ status: 0, message: "Could not reach the server." }));
+    return () => {
+      live = false;
+    };
+  }, [kind, grade, seed, level, levelQuery, router]);
+
+  const fresh = () => {
+    setData(null);
+    router.push(`/tests/print?kind=${encodeURIComponent(kind)}&grade=${grade}${levelQuery}`);
+  };
+
+  if (error) {
+    return (
+      <div className="panel">
+        <p className="notice bad">{error.message}</p>
+        <Link className={`btn self-start${error.status === 402 ? " gold" : ""}`} href={error.status === 402 ? "/pro" : "/tests"}>{error.status === 402 ? "Upgrade to Pro plan" : "Back to tests"}</Link>
+      </div>
+    );
+  }
+  if (!data || (seed && String(data.seed) !== seed)) return <div className="panel"><p className="muted">Making your paper…</p></div>;
+
+  const { paper, questions } = data;
+  const n = questions.length;
+  // State-test papers come in two sessions and are scored in points; other papers in three sections.
+  const test = getTest(paper.id), blueprint = !!test && usesBlueprint(test, paper.grade);
+  const total = questions.reduce((s, q) => s + pointsFor(q), 0);
+  const groups = blueprint
+    ? ([1, 2] as const).map((s) => ({ key: s, title: `Session ${s} · ${calculatorAllowed(paper.grade, s) ? "Calculator allowed" : "No calculator"}`, at: (i: number) => sessionOf(i, n) === s }))
+    : SECTIONS.map(({ id, name }) => ({ key: id, title: `Section ${id} · ${name}`, at: (i: number) => sectionOf(i, n) === id }));
+  const count = blueprint ? `${n} questions · ${total} points` : `${n} questions`;
+  return (
+    <div className="stack">
+      <div className="row no-print">
+        <div className="spacer">
+          <p className="eyebrow">Printable paper</p>
+          <h2>{paper.name}</h2>
+          <p className="muted small">{gradeName(paper.grade)} · {paper.level} · {count} · answer key on the last page. Every new paper has different questions, from easier to harder.</p>
+        </div>
+        <Link className="btn ghost" href="/tests">Back</Link>
+        <button className="btn ghost" onClick={fresh}>New paper</button>
+        <button className="btn" onClick={() => window.print()}>Download PDF</button>
+      </div>
+      <p className="muted small no-print">In the print window, choose “Save as PDF” to download it, or pick a printer.</p>
+
+      <article className="paper">
+        <header className="paper-head">
+          <div className="paper-brand"><LogoMark className="paper-mark" />MathBridge</div>
+          <h1>{paper.name}</h1>
+          <p className="paper-meta">{gradeName(paper.grade)} · {paper.level} · {count} · Paper {paper.code}</p>
+          <div className="paper-fields">
+            <span>Name <i /></span>
+            <span>Date <i /></span>
+            <span>Score <i /> / {blueprint ? total : n}</span>
+          </div>
+        </header>
+        {groups.map(({ key, title, at }) => {
+          const start = questions.findIndex((_, i) => at(i));
+          const qs = questions.filter((_, i) => at(i));
+          if (!qs.length) return null;
+          return (
+            <section key={key}>
+              <h2 className="paper-section">{title}</h2>
+              <ol className="paper-qs" start={start + 1}>
+                {qs.map((q, i) => <PaperQuestion key={i} q={q} points={blueprint ? pointsFor(q) : 1} />)}
+              </ol>
+            </section>
+          );
+        })}
+
+        <section className="paper-key">
+          <header className="paper-head">
+            <h1>Answer key</h1>
+            <p className="paper-meta">{paper.name} · {gradeName(paper.grade)} · Paper {paper.code}</p>
+          </header>
+          <ol className="key-list">
+            {questions.map((q, n) => (
+              <li key={n}>
+                <b>{keyAnswer(q)}</b>
+                {blueprint && pointsFor(q) > 1 && <span className="muted"> (1 point for each part)</span>}
+                {q.explain && <span className="muted"> {q.explain}</span>}
+                {q.steps && <span className="key-steps">{q.steps.join(" ")}</span>}
+                <span className="key-std">CCSS {q.std}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </article>
+    </div>
+  );
+}
+
+/** The answer as written in the key: the letter and the choice, or what to write. */
+function keyAnswer(q: Question): string {
+  const input = inputOf(q);
+  const lettered = (choices: string[], a: string) => {
+    const i = choices.indexOf(a);
+    return i >= 0 ? `${LETTERS[i]}. ${a}` : a;
+  };
+  if (input === "multi") return (q.answers ?? []).map((a) => lettered(q.choices, a)).join(" and ");
+  if (input === "parts") return (q.parts ?? []).map((p, i) => `Part ${"ABCD"[i]}: ${p.typed ? p.answer : lettered(p.choices, p.answer)}`).join("; ");
+  if (input !== "choose") return q.answer;
+  return lettered(q.choices, q.answer);
+}
+
+/** Lettered choices to circle. */
+function PaperChoices({ choices }: { choices: string[] }) {
+  return (
+    <ol className={`pq-choices${choices.some((c) => c.length > 14) ? " wide" : ""}`}>
+      {choices.map((c, i) => <li key={c}><span className="pq-letter">{LETTERS[i]}</span>{c}</li>)}
+    </ol>
+  );
+}
+
+/** One question laid out for paper: circle a letter (or every right letter), write the answer, or number the items in order. */
+function PaperQuestion({ q, points }: { q: Question; points: number }) {
+  const format = formatOf(q), input = inputOf(q);
+  return (
+    <li className="pq">
+      <p className="qtext">{q.text}{points > 1 && <span className="pq-points"> ({points} points)</span>}</p>
+      {q.ask && <p className="qask">{q.ask}</p>}
+      {q.figure && <FigureView figure={q.figure} />}
+      {format === "model" && q.model && <BarModel spec={q.model} />}
+      {(input === "choose" || input === "multi") && <PaperChoices choices={q.choices} />}
+      {input === "parts" && (q.parts ?? []).map((p, i) => (
+        <div key={i} className="pq-part">
+          <p className="qtext"><b>Part {"ABCD"[i]}.</b> {p.text}</p>
+          {p.typed ? <p className="pq-line">Answer: <i /></p> : <PaperChoices choices={p.choices} />}
+        </div>
+      ))}
+      {/* Show-your-work questions get room for the working, as on MCAS. */}
+      {format === "cr" && <div className="pq-work" aria-hidden="true" />}
+      {input === "type" && <p className="pq-line">Answer: <i /></p>}
+      {input === "order" && (
+        <>
+          <p className="pq-items">{(q.items ?? []).join("     ")}</p>
+          <p className="pq-line">Least to greatest: <i /></p>
+        </>
+      )}
+      {/* Room to draw a bar model or work it out on word problems. */}
+      {q.model && format !== "model" && format !== "cr" && <div className="pq-work" aria-hidden="true" />}
+    </li>
+  );
+}

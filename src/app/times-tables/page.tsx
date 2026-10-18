@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { confetti } from "@/components/Confetti";
-import { useProgress } from "@/components/Progress";
-import { factKey, MASTERED, MAX, nextMastery, pickFact, strategy, TABLES } from "@/lib/timesTables";
+import { useProgress, useRemember } from "@/components/Progress";
+import { factKey, MASTERED, MAX, nextMastery, factDeck, strategy, TABLES } from "@/lib/timesTables";
 
 const TRICKS: { t: number; name: string; tip: string }[] = [
   { t: 2, name: "Doubles", tip: "× 2 is doubling: 2 × 8 is 8 + 8 = 16." },
@@ -21,6 +21,7 @@ const TRICKS: { t: number; name: string; tip: string }[] = [
 
 export default function TimesTablesPage() {
   const { facts, ready } = useProgress();
+  useRemember({ href: "/times-tables", title: "Times tables" });
   const [sel, setSel] = useState<[number, number]>([7, 8]);
   const [tables, setTables] = useState<number[]>([7]);
   const [playing, setPlaying] = useState(false);
@@ -35,10 +36,10 @@ export default function TimesTablesPage() {
 
   return (
     <div className="stack">
-      <div>
-        <p className="eyebrow">Grade 3 · CCSS 3.OA.C.7 · Free</p>
+      <div className="intro">
+        <p className="eyebrow">Grades 2 to 5 · Free</p>
         <h2>Times tables without rote</h2>
-        <p className="muted" style={{ marginTop: 6, maxWidth: "65ch" }}>
+        <p className="muted">
           Learn the anchor facts (× 1, × 2, × 5, × 10) and build every other fact from them. Because 7 × 8 is the same as 8 × 7, there are only 78 facts to know, and the tricks below cover most of them.
         </p>
       </div>
@@ -55,7 +56,7 @@ export default function TimesTablesPage() {
           <Sprint tables={tables} onDone={() => setPlaying(false)} />
         ) : (
           <>
-            <p className="muted">Pick the tables to practise. Facts you miss come back more often until they stick.</p>
+            <p className="muted">Pick the tables to practice. Every fact comes up once before any repeats, and facts you miss come back a few questions later.</p>
             <div className="row" role="group" aria-label="Tables">
               {TABLES.map((t) => {
                 const on = tables.includes(t);
@@ -99,7 +100,7 @@ export default function TimesTablesPage() {
               <span className="std">× {x.t}</span>
               <h3>{x.name}</h3>
               <p>{x.tip}</p>
-              <button className="btn ghost self-start" onClick={() => start([x.t])}>Practise × {x.t}</button>
+              <button className="btn ghost self-start" onClick={() => start([x.t])}>Practice × {x.t}</button>
             </div>
           ))}
         </div>
@@ -135,7 +136,9 @@ const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "⌫", "0", "Go"];
 
 function Sprint({ tables, onDone }: { tables: number[]; onDone: () => void }) {
   const { facts, setFact, addStars, recordBest, best } = useProgress();
-  const [fact, setFactQ] = useState<[number, number]>(() => pickFact(tables, facts, Math.random));
+  // Every fact in the chosen tables comes up once before any repeats; misses come back later.
+  const [deck] = useState(() => factDeck(tables, facts, Math.random));
+  const [fact, setFactQ] = useState<[number, number]>(() => deck.next());
   const [input, setInput] = useState("");
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
@@ -180,10 +183,11 @@ function Sprint({ tables, onDone }: { tables: number[]; onDone: () => void }) {
       setHint(null);
     } else {
       setStreak(0);
+      deck.missed(a, b);
       setHint(`${a} × ${b} = ${a * b}. ${strategy(a, b).how}`);
     }
     setInput("");
-    setFactQ(pickFact(tables, facts, Math.random, key));
+    setFactQ(deck.next());
     askedAt.current = now();
     inputRef.current?.focus();
   };
@@ -199,7 +203,7 @@ function Sprint({ tables, onDone }: { tables: number[]; onDone: () => void }) {
       <>
         <p className="result-big">{score}</p>
         <p className="muted">
-          correct in 60 seconds{best["tt-sprint"] != null ? ` · best ${Math.max(best["tt-sprint"], score)}` : ""}. Every 5 in a row earns a star.
+          correct in 60 seconds{best["tt-sprint"] != null ? ` · best ${Math.max(best["tt-sprint"], score)}` : ""}. Every 5 in a row earns 10 XP.
         </p>
         <button className="btn self-start" onClick={onDone}>Done</button>
       </>

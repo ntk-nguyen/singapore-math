@@ -26,4 +26,22 @@ export function helpers(r: Rng) {
   return { ri, pick, shuffle };
 }
 
+/**
+ * Deal items like a shuffled deck: each one once, in a random order, before any comes
+ * back; then a fresh shuffle that does not start with the item just dealt.
+ */
+export function deck<T>(items: readonly T[], r: Rng): () => T {
+  const { shuffle } = helpers(r);
+  let left: number[] = [];
+  let last = -1;
+  return () => {
+    if (!left.length) {
+      left = shuffle(items.map((_, i) => i));
+      if (left.length > 1 && left[0] === last) left.push(left.shift()!);
+    }
+    last = left.shift()!;
+    return items[last];
+  };
+}
+
 export const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : Math.abs(a));

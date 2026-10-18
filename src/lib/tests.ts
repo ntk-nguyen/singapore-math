@@ -1,5 +1,8 @@
-import { makeQuestion, type Grade, type Question } from "./questions";
-import { seeded } from "./rng";
+import { BANK, nearGrade, type Item, type Strand } from "./bank";
+import { generatorStds, generatorTiers, makeQuestion, type Format, type Grade, type Question } from "./questions";
+import { helpers, seeded, type Rng } from "./rng";
+import { formatOf, pointsFor, vary } from "./formats";
+import { NAMES, pickFresh, questionKey } from "./templates";
 
 export interface TestInfo {
   id: string;
@@ -8,22 +11,105 @@ export interface TestInfo {
   free: boolean;
   /** Number of questions. */
   length: number;
-  /** Fixed seed so everyone at a grade sees the same paper. */
+  /** The test's own seed. Each attempt mixes in its own seed, so a retake is a new paper. */
   seed: number;
   /** Grades the test is written for. Omitted means the selected grade. */
   grades?: Grade[];
+  /**
+   * Which question types the test draws from. Omitted means the quick-fire set for
+   * the grade, as the free tests and Play use.
+   */
+  pool?: (item: Item) => boolean;
+  /**
+   * Built like the Massachusetts MCAS from Grade 3 up (see `BLUEPRINT`): two sessions,
+   * points shared out by reporting category, and two show-your-work questions. Below
+   * Grade 3, where there is no state test, the paper is drawn from `pool` as usual.
+   */
+  blueprint?: boolean;
 }
 
-export const TESTS: TestInfo[] = [
-  { id: "placement", free: true, name: "Placement check", length: 12, seed: 0, desc: "Adaptive, 12 questions across Grades 1–8. Finds the right starting grade and maps it to US grade standards." },
-  { id: "checkpoint", free: true, name: "Grade checkpoint", length: 15, seed: 101, desc: "15 questions at your selected grade, mixing word problems, computation and geometry. Scored by standard." },
-  { id: "wp", free: false, name: "Word problem marathon", length: 20, seed: 303, desc: "20 multi-step word problems with bar model solutions." },
-  { id: "frac", free: false, name: "Fractions & ratio focus", length: 20, seed: 404, grades: [3, 4, 5, 6], desc: "Grades 3–6 fractions, ratio and percent, the core of Singapore Primary 4–6." },
-  { id: "state", free: false, name: "State test style (SBAC/PARCC mix)", length: 20, seed: 505, desc: "Mixed-strand practice in the style of end-of-year state tests." },
-  { id: "eoy", free: false, name: "End-of-year review", length: 25, seed: 606, desc: "25 questions covering every standard for the grade." },
-  { id: "psle", free: false, name: "PSLE-style challenge", length: 20, seed: 707, grades: [5, 6], desc: "Harder heuristics problems inspired by Singapore’s Primary 6 exam." },
-  { id: "pre-alg", free: false, name: "Pre-algebra readiness", length: 20, seed: 808, grades: [6, 7, 8], desc: "Grades 6–8 expressions, equations and the number system." },
+/** How hard a paper is. Standard is the usual mix; easy and hard lean that way. */
+export type Difficulty = "easy" | "standard" | "hard";
+
+/**
+ * Each difficulty names the MCAS achievement level it practises for (Massachusetts levels:
+ * Partially Meeting, Meeting, Exceeding Expectations). It is practice aimed at a level, not
+ * a prediction: no score here is calibrated against MCAS.
+ */
+export const DIFFICULTIES: { id: Difficulty; label: string; blurb: string; mcas: string }[] = [
+  { id: "easy", label: "Easy", blurb: "Smaller numbers and fewer of the hardest problem types.", mcas: "From Partially Meeting up to Meeting Expectations" },
+  { id: "standard", label: "Standard", blurb: "The usual mix for the grade.", mcas: "Practice at Meeting Expectations" },
+  { id: "hard", label: "Hard", blurb: "Bigger numbers and more multi-step problems.", mcas: "Practice for Exceeding Expectations" },
 ];
+
+export function isDifficulty(x: unknown): x is Difficulty {
+  return x === "easy" || x === "standard" || x === "hard";
+}
+
+/** Tiers to move templates by at each difficulty. */
+const SHIFT: Record<Difficulty, number> = { easy: -1, standard: 0, hard: 1 };
+
+const fracDec = (i: Item) => i.strand === "fractions" || i.strand === "decimals";
+
+export const TESTS: TestInfo[] = [
+  { id: "placement", free: true, name: "Placement check", length: 12, seed: 0, desc: "Adaptive, 12 questions from Kindergarten to Grade 8. Finds the right starting grade and maps it to US grade standards." },
+  { id: "checkpoint", free: true, name: "Grade checkpoint", length: 15, seed: 101, desc: "15 questions at your selected grade, mixing word problems, computation and geometry. Scored by standard." },
+  { id: "wp", free: false, name: "Word problem marathon", length: 20, seed: 303, desc: "20 multi-step word problems with bar model solutions.",
+    pool: (i) => i.strand === "word" },
+  { id: "frac", free: false, name: "Fractions & ratio focus", length: 20, seed: 404, grades: [3, 4, 5, 6], desc: "Grades 3–6 fractions, decimals, ratio and percent, the core of Singapore Primary 4–6.",
+    pool: (i) => fracDec(i) || (i.strand !== "computation" && /\.(NF|RP)\./.test(i.std)) },
+  { id: "state", free: false, name: "State test style (MCAS blueprint)", length: 20, seed: 505, blueprint: true,
+    desc: "Grades 3–8: built like the Massachusetts MCAS, one of the most rigorous state tests. Two sessions, points weighted by reporting category, two show-your-work questions, and results by reporting category. Grades 7–8 may use a calculator in Session 2.",
+    pool: (i) => i.strand !== "computation" },
+  { id: "eoy", free: false, name: "End-of-year review", length: 25, seed: 606, desc: "25 questions covering every topic for the grade, including written computation.",
+    pool: () => true },
+  { id: "psle", free: false, name: "PSLE-style challenge", length: 20, seed: 707, grades: [5, 6], desc: "Harder heuristics problems inspired by Singapore’s Primary 6 exam, plus fractions and decimals.",
+    pool: (i) => (i.strand === "word" && i.level !== "easy") || fracDec(i) },
+  { id: "pre-alg", free: false, name: "Pre-algebra readiness", length: 20, seed: 808, grades: [6, 7, 8], desc: "Grades 6–8 expressions, equations and the number system.",
+    pool: (i) => i.strand === "equations" || i.strand === "quick" || fracDec(i) },
+];
+
+/** The domain of a standard ("G" in 3.G.A.1, "NF" in 4.NF.B.3), which is what state tests report on. */
+export const areaOf = (std: string) => std.split(".")[1];
+
+export interface Category {
+  name: string;
+  /** The domains it covers ("OA" in 3.OA.A.1). */
+  areas: string[];
+  /** Share of the points, in percent. */
+  weight: number;
+}
+
+const C = (name: string, weight: number, ...areas: string[]): Category => ({ name, areas, weight });
+const OA = "Operations and algebraic thinking", NBT = "Number and operations in base ten", NF = "Fractions", MD = "Measurement and data", G = "Geometry";
+const RP = "Ratios and proportional relationships", NS = "The number system", EE = "Expressions and equations", SP = "Statistics and probability";
+
+/**
+ * MCAS reporting categories and their share of the points, Grades 3–8 (RICAS/MCAS test
+ * design; see docs in project files, mcas-alignment.md).
+ */
+export const BLUEPRINT: Partial<Record<Grade, Category[]>> = {
+  3: [C(OA, 30, "OA"), C(NBT, 15, "NBT"), C(NF, 20, "NF"), C(MD, 25, "MD"), C(G, 10, "G")],
+  4: [C(OA, 20, "OA"), C(NBT, 20, "NBT"), C(NF, 30, "NF"), C(MD, 20, "MD"), C(G, 10, "G")],
+  5: [C(OA, 15, "OA"), C(NBT, 30, "NBT"), C(NF, 25, "NF"), C(MD, 20, "MD"), C(G, 10, "G")],
+  6: [C(RP, 20, "RP"), C(NS, 20, "NS"), C(EE, 30, "EE"), C(G, 15, "G"), C(SP, 15, "SP")],
+  7: [C(RP, 20, "RP"), C(NS, 20, "NS"), C(EE, 25, "EE"), C(G, 15, "G"), C(SP, 20, "SP")],
+  8: [C("Number system, expressions and equations", 40, "NS", "EE"), C("Functions", 20, "F"), C(G, 30, "G"), C(SP, 10, "SP")],
+};
+
+/** The MCAS reporting category a standard is reported under at a grade, if the grade has a state test. */
+export function categoryOf(grade: Grade, std: string): string | undefined {
+  return BLUEPRINT[grade]?.find((c) => c.areas.includes(areaOf(std)))?.name;
+}
+
+/** Whether a test is built on the MCAS blueprint at this grade. */
+export const usesBlueprint = (test: TestInfo, grade: Grade) => !!test.blueprint && !!BLUEPRINT[grade];
+
+/** Blueprint papers come in two sessions of equal length, as MCAS does. */
+export const sessionOf = (i: number, n: number): 1 | 2 => (i < n / 2 ? 1 : 2);
+
+/** MCAS allows a calculator only in Session 2, and only in Grades 7 and 8. */
+export const calculatorAllowed = (grade: Grade, session: 1 | 2) => grade >= 7 && session === 2;
 
 export function getTest(id: string): TestInfo | undefined {
   return TESTS.find((t) => t.id === id);
@@ -36,9 +122,247 @@ export function testGrade(test: TestInfo, selected: Grade): Grade {
   return atOrBelow.length ? atOrBelow[atOrBelow.length - 1] : test.grades[0];
 }
 
-/** Build a fixed (non-adaptive) test paper. */
-export function buildPaper(test: TestInfo, selected: Grade): Question[] {
+/**
+ * Whether a test is offered at a grade. Every test is, from Grade 1 up (a test with a grade
+ * range is set at its lowest grade, as a look ahead). Kindergarten only gets the tests it
+ * has its own questions for: the placement check, the grade checkpoint, and mixed tests
+ * made entirely of Kindergarten questions. No word problem marathon or fractions test.
+ */
+export function testOffered(test: TestInfo, selected: Grade): boolean {
+  if (selected > 0 || !test.pool) return true;
+  if (test.grades) return false;
+  const items = testItems(test, selected);
+  return items.length > 0 && items.every((i) => i.grade === 0);
+}
+
+/**
+ * The question types a test draws from at a grade. An easy paper leaves out advanced
+ * types and a hard one leaves out easy types, when enough are left at or below the
+ * grade; otherwise it keeps them all (Grade 1 has no hard word problems, say).
+ */
+export function testItems(test: TestInfo, selected: Grade, difficulty: Difficulty = "standard"): Item[] {
+  if (!test.pool) return [];
+  // Draw on enough question types that a type comes back at most about twice on a
+  // paper, adding the grades below when the grade has too few of its own.
+  const grade = testGrade(test, selected), min = Math.ceil(test.length * 0.6);
+  const all = BANK.filter(test.pool);
+  const full = nearGrade(all, grade, min);
+  if (difficulty === "standard") return full;
+  const skip = difficulty === "easy" ? "advanced" : "easy";
+  const leaning = nearGrade(all.filter((i) => i.level !== skip), grade, min);
+  return leaning.length >= Math.min(3, full.length) && leaning.every((i) => i.grade <= grade) ? leaning : full;
+}
+
+/**
+ * A rough measure of how hard a question looks: bigger numbers, fractions and decimals,
+ * longer wording and more solution steps all count. Used to put a paper in order and,
+ * on easy and hard papers, to pick the easier or harder of a few draws.
+ */
+export function questionScore(q: Question): number {
+  // Some questions keep their numbers in the items or the answer ("Put these in order").
+  const all = [q.text, ...(q.items ?? []), q.answer].join(" ");
+  const nums = all.match(/\d[\d,]*(\.\d+)?/g) ?? [];
+  const digits = Math.max(0, ...nums.map((n) => n.replace(/\D/g, "").length));
+  const fracOrDec = /\d\/\d|\d\.\d/.test(all) ? 1 : 0;
+  return digits + 0.3 * nums.length + fracOrDec + q.text.split(/\s+/).length / 25 + 0.5 * (q.steps?.length ?? 0) + (q.figure ? 0.5 : 0);
+}
+
+/** Papers come in three sections, like a real exam: A warms up, B is the core, C is the hardest third. */
+export function sectionOf(i: number, n: number): "A" | "B" | "C" {
+  return i < Math.round(n / 3) ? "A" : i < Math.round((2 * n) / 3) ? "B" : "C";
+}
+
+/** A seed for one attempt at a test. */
+export function attemptSeed(): number {
+  return Math.floor(Math.random() * 2 ** 31);
+}
+
+/** Mix the test, grade and attempt into one well-spread seed, so nearby attempts give unrelated papers. */
+function paperSeed(test: TestInfo, grade: Grade, attempt: number): number {
+  let h = Math.imul(test.seed * 10 + grade, 0x9e3779b1) ^ Math.imul(attempt >>> 0, 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 16), 0x7feb352d);
+  h = Math.imul(h ^ (h >>> 15), 0x846ca68b);
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
+const NAME = new RegExp(`\\b(${NAMES.join("|")})\\b`, "g");
+
+/** A question with its names and numbers blanked out: "N has # stamps and N has #." */
+export function shapeOf(q: Question): string {
+  return q.text.replace(NAME, "N").replace(/\$?\d[\d,]*(\.\d+)?/g, "#").toLowerCase();
+}
+
+/**
+ * A question not yet on the paper, preferring one whose wording is not just a question
+ * already on it with new names and numbers. Some types all share their wording ("What
+ * is 46 × 7?"), so after a few tries any new question will do. With `cost`, a few such
+ * questions are drawn and the one with the lowest cost is kept.
+ */
+function pickVaried(seen: Set<string>, shapes: Set<string>, make: () => Question, cost?: (q: Question) => number): Question {
+  const want = cost ? 3 : 1;
+  const found: Question[] = [];
+  for (let i = 0; i < 10 && found.length < want; i++) {
+    const q = make();
+    if (!seen.has(questionKey(q)) && !shapes.has(shapeOf(q)) && !found.some((f) => questionKey(f) === questionKey(q))) found.push(q);
+  }
+  if (!found.length) {
+    const q = pickFresh(seen, make);
+    shapes.add(shapeOf(q));
+    return q;
+  }
+  const q = cost ? found.reduce((a, b) => (cost(b) < cost(a) ? b : a)) : found[0];
+  seen.add(questionKey(q));
+  shapes.add(shapeOf(q));
+  return q;
+}
+
+/**
+ * Ask a question in one of its formats, trying again (up to a few times) when that
+ * would give the same format as the question before, so a paper does not run through
+ * several true-or-false or type-in questions in a row.
+ */
+function varyAfter(q: Question, prev: Question | undefined, r: Rng): Question {
+  let out = vary(q, r);
+  for (let i = 0; i < 4 && prev && formatOf(out) === formatOf(prev); i++) out = vary(q, r);
+  return out;
+}
+
+/**
+ * Build a fixed-length (non-adaptive) test paper. Each attempt is a new paper: the same
+ * `attempt` seed always gives the same paper, a different one gives different questions.
+ * Pooled tests take turns between strands, so a paper mixes word problems, fractions
+ * and so on rather than repeating one kind, and go through every question type in a
+ * strand before any comes back. No question appears twice on a paper, nor (when it can
+ * be helped) the same question with new names and numbers.
+ *
+ * The paper runs from easier to harder questions, like a real exam. An easy paper draws
+ * templates a tier easier and picks the easiest of a few draws; a hard paper does the
+ * opposite. Questions come in a mix of formats, never the same format twice in a row
+ * when it can be helped.
+ */
+export function buildPaper(test: TestInfo, selected: Grade, attempt: number = attemptSeed(), difficulty: Difficulty = "standard"): Question[] {
   const grade = testGrade(test, selected);
-  const r = seeded(test.seed * 10 + grade);
-  return Array.from({ length: test.length }, (_, i) => makeQuestion(grade, r, i));
+  if (usesBlueprint(test, grade)) return buildBlueprint(test, grade, attempt, difficulty);
+  const r = seeded(paperSeed(test, grade, attempt));
+  const seen = new Set<string>(), shapes = new Set<string>();
+  const { shuffle } = helpers(r);
+  const shift = SHIFT[difficulty];
+  const cost = difficulty === "easy" ? questionScore : difficulty === "hard" ? (q: Question) => -questionScore(q) : undefined;
+  const drawn: { q: Question; score: number }[] = [];
+  const draw = (rank: number, make: () => Question) => {
+    const q = pickVaried(seen, shapes, make, cost);
+    drawn.push({ q, score: 2 * rank + questionScore(q) });
+  };
+  if (!test.pool) {
+    // The grade's areas (geometry, fractions...) take turns, so a short paper still
+    // touches every area; within an area the question types come in a new order each attempt.
+    const tiers = generatorTiers(grade);
+    const byArea = new Map<string, number[]>();
+    generatorStds(grade).forEach((std, i) => byArea.set(areaOf(std), [...(byArea.get(areaOf(std)) ?? []), i]));
+    const areas = shuffle([...byArea.values()].map((l) => shuffle(l)));
+    const longest = Math.max(...areas.map((l) => l.length));
+    const order = Array.from({ length: longest }, (_, k) => areas.map((l) => l[k])).flat().filter((t) => t !== undefined);
+    for (let i = 0; i < test.length; i++) {
+      const t = order[i % order.length];
+      draw(tiers[t], () => makeQuestion(grade, r, t, shift));
+    }
+  } else {
+    const byStrand = new Map<Strand, Item[]>();
+    for (const item of testItems(test, selected, difficulty)) byStrand.set(item.strand, [...(byStrand.get(item.strand) ?? []), item]);
+    const lists = shuffle([...byStrand.values()].map((l) => shuffle(l)));
+    for (let i = 0; i < test.length; i++) {
+      const list = lists[i % lists.length];
+      // A repeat moves on to the next question type in the strand.
+      const first = Math.floor(i / lists.length);
+      let tries = 0;
+      const from = new Map<Question, Item>();
+      const make = () => {
+        const it = list[(first + Math.floor(tries++ / 5)) % list.length], q = it.make(r, shift);
+        from.set(q, it);
+        return q;
+      };
+      const q = pickVaried(seen, shapes, make, cost), item = from.get(q)!;
+      // Types borrowed from a grade below count as a little easier.
+      drawn.push({ q, score: 2 * (item.rank - (item.grade < grade ? 1 : 0)) + questionScore(q) });
+    }
+  }
+  // Easier to harder. The sort is stable, so ties keep the strands taking turns.
+  const ordered = drawn.map((d, i) => ({ ...d, i })).sort((a, b) => a.score - b.score || a.i - b.i).map((d) => d.q);
+  // Sorting can bunch up types with a fixed format (three number lines in a row), so
+  // pull a question with another format up from just ahead, keeping the order roughly.
+  for (let i = 1; i < ordered.length; i++) {
+    if (!ordered[i].format || ordered[i].format !== ordered[i - 1].format) continue;
+    const j = ordered.findIndex((q, k) => k > i && k <= i + 3 && q.format !== ordered[i].format);
+    if (j > 0) ordered.splice(i, 0, ...ordered.splice(j, 1));
+  }
+  const out: Question[] = [];
+  for (const q of ordered) out.push(varyAfter(q, out[out.length - 1], r));
+  return out;
+}
+
+/** The format a question type is always asked in (show-your-work, two-part...), from one sample. */
+const FORMAT_OF = new Map<string, Format>();
+function itemFormat(item: Item): Format {
+  if (!FORMAT_OF.has(item.id)) FORMAT_OF.set(item.id, formatOf(item.make(seeded(1))));
+  return FORMAT_OF.get(item.id)!;
+}
+
+/**
+ * A paper built like MCAS: two sessions of equal length, each ending with a show-your-work
+ * question, and a two-part question in Session 2. Every other question is worth one point,
+ * and they are shared out so each reporting category gets about its MCAS share of all the
+ * points. Within a session the questions run from easier to harder.
+ */
+function buildBlueprint(test: TestInfo, grade: Grade, attempt: number, difficulty: Difficulty): Question[] {
+  const r = seeded(paperSeed(test, grade, attempt));
+  const { shuffle } = helpers(r);
+  const seen = new Set<string>(), shapes = new Set<string>();
+  const shift = SHIFT[difficulty];
+  const cost = difficulty === "easy" ? questionScore : difficulty === "hard" ? (q: Question) => -questionScore(q) : undefined;
+  const cats = BLUEPRINT[grade]!;
+  const items = BANK.filter((i) => i.grade === grade && categoryOf(grade, i.std));
+  const draw = (list: Item[]) => {
+    let tries = 0;
+    const from = new Map<Question, Item>();
+    const q = pickVaried(seen, shapes, () => {
+      const it = list[Math.floor(tries++ / 5) % list.length], made = it.make(r, shift);
+      from.set(made, it);
+      return made;
+    }, cost);
+    return { q, score: 2 * from.get(q)!.rank + questionScore(q) };
+  };
+
+  // The big questions first: a show-your-work question to end each session, and a two-part one.
+  const crs = shuffle(items.filter((i) => itemFormat(i) === "cr"));
+  const twos = items.filter((i) => itemFormat(i) === "twopart");
+  const cr1 = draw([crs[0]]), cr2 = draw([crs[1 % crs.length]]);
+  const two = twos.length ? [draw(shuffle(twos))] : [];
+  const big = [cr1, cr2, ...two];
+
+  // Share the one-point questions out so each category's points come near its weight.
+  const singles = items.filter((i) => !["cr", "twopart"].includes(itemFormat(i)));
+  const slots = test.length - big.length;
+  const total = slots + big.reduce((s, b) => s + pointsFor(b.q), 0);
+  const open = cats.filter((c) => singles.some((i) => c.areas.includes(areaOf(i.std))));
+  const want = open.map((c) => Math.max(0, (c.weight / 100) * total - big.filter((b) => categoryOf(grade, b.q.std) === c.name).reduce((s, b) => s + pointsFor(b.q), 0)));
+  const sum = want.reduce((a, b) => a + b, 0) || 1;
+  const exact = want.map((w) => (w / sum) * slots);
+  const count = exact.map(Math.floor);
+  // Largest remainders take the slots left over.
+  exact.map((e, k) => [e - count[k], k]).sort((a, b) => b[0] - a[0]).slice(0, slots - count.reduce((a, b) => a + b, 0)).forEach(([, k]) => count[k]++);
+
+  // Categories take turns, so the two sessions get a similar mix.
+  const lists = open.map((c) => shuffle(singles.filter((i) => c.areas.includes(areaOf(i.std)))));
+  const turns: Item[][] = [];
+  for (let round = 0; turns.length < slots; round++) {
+    open.forEach((_, k) => {
+      if (round < count[k]) turns.push([...lists[k].slice(round % lists[k].length), ...lists[k].slice(0, round % lists[k].length)]);
+    });
+  }
+  const ones = turns.map(draw);
+  const s1 = ones.filter((_, k) => k % 2 === 0), s2 = [...ones.filter((_, k) => k % 2 === 1), ...two];
+  const inOrder = (l: { q: Question; score: number }[]) => l.map((d, i) => ({ ...d, i })).sort((a, b) => a.score - b.score || a.i - b.i).map((d) => d.q);
+  const out: Question[] = [];
+  for (const q of [...inOrder(s1), cr1.q, ...inOrder(s2), cr2.q]) out.push(varyAfter(q, out[out.length - 1], r));
+  return out;
 }

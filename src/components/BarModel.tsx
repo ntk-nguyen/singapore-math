@@ -1,6 +1,6 @@
 import type { BarModelSpec } from "@/lib/models";
 
-type SegKind = "a" | "b" | "c" | "q";
+type SegKind = "a" | "b" | "c" | "q" | "e";
 
 function Seg({ kind, grow, children }: { kind: SegKind; grow: number; children?: React.ReactNode }) {
   return (
@@ -125,6 +125,17 @@ function ModelBody({ spec: m }: { spec: BarModelSpec }) {
               ? `${m.n} units of x and ${m.c} make ${m.total}. Take away ${m.c}, then share what is left among ${m.n} units.`
               : `${m.n} units of x make ${m.total}. Share ${m.total} among ${m.n} units.`}
           </p>
+        </>
+      );
+    case "fbars":
+      return (
+        <>
+          {m.bars.map((b, i) => (
+            <Row key={i} label={b.label ?? `${b.n}/${b.d}`}>
+              {Array.from({ length: b.d }, (_, k) => <Seg key={k} kind={k < b.n ? "b" : "e"} grow={1} />)}
+            </Row>
+          ))}
+          {m.note && <p className="muted small">{m.note}</p>}
         </>
       );
   }
