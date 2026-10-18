@@ -35,7 +35,7 @@ Sign-in uses [Auth.js](https://authjs.dev) (`next-auth` v5) with the Google prov
 Any Postgres works. Two free options:
 
 - **Neon** (works on Vercel too): create a project at [neon.tech](https://neon.tech) and copy its connection string into `DATABASE_URL`.
-- **Local**: `createdb mathbridge`, then `DATABASE_URL=postgres://localhost:5432/mathbridge` (add a user and password if yours needs them).
+- **Local (Docker)**: put `DATABASE_URL=postgres://postgres:postgres@localhost:5433/mathbridge` in `.env.local` and have Docker Desktop running. `npm run dev` then starts Postgres 17 from `docker-compose.yml` (or reuses it if it is already up). `npm run db:down` stops it; `npm run db:reset` also wipes its data. When `DATABASE_URL` points anywhere else (like Neon) or Docker isn't running, `npm run dev` skips this step.
 
 The tables (`users`, `accounts`, `sessions`, `verification_token`, `families`) are created automatically on the first request. The SQL is in `src/lib/db.ts`.
 
