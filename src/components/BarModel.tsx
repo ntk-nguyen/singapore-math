@@ -2,7 +2,7 @@ import type { BarModelSpec } from "@/lib/models";
 
 type SegKind = "a" | "b" | "c" | "q" | "e";
 
-function Seg({ kind, grow, children }: { kind: SegKind; grow: number; children?: React.ReactNode }) {
+export function Seg({ kind, grow, children }: { kind: SegKind; grow: number; children?: React.ReactNode }) {
   return (
     <div className={`seg ${kind}`} style={{ flexGrow: grow }}>
       {children}

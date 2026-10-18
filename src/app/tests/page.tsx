@@ -9,7 +9,7 @@ import { useProgress } from "@/components/Progress";
 import { usePlan } from "@/components/usePlan";
 import { PAPER_KINDS, paperAvailable } from "@/lib/papers";
 import { type Grade, gradeName, GRADES } from "@/lib/questions";
-import { DIFFICULTIES, TESTS, testOffered, type Difficulty } from "@/lib/tests";
+import { DIFFICULTIES, TESTS, testGrade, testOffered, type Difficulty, type TestInfo } from "@/lib/tests";
 
 const COUNT = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight"];
 
@@ -57,11 +57,15 @@ export default function TestsPage() {
       <div className="tests">
         {tests.map((t) => {
           const open = t.free || pro;
+          // A test with a grade range starts above a younger child's grade, so say so up front.
+          const set = testGrade(t, grade);
           return (
             <div key={t.id} className={`test${open ? "" : " locked"}`}>
               {t.free ? <span className="tag free">Free</span> : <span className="tag paid"><span className="lock"><CrownIcon />Pro</span></span>}
               <h3>{t.name}</h3>
+              {set > grade && <span className="tag ahead">Look ahead: set at {gradeName(set)}</span>}
               <p>{t.desc}</p>
+              <TestFacts test={t} />
               {best[t.id] != null && <span className="muted small">Best: {best[t.id]}%</span>}
               {open ? (
                 <Link className="btn self-start" href={`/tests/${t.id}${levelQuery && t.id !== "placement" ? `?${levelQuery}` : ""}`}>Start</Link>
@@ -82,9 +86,17 @@ export default function TestsPage() {
   );
 }
 
+/** How many questions, about how long, and which grades, in one line under the description. */
+function TestFacts({ test }: { test: TestInfo }) {
+  const facts = [`${test.length} questions`];
+  if (test.minutes) facts.push(`about ${test.minutes} min`);
+  if (test.grades) facts.push(`Grades ${test.grades[0]}–${test.grades[test.grades.length - 1]}`);
+  // Each fact stays on one line; only the gaps between them can wrap.
+  return <p className="test-facts">{facts.map((f) => f.replaceAll(" ", "\u00a0")).join(" · ")}</p>;
+}
+
 /**
- * Easy, standard or hard, for every fixed test and printed paper, each named by the MCAS
- * level it practises for. The placement check
+ * Easy, standard or hard, for every fixed test and printed paper. The placement check
  * adapts on its own, so it ignores this. Every paper runs from easier to harder.
  */
 function DifficultyPicker({ value, onChange }: { value: Difficulty; onChange: (d: Difficulty) => void }) {
@@ -97,7 +109,7 @@ function DifficultyPicker({ value, onChange }: { value: Difficulty; onChange: (d
           {d.label}
         </button>
       ))}
-      <span className="muted small">{chosen.blurb} <b>{chosen.mcas}</b> on the MCAS scale. Every test starts easier and gets harder.</span>
+      <span className="muted small">{chosen.blurb} Every test starts easier and gets harder.</span>
     </div>
   );
 }
