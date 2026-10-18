@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AudienceSplit, GrownUpHero, useAudience } from "@/components/Audience";
 import { useProgress } from "@/components/Progress";
 import { ProCard } from "@/components/Paywall";
+import { FirstVisitTryIt } from "@/components/TryIt";
 import { usePlan } from "@/components/usePlan";
 import { lastWeek, QUEST_GOAL } from "@/lib/activity";
 import { gradeCatalog, type Domain, type DomainId } from "@/lib/catalog";
@@ -35,11 +36,12 @@ export default function LearnPage() {
   const units = pathway(domains, { best, lessons, pro });
   // A brand-new visitor is asked who they are first; anyone with saved progress goes straight to practice.
   const isNew = !ready || (!recent && placement == null && stars === 0);
-  if (isNew && (!whoLoaded || who == null)) return <AudienceSplit onPick={setWho} />;
+  if (isNew && (!whoLoaded || who == null)) return <div className="stack"><AudienceSplit onPick={setWho} /><FirstVisitTryIt /></div>;
 
   return (
     <div className="stack">
       {who === "grownup" ? <GrownUpHero onLearner={() => setWho("learner")} /> : <Hero units={units} onGrownUp={() => setWho("grownup")} />}
+      <FirstVisitTryIt />
       <div className="home">
         <div className="stack" style={{ gap: 20 }}>
           <Pathway key={`${grade}-${ready}`} units={units} />

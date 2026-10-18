@@ -828,3 +828,22 @@ table.cmp th.cmp-pro { background: var(--accent-soft); }
   .split-card { min-height: 80px; padding: 16px; }
   .split-text b { font-size: 1.15rem; }
 }
+
+/* home page try-it problem */
+.tryit .eyebrow { display: inline-flex; align-items: center; gap: 6px; }
+.tryit .eyebrow svg { width: 14px; height: 14px; }
+.tryit-step { font: 600 0.75rem var(--body); color: var(--muted); white-space: nowrap; }
+.tryit-ask { font: 700 1rem var(--display); }
+.tryit-model { display: flex; align-items: stretch; gap: 8px; max-width: 760px; }
+.tryit-model .model { flex: 1; min-width: 0; }
+.tryit-model .bars { transition: width 0.35s ease; }
+.tryit-total { display: flex; align-items: center; gap: 6px; font: 700 0.95rem var(--display); color: var(--ink); padding: 18px 0; }
+.tryit-total::before { content: ""; align-self: stretch; width: 10px; border: 2px solid var(--muted); border-left: none; border-radius: 0 10px 10px 0; }
+.tryit-build { display: flex; flex-wrap: wrap; gap: 10px; }
+.tryit-build .btn { white-space: nowrap; }
+.tryit .choices { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 760px; }
+@media (max-width: 480px) {
+  .tryit .mrow { grid-template-columns: 44px 1fr; gap: 8px; min-width: 0; }
+  .tryit .mlabel { font-size: 0.8rem; }
+  .tryit-build .btn { flex: 1; padding: 12px 14px; }
+}
