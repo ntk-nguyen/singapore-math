@@ -2,6 +2,7 @@ import { TESTS } from "@/lib/tests";
 import { Account } from "./Account";
 import { Billing } from "./Billing";
 import { Children } from "./Children";
+import { WeeklySummary } from "./WeeklySummary";
 
 const TEST_NAMES = TESTS.map((t) => ({ id: t.id, name: t.name }));
 
@@ -21,6 +22,7 @@ export default function ParentsPage() {
   return (
     <div className="stack">
       <Account />
+      <WeeklySummary tests={TEST_NAMES} />
       <Children tests={TEST_NAMES} />
       <section className="panel">
         <p className="eyebrow">Standards map</p>

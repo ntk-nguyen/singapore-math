@@ -790,3 +790,25 @@ table.cmp th.cmp-pro { background: var(--accent-soft); }
 /* Parent account */
 .google-btn { display: inline-flex; align-items: center; gap: 10px; }
 .google-btn svg { background: #fff; border-radius: 50%; padding: 2px; width: 22px; height: 22px; }
+
+/* Parents page: weekly summary per child */
+.weekgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 16px; }
+.weekcard { display: flex; flex-direction: column; gap: 14px; border: 1px solid var(--line); border-radius: 20px; padding: 16px; background: var(--surface); }
+.weekhead { display: flex; align-items: center; gap: 10px; }
+.weekhead b { display: block; font: 700 1rem var(--display); }
+.weekhead small { color: var(--muted); font-size: 0.8rem; }
+.weekcard .kidstats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.weekcard .kidstat { padding: 10px 12px; }
+.weekcard .kidstat b { font-size: 1.1rem; }
+.kidstat small { display: block; font-size: 0.75rem; margin-top: 2px; color: var(--muted); }
+.kidstat small.up { color: var(--good); }
+.kidstat small.down { color: var(--bad); }
+.weeklist h4 { margin: 0 0 6px; font: 700 0.85rem var(--body); color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.weeklist.good h4 { color: var(--good); }
+.weeklist.bad h4 { color: var(--bad); }
+.weeklist ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.weeklist li { display: flex; flex-direction: column; background: var(--surface-low); border-radius: 12px; padding: 8px 12px; border-left: 4px solid var(--line-strong); }
+.weeklist.good li { border-left-color: var(--good-fill); }
+.weeklist.bad li { border-left-color: var(--bad-fill); }
+.weeklist li span { font-weight: 600; }
+.weeklist li small { color: var(--muted); font-size: 0.8rem; }
