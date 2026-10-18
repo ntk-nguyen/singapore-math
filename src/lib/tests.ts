@@ -26,20 +26,22 @@ export interface TestInfo {
    * Grade 3, where there is no state test, the paper is drawn from `pool` as usual.
    */
   blueprint?: boolean;
+  /** About how long the test takes a child, in minutes, shown on its card. */
+  minutes?: number;
 }
 
 /** How hard a paper is. Standard is the usual mix; easy and hard lean that way. */
 export type Difficulty = "easy" | "standard" | "hard";
 
 /**
- * Each difficulty names the MCAS achievement level it practises for (Massachusetts levels:
- * Partially Meeting, Meeting, Exceeding Expectations). It is practice aimed at a level, not
- * a prediction: no score here is calibrated against MCAS.
+ * Easy, Standard and Hard practise toward the MCAS levels Partially Meeting, Meeting and
+ * Exceeding Expectations. Only the Parents page says so; no score here is calibrated
+ * against MCAS.
  */
-export const DIFFICULTIES: { id: Difficulty; label: string; blurb: string; mcas: string }[] = [
-  { id: "easy", label: "Easy", blurb: "Smaller numbers and fewer of the hardest problem types.", mcas: "From Partially Meeting up to Meeting Expectations" },
-  { id: "standard", label: "Standard", blurb: "The usual mix for the grade.", mcas: "Practice at Meeting Expectations" },
-  { id: "hard", label: "Hard", blurb: "Bigger numbers and more multi-step problems.", mcas: "Practice for Exceeding Expectations" },
+export const DIFFICULTIES: { id: Difficulty; label: string; blurb: string }[] = [
+  { id: "easy", label: "Easy", blurb: "Smaller numbers and fewer of the hardest problem types." },
+  { id: "standard", label: "Standard", blurb: "The usual mix for the grade." },
+  { id: "hard", label: "Hard", blurb: "Bigger numbers and more multi-step problems." },
 ];
 
 export function isDifficulty(x: unknown): x is Difficulty {
@@ -52,20 +54,22 @@ const SHIFT: Record<Difficulty, number> = { easy: -1, standard: 0, hard: 1 };
 const fracDec = (i: Item) => i.strand === "fractions" || i.strand === "decimals";
 
 export const TESTS: TestInfo[] = [
-  { id: "placement", free: true, name: "Placement check", length: 12, seed: 0, desc: "Adaptive, 12 questions from Kindergarten to Grade 8. Finds the right starting grade and maps it to US grade standards." },
-  { id: "checkpoint", free: true, name: "Grade checkpoint", length: 15, seed: 101, desc: "15 questions at your selected grade, mixing word problems, computation and geometry. Scored by standard." },
-  { id: "wp", free: false, name: "Word problem marathon", length: 20, seed: 303, desc: "20 multi-step word problems with bar model solutions.",
+  { id: "placement", free: true, name: "Placement check", length: 12, seed: 0, minutes: 10,
+    desc: "The questions get easier or harder as your child answers, to find the right grade to start at." },
+  { id: "checkpoint", free: true, name: "Grade checkpoint", length: 15, seed: 101, minutes: 15,
+    desc: "Word problems, sums and shapes at your grade, with a score for each skill so you can see what to practice next." },
+  { id: "wp", free: false, name: "Word problem marathon", length: 20, seed: 303, minutes: 30, desc: "Multi-step word problems, each with a bar model solution to learn from.",
     pool: (i) => i.strand === "word" },
-  { id: "frac", free: false, name: "Fractions & ratio focus", length: 20, seed: 404, grades: [3, 4, 5, 6], desc: "Grades 3–6 fractions, decimals, ratio and percent, the core of Singapore Primary 4–6.",
+  { id: "frac", free: false, name: "Fractions & ratio focus", length: 20, seed: 404, grades: [3, 4, 5, 6], minutes: 25, desc: "Fractions, decimals, ratio and percent, all in one test.",
     pool: (i) => fracDec(i) || (i.strand !== "computation" && /\.(NF|RP)\./.test(i.std)) },
-  { id: "state", free: false, name: "State test style (MCAS blueprint)", length: 20, seed: 505, blueprint: true,
-    desc: "Grades 3–8: built like the Massachusetts MCAS, one of the most rigorous state tests. Two sessions, points weighted by reporting category, two show-your-work questions, and results by reporting category. Grades 7–8 may use a calculator in Session 2.",
+  { id: "state", free: false, name: "State test practice", length: 20, seed: 505, blueprint: true, minutes: 40,
+    desc: "Feels like the real end-of-year test. From Grade 3 it comes in two sessions with show-your-work questions, and results by topic.",
     pool: (i) => i.strand !== "computation" },
-  { id: "eoy", free: false, name: "End-of-year review", length: 25, seed: 606, desc: "25 questions covering every topic for the grade, including written computation.",
+  { id: "eoy", free: false, name: "End-of-year review", length: 25, seed: 606, minutes: 35, desc: "Every topic for the grade in one test, including written sums.",
     pool: () => true },
-  { id: "psle", free: false, name: "PSLE-style challenge", length: 20, seed: 707, grades: [5, 6], desc: "Harder heuristics problems inspired by Singapore’s Primary 6 exam, plus fractions and decimals.",
+  { id: "psle", free: false, name: "Challenge problems", length: 20, seed: 707, grades: [5, 6], minutes: 35, desc: "Our toughest puzzles: tricky multi-step problems, plus fractions and decimals.",
     pool: (i) => (i.strand === "word" && i.level !== "easy") || fracDec(i) },
-  { id: "pre-alg", free: false, name: "Pre-algebra readiness", length: 20, seed: 808, grades: [6, 7, 8], desc: "Grades 6–8 expressions, equations and the number system.",
+  { id: "pre-alg", free: false, name: "Pre-algebra readiness", length: 20, seed: 808, grades: [6, 7, 8], minutes: 25, desc: "Expressions, equations and negative numbers, to get ready for algebra.",
     pool: (i) => i.strand === "equations" || i.strand === "quick" || fracDec(i) },
 ];
 
