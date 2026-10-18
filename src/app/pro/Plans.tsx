@@ -36,7 +36,7 @@ export function PlanCards({ freeTests }: { freeTests: number }) {
         <h2>MathBridge Pro</h2>
         <p className="muted small">Everything in Free, plus the practice that builds exam confidence.</p>
         <p className="price">{PRO_PRICE}<small> / month</small></p>
-        <p className="small sky">For your first child. Each extra child is {EXTRA_CHILD_PRICE} a month, up to 5 children. 7 days free.</p>
+        <p className="small sky">For your first child. Each extra child is {EXTRA_CHILD_PRICE} a month, up to 5 children. First month free.</p>
         <ul className="ticks">
           <li><b>Everything in Free</b></li>
           <li>A profile for each child, with their own progress, streak and scores</li>
@@ -51,7 +51,7 @@ export function PlanCards({ freeTests }: { freeTests: number }) {
           ) : (
             <>
               <ChildCount count={c.children} setCount={c.setChildren} />
-              <CheckoutButtons {...c} label="Start 7-day free trial" className="btn" />
+              <CheckoutButtons {...c} label="Start 1-month free trial" className="btn" />
               <p className="muted small center">No charge until the trial ends · Cancel any time</p>
               {c.plan?.signIn && !c.plan.parent && (
                 <p className="muted small center">
@@ -73,11 +73,11 @@ export function TrialBand() {
     <section className="trialband">
       <div>
         <p className="badge">Start your child’s journey today</p>
-        <h2>See the difference a visual model makes in 7 days.</h2>
-        <p>Try every Pro test and problem set free for a week. A grown-up completes checkout on Stripe.</p>
+        <h2>See the difference a visual model makes in a month.</h2>
+        <p>Try every Pro test and problem set free for a month. A grown-up completes checkout on Stripe.</p>
       </div>
       <div className="trialband-cta">
-        <CheckoutButtons {...c} label="Start 7-day free trial" />
+        <CheckoutButtons {...c} label="Start 1-month free trial" />
       </div>
     </section>
   );

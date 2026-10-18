@@ -74,7 +74,7 @@ export function ChildCount({ count, setCount }: { count: number; setCount: (n: n
 }
 
 /** Trial button plus the demo unlock and any error, shared by the paywall and the Pro page. */
-export function CheckoutButtons({ plan, busy, error, checkout, demo, label = "Start 7-day free trial", className = "btn gold" }: Pick<ReturnType<typeof useCheckout>, "plan" | "busy" | "error" | "checkout" | "demo"> & { label?: string; className?: string }) {
+export function CheckoutButtons({ plan, busy, error, checkout, demo, label = "Start 1-month free trial", className = "btn gold" }: Pick<ReturnType<typeof useCheckout>, "plan" | "busy" | "error" | "checkout" | "demo"> & { label?: string; className?: string }) {
   return (
     <>
       {error && <p className="notice bad">{error}</p>}
@@ -110,10 +110,10 @@ export function Paywall({ onClose, onUnlocked }: { onClose: () => void; onUnlock
         <div className="offer">
           <div>
             <b>Pro plan</b>
-            <span>7 days free, then {PRO_PRICE} a month, plus {EXTRA_CHILD_PRICE} for each extra child</span>
+            <span>1 month free, then {PRO_PRICE} a month, plus {EXTRA_CHILD_PRICE} for each extra child</span>
           </div>
         </div>
-        <CheckoutButtons {...c} label="Claim 7-day free trial" className="btn" />
+        <CheckoutButtons {...c} label="Claim 1-month free trial" className="btn" />
         <button className="linkbtn" onClick={onClose}>Not now</button>
         <p className="muted small center">
           A grown-up should complete checkout. Payments run in Stripe test mode, so no real card is charged. <Link href="/pro">Compare plans</Link>
@@ -146,7 +146,7 @@ export function ProCard() {
         <li>Intermediate and advanced problem solving</li>
         <li>New tests and topics as they land</li>
       </ul>
-      <Link className="btn gold" href="/pro">Start 7-day free trial</Link>
+      <Link className="btn gold" href="/pro">Start 1-month free trial</Link>
       <span className="procard-note">Cancel any time · No charge until the trial ends</span>
     </div>
   );

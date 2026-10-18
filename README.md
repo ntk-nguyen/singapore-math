@@ -10,7 +10,7 @@ A fun, interactive Singapore Math app for Grades 1–8, built with Next.js (App 
 - **Problem solving**: word problems solved with bar models and solve-for-x equations, each at three levels. Easy is free; intermediate and advanced need the Pro plan and are only served by `/api/practice/[kind]` after a server-side plan check. Every question has a worked solution.
 - **Play**: a ten-question challenge at the child's grade, with stars, streaks, confetti and a "Show me the bar model" hint.
 - **Practice tests**: two free tests (adaptive Placement check, Grade checkpoint) and six Pro plan tests behind a Stripe paywall.
-- **Upgrade to Pro** (`/pro`): Free vs Pro plan comparison and the 7-day trial. The header's Go Pro button, the home sidebar card and every locked test or level lead here or to the in-app upgrade prompt.
+- **Upgrade to Pro** (`/pro`): Free vs Pro plan comparison and the 1-month free trial. The header's Go Pro button, the home sidebar card and every locked test or level lead here or to the in-app upgrade prompt.
 - **Parent sign-in with Google** (optional): a parent signs in on the Parents page, and their children's profiles, progress and Pro plan follow them to every device. Signed out, everything works as before on one device.
 - **Parents**: Common Core ↔ Singapore level map, how results compare with MAP Growth and state tests, privacy notes, and plan management.
 
@@ -63,7 +63,7 @@ Restart `npm run dev`; the Parents page now shows **Sign in with Google**. On Ve
 
 ## Payments (Stripe test mode only)
 
-- `POST /api/checkout` starts a Stripe Checkout subscription with a 7-day trial, priced per child: $7.99/month for the first child and $3.99 for each extra child, up to 5 (quantity = children). The app finds or creates a graduated tiered Price with lookup key `mathbridge_pro_per_child_monthly` in test mode. Set `STRIPE_PRICE_ID` to use your own Price instead. To let parents change the number of children later, allow quantity changes in the Customer Portal settings.
+- `POST /api/checkout` starts a Stripe Checkout subscription with a 30-day (one month) free trial, priced per child: $7.99/month for the first child and $3.99 for each extra child, up to 5 (quantity = children). The app finds or creates a graduated tiered Price with lookup key `mathbridge_pro_per_child_monthly` in test mode. Set `STRIPE_PRICE_ID` to use your own Price instead. To let parents change the number of children later, allow quantity changes in the Customer Portal settings.
 - `GET /api/checkout/success` verifies the Checkout Session and stores the Stripe customer id in a signed, httpOnly cookie. If a parent is signed in, the customer is also linked to their account, so Pro works on every device where they sign in. A plan bought before signing in moves to the account the first time the parent signs in on that device.
 - `GET /api/tests/[id]` serves test papers and checks the Pro plan **on the server** (an active or trialing subscription, looked up in Stripe) before returning a paid test.
 - `POST /api/portal` opens the Stripe Customer Portal so parents can cancel.
