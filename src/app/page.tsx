@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useProgress } from "@/components/Progress";
 import { ProCard } from "@/components/Paywall";
+import { FirstVisitTryIt } from "@/components/TryIt";
 import { usePlan } from "@/components/usePlan";
 import { lastWeek, QUEST_GOAL } from "@/lib/activity";
 import { gradeCatalog, type Domain, type DomainId } from "@/lib/catalog";
@@ -35,6 +36,7 @@ export default function LearnPage() {
   return (
     <div className="stack">
       <Hero units={units} />
+      <FirstVisitTryIt />
       <div className="home">
         <div className="stack" style={{ gap: 20 }}>
           <Pathway key={`${grade}-${ready}`} units={units} />
