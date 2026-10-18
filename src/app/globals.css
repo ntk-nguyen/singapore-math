@@ -240,7 +240,7 @@ p { margin: 0; }
 .tag { font: 600 0.72rem var(--body); letter-spacing: 0.06em; text-transform: uppercase; padding: 3px 10px; border-radius: 999px; align-self: flex-start; white-space: nowrap; }
 .tag.free { background: var(--surface-mid); color: var(--muted); }
 .tag.paid { background: #ffddb8; color: #2a1700; font-weight: 700; }
-.tag.best { background: var(--sky-soft); color: var(--sky-ink); }
+.tag.best, .tag.ahead { background: var(--sky-soft); color: var(--sky-ink); }
 .tag.done { background: color-mix(in srgb, var(--good-fill) 15%, var(--surface)); color: var(--good); }
 .test p { color: var(--muted); font-size: 0.92rem; flex: 1; }
 .locked { opacity: 0.9; }

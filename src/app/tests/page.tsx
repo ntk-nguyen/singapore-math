@@ -9,7 +9,7 @@ import { useProgress } from "@/components/Progress";
 import { usePlan } from "@/components/usePlan";
 import { PAPER_KINDS, paperAvailable } from "@/lib/papers";
 import { type Grade, gradeName, GRADES } from "@/lib/questions";
-import { DIFFICULTIES, TESTS, testOffered, type Difficulty } from "@/lib/tests";
+import { DIFFICULTIES, TESTS, testGrade, testOffered, type Difficulty } from "@/lib/tests";
 
 const COUNT = ["no", "one", "two", "three", "four", "five", "six", "seven", "eight"];
 
@@ -57,10 +57,13 @@ export default function TestsPage() {
       <div className="tests">
         {tests.map((t) => {
           const open = t.free || pro;
+          // A test with a grade range starts above a younger child's grade, so say so up front.
+          const set = testGrade(t, grade);
           return (
             <div key={t.id} className={`test${open ? "" : " locked"}`}>
               {t.free ? <span className="tag free">Free</span> : <span className="tag paid"><span className="lock"><CrownIcon />Pro</span></span>}
               <h3>{t.name}</h3>
+              {set > grade && <span className="tag ahead">Look ahead: set at {gradeName(set)}</span>}
               <p>{t.desc}</p>
               {best[t.id] != null && <span className="muted small">Best: {best[t.id]}%</span>}
               {open ? (

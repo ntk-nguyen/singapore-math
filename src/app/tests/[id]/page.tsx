@@ -8,10 +8,10 @@ import { useProgress, useRemember } from "@/components/Progress";
 import { QuestionCard } from "@/components/QuestionCard";
 import { Results, scorePoints, type Answered } from "@/components/Results";
 import { placementResult, recordAnswer, startPlacement, type PlacementState } from "@/lib/placement";
-import { makeQuestion, type Grade, type Question } from "@/lib/questions";
+import { gradeName, makeQuestion, type Grade, type Question } from "@/lib/questions";
 import { vary } from "@/lib/formats";
 import { pickFresh } from "@/lib/templates";
-import { calculatorAllowed, DIFFICULTIES, getTest, isDifficulty, sessionOf, usesBlueprint, type TestInfo } from "@/lib/tests";
+import { calculatorAllowed, DIFFICULTIES, getTest, isDifficulty, sessionOf, testGrade, usesBlueprint, type TestInfo } from "@/lib/tests";
 
 export default function TestPage() {
   const { id } = useParams<{ id: string }>();
@@ -170,7 +170,7 @@ function FixedTest({ test, grade }: { test: TestInfo; grade: Grade }) {
   return (
     <>
       <p className="muted small">
-        {DIFFICULTIES.find((d) => d.id === level)!.label} · {blueprint ? `Session ${session} of 2 · ${tool(session)} · question ${i + 1} of ${n}` : `question ${i + 1} of ${n} · starts easier and gets harder`}
+        {testGrade(test, grade) > grade && `Look ahead at ${gradeName(testGrade(test, grade))} · `}{DIFFICULTIES.find((d) => d.id === level)!.label} · {blueprint ? `Session ${session} of 2 · ${tool(session)} · question ${i + 1} of ${n}` : `question ${i + 1} of ${n} · starts easier and gets harder`}
       </p>
       <Bar value={i / questions.length} />
       <div className="panel">
