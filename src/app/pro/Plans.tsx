@@ -52,7 +52,7 @@ export function PlanCards({ freeTests }: { freeTests: number }) {
             <>
               <ChildCount count={c.children} setCount={c.setChildren} />
               <CheckoutButtons {...c} label="Start 7-day free trial" className="btn" />
-              <p className="muted small center">No charge until the trial ends · Cancel any time</p>
+              <p className="muted small center">No charge until the trial ends · Cancel any time · <Link href="/terms">Terms</Link></p>
               {c.plan?.signIn && !c.plan.parent && (
                 <p className="muted small center">
                   <Link href="/parents#account">Sign in with Google</Link> first to use Pro on all your devices.

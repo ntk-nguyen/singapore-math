@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePlan } from "@/components/usePlan";
 import { signInWithGoogle, signOutParent } from "../actions/account";
@@ -61,7 +62,7 @@ export function Account() {
             </button>
           </form>
           <p className="muted small">
-            By signing in you agree that we store your name and email, plus each child’s first name or nickname, avatar and progress. You can delete it all here at any time.
+            By signing in you agree to our <Link href="/terms">terms</Link> and that we store your name and email, plus each child’s first name or nickname, avatar and progress, as our <Link href="/privacy">privacy policy</Link> explains. You can delete it all here at any time.
           </p>
         </>
       )}

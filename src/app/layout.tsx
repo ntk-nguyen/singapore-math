@@ -44,6 +44,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <nav className="footlinks" aria-label="More">
                   <Link href="/parents">Parents</Link>
                   <Link href="/pro">Pro plan</Link>
+                  <Link href="/privacy">Privacy</Link>
+                  <Link href="/terms">Terms</Link>
                 </nav>
               </div>
             </footer>

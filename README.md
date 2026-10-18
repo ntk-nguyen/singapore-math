@@ -75,6 +75,12 @@ Restart `npm run dev`; the Parents page now shows **Sign in with Google**. On Ve
 
 Children don't sign up. Stars, scores and placement stay in the browser's local storage, and in the parent's account only if a parent signs in. Fonts are self-hosted, and there are no ads or third-party trackers. Only a grown-up signs in or completes checkout.
 
+## Privacy policy, terms and errors
+
+- `/privacy` and `/terms` are linked from the footer, the sign-in panel and the Pro plan cards. Set `CONTACT_EMAIL` before deploying (the pages are built ahead of time, so a change needs a redeploy) so they show where parents send privacy and account requests. Have them reviewed before taking real payments.
+- A page crash shows `src/app/error.tsx` (or `global-error.tsx` if the layout itself fails), and unknown URLs show `not-found.tsx`.
+- Errors are reported by `src/lib/report.ts`: server errors through `src/instrumentation.ts`, browser errors from the error pages through `POST /api/errors`. Each is logged as one JSON line (`"event":"app_error"`), and also sent to Sentry when `SENTRY_DSN` is set. Reports leave from the server only, with the page path and error, never cookies, query strings or children's data.
+
 ## Not built yet
 
 - Stripe webhooks (the plan is still looked up in Stripe on each check, cached for a minute).
